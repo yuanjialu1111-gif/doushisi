@@ -595,7 +595,317 @@
     applyRoomOptionsToTableInfo(tableInfo, options);
     wirePendingRoomOptions = null;
   }
-  var disabledWindows = new Set(['HallShopUI', 'HallIAPUI', 'CommonSelectPayUI', 'HallWeekCardUI', 'HallMonthUI', 'HallActivityUI', 'DoubleHolidayUI', 'HallTipUI', 'H5DownloadUI', 'BigUpdateUI', 'ForceUpdateUI', 'EventRecallResultUI', 'EventRecallUI', 'HallLiQuanUI', 'HallMatchUI', 'FirstPayUI', 'JoinFriendFail', 'SupplementUI', 'HallFriendUI', 'RecallFriend']);
+  function toast(text) { cc.mm.uimanager.showTextPrompt(String(text)); }
+  function apiRequest(method, path, body, contentType) {
+    return new Promise(function (resolve, reject) {
+      var xhr = new XMLHttpRequest();
+      xhr.open(method, config.apiBase + path, true);
+      xhr.setRequestHeader('Authorization', 'Bearer ' + (cc.mm && cc.mm.framemodel && cc.mm.framemodel.token || ''));
+      if (body !== undefined) xhr.setRequestHeader('Content-Type', contentType || 'application/json');
+      xhr.timeout = 30000;
+      xhr.onreadystatechange = function () {
+        if (xhr.readyState !== 4) return;
+        var data = null;
+        try { data = JSON.parse(xhr.responseText); } catch (_) {}
+        if (xhr.status >= 200 && xhr.status < 300) resolve(data);
+        else reject(data && data.error || { code: 'NETWORK', message: xhr.status ? '请求失败，请稍后再试。' : '网络连接失败，请稍后再试。' });
+      };
+      xhr.send(body === undefined ? null : contentType ? body : JSON.stringify(body));
+    });
+  }
+
+  // 资料设置（R6、R8）：面板只用原版 CommonEditUI 和 HallSetUI 里的素材拼，不另造样式。
+  var profileKit = null, profileKitQueue = null;
+  function withProfileKit(done) {
+    if (profileKit) return done(profileKit);
+    if (profileKitQueue) return profileKitQueue.push(done);
+    profileKitQueue = [done];
+    cc.resources.load(['prefab/CommonEditUI', 'prefab/HallSetUI'], cc.Prefab, function (error, prefabs) {
+      var queue = profileKitQueue; profileKitQueue = null;
+      if (error) return toast('界面加载失败，请稍后再试。');
+      profileKit = { edit: cc.instantiate(prefabs[0]), set: cc.instantiate(prefabs[1]) };
+      queue.forEach(function (callback) { callback(profileKit); });
+    });
+  }
+  function kitNode(kit, root, path) {
+    var node = cc.instantiate(cc.find(path, kit[root]));
+    node.active = true;
+    var button = node.getComponent(cc.Button); if (button) button.clickEvents = [];
+    return node;
+  }
+  function kitLabel(parent, text, x, y, size, color, anchorX) {
+    var node = new cc.Node('label'), label = node.addComponent(cc.Label);
+    label.string = text; label.fontSize = size; label.lineHeight = size + 8;
+    node.color = color; node.anchorX = anchorX === undefined ? 0.5 : anchorX; node.setPosition(x, y);
+    parent.addChild(node);
+    return label;
+  }
+  function kitButton(kit, parent, text, x, y, onClick) {
+    var node = kitNode(kit, 'edit', 'root/getcode');
+    node.getChildByName('label').getComponent(cc.Label).string = text;
+    node.setPosition(x, y); parent.addChild(node);
+    node.on('click', onClick);
+    return node;
+  }
+  function loadAvatar(url, node, size) {
+    if (!url) return;
+    if (url.charAt(0) === '/' && url.charAt(1) !== '/') url = apiOrigin + url;
+    if (!allowedRequest(url, false)) return;
+    node._standaloneAvatarUrl = url;
+    cc.assetManager.loadRemote(url, { ext: '.jpg' }, function (error, texture) {
+      if (error || !cc.isValid(node) || node._standaloneAvatarUrl !== url) return;
+      node.getComponent(cc.Sprite).spriteFrame = new cc.SpriteFrame(texture);
+      node.setContentSize(size, size);
+    });
+  }
+  function avatarView(parent, x, y, size) {
+    var holder = new cc.Node('standaloneAvatar');
+    holder.setContentSize(size, size); holder.setPosition(x, y); parent.addChild(holder);
+    var mask = holder.addComponent(cc.Mask); mask.type = cc.Mask.Type.ELLIPSE; mask.segements = 64;
+    var picture = new cc.Node('picture');
+    picture.setContentSize(size, size); holder.addChild(picture);
+    var sprite = picture.addComponent(cc.Sprite); sprite.sizeMode = cc.Sprite.SizeMode.CUSTOM; sprite.trim = false;
+    var ring = new cc.Node('ring');
+    ring.setPosition(x, y); parent.addChild(ring);
+    var pen = ring.addComponent(cc.Graphics);
+    pen.lineWidth = 4; pen.strokeColor = cc.color(255, 255, 255); pen.circle(0, 0, size / 2 + 1); pen.stroke();
+    return function (url) { loadAvatar(url, picture, size); };
+  }
+  var base64Values = (function () {
+    var values = new Int16Array(128).fill(-1), table = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+    for (var index = 0; index < table.length; index++) values[table.charCodeAt(index)] = index;
+    return values;
+  }());
+  function base64Bytes(text) {
+    text = String(text || '');
+    var bytes = new Uint8Array(Math.ceil(text.length * 3 / 4)), buffer = 0, bits = 0, length = 0;
+    for (var index = 0; index < text.length; index++) {
+      var code = text.charCodeAt(index), value = code < 128 ? base64Values[code] : -1;
+      if (value < 0) continue;
+      buffer = (buffer << 6 | value) & 0xffffff; bits += 6;
+      if (bits >= 8) { bits -= 8; bytes[length++] = buffer >> bits & 255; }
+    }
+    return bytes.subarray(0, length);
+  }
+  function imageType(bytes) {
+    if (bytes[0] === 0xff && bytes[1] === 0xd8) return 'image/jpeg';
+    if (bytes[0] === 0x89 && bytes[1] === 0x50) return 'image/png';
+    if (bytes[8] === 0x57 && bytes[9] === 0x45 && bytes[10] === 0x42 && bytes[11] === 0x50) return 'image/webp';
+    return 'application/octet-stream';
+  }
+  // 网页版先在本机缩到 512 像素以内再传；服务端还会重新压缩到 256 并去掉拍摄信息（R9）。
+  function shrinkImage(file, done) {
+    var url = URL.createObjectURL(file), image = new Image();
+    image.onload = function () {
+      URL.revokeObjectURL(url);
+      var scale = Math.min(1, 512 / Math.max(image.naturalWidth, image.naturalHeight)), canvas = document.createElement('canvas');
+      canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+      canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+      canvas.getContext('2d').drawImage(image, 0, 0, canvas.width, canvas.height);
+      canvas.toBlob(function (blob) { if (blob) done(blob); else toast('读取照片失败，请换一张。'); }, 'image/jpeg', 0.9);
+    };
+    image.onerror = function () { URL.revokeObjectURL(url); toast('这张图片打不开，请换一张 JPG 或 PNG 照片。'); };
+    image.src = url;
+  }
+  var imagePicked = null;
+  window.StandaloneNative = window.StandaloneNative || {};
+  window.StandaloneNative.onImage = function (base64, error) {
+    var done = imagePicked; imagePicked = null;
+    if (!done || error === 'cancelled') return;
+    if (error) return toast(error === 'permission' ? '没有相机或相册权限，请到手机设置里打开。' : '读取照片失败，请换一张。');
+    done(base64Bytes(base64));
+  };
+  function pickImage(source, done) {
+    if (cc.sys.isNative) {
+      imagePicked = done;
+      try { jsb.reflection.callStaticMethod('net/doushisi/standalone/StandaloneMedia', 'pick', '(Ljava/lang/String;)V', source); }
+      catch (_) { imagePicked = null; toast('当前版本还不能选照片，请更新 APP。'); }
+      return;
+    }
+    var input = document.createElement('input');
+    input.type = 'file'; input.accept = 'image/jpeg,image/png,image/webp,image/*'; input.style.display = 'none';
+    if (source === 'camera') input.setAttribute('capture', 'user');
+    input.onchange = function () {
+      var file = input.files && input.files[0];
+      input.parentNode.removeChild(input);
+      if (file) shrinkImage(file, done);
+    };
+    document.body.appendChild(input);
+    input.click();
+  }
+
+  var DEFAULT_AVATAR = '/client/standalone/default-avatar.png';
+  var profileView = null, profileToken = null, profileRetryAt = 0, profilePanel = null;
+  function applyProfile(view) {
+    profileView = view;
+    var model = cc.mm.framemodel;
+    model.picUrl = view.avatarUrl;
+    if (!view.needs.nickname) model.nick = view.nickname;
+    model.sex = view.sex === 2 ? 1 : 0;
+    var hall = cc.mm.uimanager.getWindow('HallUI');
+    if (hall && hall.views && typeof hall.loadUserInfo === 'function') hall.loadUserInfo();
+    var person = cc.mm.uimanager.getWindow('HallPersonUI');
+    if (person && person.views && cc.isValid(person.node)) {
+      if (person.views['bg/namelabel']) person.views['bg/namelabel'].getComponent(cc.Label).string = model.nick;
+      if (person.views['bg/res_dating_hall_head']) cc.mm.uitools.loadRemote(model.picUrl, person.views['bg/res_dating_hall_head']);
+    }
+  }
+  function closeProfilePanel() {
+    if (profilePanel && cc.isValid(profilePanel)) profilePanel.destroy();
+    profilePanel = null;
+  }
+  function uploadAvatar(data, done) {
+    apiRequest('POST', '/api/me/avatar', data, data.type || imageType(data)).then(function (view) { applyProfile(view); done(view); }, function (error) { done(null); toast(error.message); });
+  }
+  function openProfilePanel(mode) {
+    var setup = mode === 'setup';
+    if (profilePanel && cc.isValid(profilePanel)) {
+      if (profilePanel._standaloneMode === 'setup' || !setup) return;
+      closeProfilePanel();
+    }
+    withProfileKit(function (kit) {
+      if (profilePanel && cc.isValid(profilePanel) || !cc.Canvas.instance) return;
+      var view = profileView || { nickname: '', sex: 0, needs: { avatar: true, nickname: true, sex: true } }, busy = false;
+      var panel = new cc.Node('StandaloneProfileUI');
+      panel._standaloneMode = mode;
+      // 原版窗口都挂在场景根上，面板也挂这里，压在窗口上、在文字提示（1000）下面。
+      panel.setContentSize(cc.Canvas.instance.node.getContentSize());
+      panel.setPosition(cc.Canvas.instance.node.position);
+      cc.director.getScene().addChild(panel, 900);
+      profilePanel = panel;
+      panel.addChild(kitNode(kit, 'edit', 'sprite_splash'));
+      var width = setup ? 860 : 620, height = setup ? 540 : 470;
+      var box = new cc.Node('root');
+      box.setContentSize(width, height); panel.addChild(box);
+      var frame = box.addComponent(cc.Sprite);
+      frame.sizeMode = cc.Sprite.SizeMode.CUSTOM; frame.type = cc.Sprite.Type.SLICED;
+      frame.spriteFrame = cc.find('root', kit.edit).getComponent(cc.Sprite).spriteFrame;
+      box.setContentSize(width, height);
+      box.addComponent(cc.BlockInputEvents);
+      var title = kitNode(kit, 'edit', 'root/title_label');
+      title.getComponent(cc.Label).string = setup ? '完善资料' : '换头像';
+      title.setPosition(0, height / 2 - 41); box.addChild(title);
+      var avatarX = setup ? -240 : 0, showAvatar = avatarView(box, avatarX, setup ? 60 : 50, 170);
+      showAvatar(view.avatarUrl || DEFAULT_AVATAR);
+      function choose(source) {
+        if (busy) return;
+        pickImage(source, function (data) {
+          busy = true;
+          uploadAvatar(data, function (next) {
+            busy = false;
+            if (!next) return;
+            showAvatar(next.avatarUrl);
+            toast('头像已更新');
+          });
+        });
+      }
+      kitButton(kit, box, '拍照', avatarX - 82, -95, function () { choose('camera'); });
+      kitButton(kit, box, '相册', avatarX + 82, -95, function () { choose('album'); });
+      var confirm = kitNode(kit, 'edit', 'root/create_club_btns');
+      confirm.setPosition(0, -height / 2 + (setup ? 58 : 62)); box.addChild(confirm);
+      if (!setup) {
+        var close = kitNode(kit, 'edit', 'root/common_close');
+        close.setPosition(width / 2 - 54, height / 2 - 37); box.addChild(close);
+        close.on('click', closeProfilePanel);
+        confirm.on('click', closeProfilePanel);
+        return;
+      }
+      var nameTitle = kitNode(kit, 'edit', 'root/promplabel');
+      nameTitle.getComponent(cc.Label).string = '昵称'; nameTitle.anchorX = 0; nameTitle.setPosition(-40, 90); box.addChild(nameTitle);
+      var nameBox = kitNode(kit, 'edit', 'root/editbox');
+      nameBox.width = 320; nameBox.setPosition(210, 90); box.addChild(nameBox);
+      var edit = nameBox.getComponent(cc.EditBox);
+      edit.maxLength = 7; edit.placeholder = '2–7 个字，不能和别人重名';
+      edit.string = view.needs.nickname ? '' : view.nickname;
+      var sexTitle = kitNode(kit, 'edit', 'root/promplabel');
+      sexTitle.getComponent(cc.Label).string = '性别'; sexTitle.anchorX = 0; sexTitle.setPosition(-40, 0); box.addChild(sexTitle);
+      var sexes = kitNode(kit, 'set', 'root/toggleContainer');
+      sexes.setPosition(150, 0); box.addChild(sexes);
+      var container = sexes.getComponent(cc.ToggleContainer), toggles = [sexes.getChildByName('toggle1').getComponent(cc.Toggle), sexes.getChildByName('toggle2').getComponent(cc.Toggle)];
+      container.allowSwitchOff = view.sex !== 1 && view.sex !== 2;
+      toggles[0].isChecked = view.sex === 1; toggles[1].isChecked = view.sex === 2;
+      toggles.forEach(function (toggle) { toggle.node.on('toggle', function () { container.allowSwitchOff = false; }); });
+      kitLabel(box, '头像只能拍照或从相册选；性别决定快捷语音用男声还是女声', 0, -150, 22, cc.color(141, 151, 187));
+      confirm.on('click', function () {
+        if (busy) return;
+        var current = profileView || view, nickname = edit.string.trim(), sex = toggles[0].isChecked ? 1 : toggles[1].isChecked ? 2 : 0;
+        if (current.needs.avatar) return toast('请先拍照或从相册选一张头像。');
+        if (!nickname) return toast('请填写昵称。');
+        if (!sex) return toast('请选择性别。');
+        busy = true;
+        apiRequest('PUT', '/api/me/profile', { nickname: nickname, sex: sex }).then(function (next) {
+          busy = false;
+          applyProfile(next);
+          if (!next.complete) return toast(next.needs.avatar ? '请先拍照或从相册选一张头像。' : '资料还没填完整。');
+          closeProfilePanel();
+          toast('资料已保存');
+        }, function (error) { busy = false; toast(error.message); });
+      });
+    });
+  }
+  // 每次登录先查资料，没设好就弹出不能关的设置面板（R6 AC1、AC2）。
+  function checkProfile() {
+    var token = cc.mm && cc.mm.framemodel && cc.mm.framemodel.token;
+    if (!token || token === profileToken || Date.now() < profileRetryAt) return;
+    profileToken = token;
+    apiRequest('GET', '/api/me/profile').then(function (view) {
+      if (profileToken !== token) return;
+      applyProfile(view);
+      if (!view.complete) openProfilePanel('setup');
+    }, function () { if (profileToken === token) { profileToken = null; profileRetryAt = Date.now() + 5000; } });
+  }
+  function changeNickname() {
+    var at = profileView && profileView.nicknameChangeableAt && new Date(profileView.nicknameChangeableAt);
+    if (at && at.getTime() > Date.now()) return toast('昵称 30 天内只能改一次，' + at.getFullYear() + '年' + (at.getMonth() + 1) + '月' + at.getDate() + '日以后可以再改。');
+    // 原版窗口点确定就自己关掉；没保存成功就提示原因并重新打开。
+    cc.mm.uimanager.showWindow(cc.mm.config.resources, 'CommonEditUI', {
+      type: 'edit', title: '修改昵称', prompt: '新昵称', warn: '2–7 个字，30 天内只能改一次', maxLength: 7, standaloneNickname: true,
+      editSucCall: function (text) {
+        apiRequest('PUT', '/api/me/profile', { nickname: String(text || '').trim() }).then(function (next) {
+          applyProfile(next);
+          toast('昵称已修改');
+        }, function (error) { toast(error.message); setTimeout(changeNickname, 300); });
+      }
+    });
+  }
+  // 原版改名窗口总带着验证码那一行，改昵称用不到，藏掉并把输入框挪到中间。
+  function patchNicknameWindow(edit) {
+    if (!edit.views || !edit.body || !edit.body.standaloneNickname || edit._standaloneNickname) return;
+    edit._standaloneNickname = true;
+    hide(edit.views, ['root/authlabel', 'root/authcode', 'root/getcode', 'root/label']);
+    edit.views['root/promplabel'].setPosition(-190, 25);
+    var box = edit.views['root/editbox'];
+    box.width = 340; box.setPosition(70, 25);
+    box.children.forEach(function (child) { var widget = child.getComponent(cc.Widget); if (widget) widget.updateAlignment(); });
+  }
+  // 原版大厅弹出其他窗口时会暂停自己的定时钩子，所以窗口补丁直接挂在原版控制器的 loadUI / reLoad 后面。
+  function afterLoadUI(className, patch) {
+    var Controller = cc.js.getClassByName(className);
+    if (!Controller || Controller.prototype._standaloneLoadUI) return;
+    Controller.prototype._standaloneLoadUI = true;
+    ['loadUI', 'reLoad'].forEach(function (name) {
+      var original = Controller.prototype[name];
+      if (typeof original !== 'function') return;
+      Controller.prototype[name] = function () {
+        var result = original.apply(this, arguments);
+        patch(this);
+        return result;
+      };
+    });
+  }
+  // 个人信息页：周卡和实名认证两行换成「换头像」「改昵称」（R8）。
+  function patchPersonWindow(person) {
+    if (!person.views || !person.views.bg || person._standaloneProfileEntries) return;
+    person._standaloneProfileEntries = true;
+    hide(person.views, ['bg/doushisi-gerenzhongxin-pic-zhouka', 'bg/timelabel', 'bg/tubiao', 'bg/btn_shouquan', 'bg/yirenzheng']);
+    withProfileKit(function (kit) {
+      if (!cc.isValid(person.node)) return;
+      kitButton(kit, person.views.bg, '换头像', -407, -139, function () { openProfilePanel('avatar'); });
+      kitButton(kit, person.views.bg, '改昵称', -407, -232, changeNickname);
+    });
+  }
+
+  var disabledWindows = new Set(['HallShopUI', 'HallIAPUI', 'CommonSelectPayUI', 'HallWeekCardUI', 'HallMonthUI', 'HallActivityUI', 'DoubleHolidayUI', 'HallTipUI', 'H5DownloadUI', 'BigUpdateUI', 'ForceUpdateUI', 'EventRecallResultUI', 'EventRecallUI', 'HallLiQuanUI', 'HallMatchUI', 'FirstPayUI', 'JoinFriendFail', 'SupplementUI', 'HallFriendUI', 'RecallFriend', 'HallAuthentication']);
   window.Standalone = {
     supportsArea: function (id) {
       var area = areaNumber(id);
@@ -788,6 +1098,7 @@
     },
     protocolError: function (error, command) {
       cc.mm.uimanager.showTextPrompt(String(error.message || '请求失败'));
+      if (error.code === 'PROFILE_REQUIRED') profileToken = null;
       if ([24, 54, 122, 126].indexOf(command) >= 0) this.recoverWireRoom();
       if (command === 48 && wireRecovering) {
         wireRecovering = false;
@@ -845,6 +1156,8 @@
       app.gameserver.playad = function (callback) { if (callback) callback(false); };
       app.hallserver.requestEmail = function () {};
       hookCreateRoomRequest(app);
+      afterLoadUI('HallPersonUIController', patchPersonWindow);
+      afterLoadUI('CommonEditUIController', patchNicknameWindow);
       var loadRemote = app.uitools.loadRemote;
       app.uitools.loadRemote = function (url, target) {
         if (url && url.charAt(0) === '/' && url.charAt(1) !== '/') url = apiOrigin + url;
@@ -883,6 +1196,7 @@
       };
     },
     login: function (controller) {
+      closeProfilePanel(); profileToken = null; profileView = null;
       hide(controller.views, ['wxlogin', 'userreg', 'accountLogin/closeLayoutBtn']);
       ['accountLogin/accountid/editbox', 'accountReg/accountid/editbox'].forEach(function (key) { controller.views[key].getComponent(cc.EditBox).maxLength = 32; });
       ['accountLogin/passworld/editbox', 'accountReg/passworld1/editbox', 'accountReg/passworld2/editbox'].forEach(function (key) { var edit = controller.views[key].getComponent(cc.EditBox); edit.maxLength = 128; edit.inputFlag = cc.EditBox.InputFlag.PASSWORD; });
@@ -936,6 +1250,8 @@
       controller._standaloneFriendRows = next;
     },
     hall: function (controller) {
+      checkProfile();
+      if (!profileKit && !profileKitQueue) withProfileKit(function () {});
       var nickname = controller.views['hallHeadBtn/namelabel'];
       if (nickname && !nickname._standaloneNameBounds) {
         nickname._standaloneNameBounds = true;

@@ -735,6 +735,13 @@ export async function registerOriginalProtocol(app: FastifyInstance, services: O
           if (requested.id === actor.id) exactField(reply, 'goldNum', await ledger.balance(actor.id), ['hwResponseHeadInfo'], fields);
           connection.send(MSGEvent.HWResponseHeadInfo, reply, fields); return;
         }
+        case MSGEvent.HWRequestChangeSex: {
+          // 原版设置页的男女切换：线上 0=男、1=女，库里 1=男、2=女。
+          const sex = Number(body.sex) === 1 ? 2 : 1;
+          if (services.profiles) await services.profiles.update(actor, { sex });
+          else await db.query('UPDATE accounts SET sex=$2 WHERE id=$1', [actor.id, sex]);
+          connection.send(MSGEvent.HWResponseChangeSex, { result: 1, sex: wireSex(sex), uid: await numericUid(actor.id) }); return;
+        }
         case MSGEvent.HWRequestRecordList: {
           const found = await db.query('SELECT r.* FROM rooms r JOIN room_members m ON m.room_id=r.id WHERE m.user_id=$1 AND r.current_round>0 ORDER BY r.created_at DESC LIMIT 100', [actor.id]);
           const records = []; const fields: DecimalField[] = [];

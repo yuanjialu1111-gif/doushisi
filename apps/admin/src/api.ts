@@ -42,8 +42,10 @@ export async function api<T>(path: string, options: RequestInit = {}): Promise<T
       sessionStorage.removeItem(SESSION_KEY);
       window.dispatchEvent(new Event(EXPIRED_EVENT));
     }
-    throw new ApiError(response.status, payload?.error?.code ?? 'REQUEST_FAILED',
-      errorMessages[payload?.error?.code] ?? payload?.error?.message ?? `请求失败 (${response.status})`);
+    // 服务端统一回 {error:{code,message}}；也兼容契约里写的顶层 {code,message}。
+    const failure = payload?.error && typeof payload.error === 'object' ? payload.error : typeof payload?.code === 'string' ? payload : null;
+    throw new ApiError(response.status, failure?.code ?? 'REQUEST_FAILED',
+      errorMessages[failure?.code] ?? failure?.message ?? `请求失败 (${response.status})`);
   }
   if (payload === null) throw new ApiError(response.status, 'INVALID_RESPONSE', '服务器响应格式不正确。');
   return payload as T;
@@ -53,9 +55,38 @@ export function messageOf(error: unknown): string {
   return error instanceof Error ? error.message : '操作失败，请重试。';
 }
 
+// 服务端还没提供某个接口时，Fastify 回 404 且不带 {error:{code}}。
+export const MISSING_ENDPOINT = '服务端尚未提供该接口';
+export function isMissingEndpoint(error: unknown): boolean {
+  return error instanceof ApiError && error.status === 404 && error.code === 'REQUEST_FAILED';
+}
+
+// 头像地址是服务端给的根相对路径（/media/avatars/...），和 /api/admin 一样同源，原样使用；
+// 只放行根相对路径和 http(s)，其他（如 javascript:、//外站）一律不显示。
+export function mediaUrl(path?: string | null): string {
+  if (!path) return '';
+  return /^\/(?!\/)/.test(path) || /^https?:\/\//i.test(path) ? path : '';
+}
+
 export type Role = 'beans_admin' | 'deal_admin';
 export interface AdminUser { id: string; username: string; nickname: string; role: Role }
-export interface Player { id: string; username: string; nickname: string; balance: string; online: boolean }
+export interface Player {
+  id: string; username: string; nickname: string; balance: string; online: boolean;
+  avatarHash?: string | null; avatarStatus?: string; nicknameRejected?: boolean; avatarUrl?: string;
+}
+export interface AvatarItem {
+  userId: string; username: string; nickname: string; nicknameRejected: boolean;
+  avatarHash: string | null; avatarStatus: string; uploadedAt: string; avatarUrl: string;
+}
+export interface LobbyVariant {
+  key: string; name: string; defaults: Record<string, unknown>; needsBaseBeans: boolean; needsPlayerNum: boolean;
+}
+export interface LobbyTemplate {
+  id: string; variantKey: string; variantName: string; options: Record<string, unknown>;
+  standingEmpty: number; thresholdMultiplier: number; idleClearMinutes: number; enabled: boolean; sortOrder: number;
+  summary: { baseBeans: string; playerNum: number; rounds: number } | null;
+  openTables: number; seatedPlayers: number; updatedAt?: string;
+}
 export interface LedgerEntry {
   id: string; type: string; amount: string; balanceBefore: string; balanceAfter: string;
   reason: string; createdAt: string; actorName?: string; roomId?: string; roundId?: string;

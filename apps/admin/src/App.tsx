@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useId, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import {
-  ArrowDownLeft, ArrowUpRight, Check, ChevronLeft, ChevronRight, Coins, Dices,
-  History, LoaderCircle, LogOut, RefreshCw, RotateCcw, Search, Settings2, ShieldCheck, Users, X,
+  ArrowDownLeft, ArrowUpRight, Ban, Check, ChevronLeft, ChevronRight, Coins, Dices, History, ImageOff, Images,
+  LayoutGrid, LoaderCircle, LogOut, Plus, RefreshCw, RotateCcw, Search, Settings2, ShieldCheck, Users, UserX, X,
 } from 'lucide-react';
 import {
-  api, ApiError, EXPIRED_EVENT, messageOf, SESSION_KEY, type AdminUser, type AuditEntry,
-  type DealPolicy, type LedgerEntry, type Pagination, type Player, type Stats,
+  api, ApiError, EXPIRED_EVENT, isMissingEndpoint, mediaUrl, messageOf, MISSING_ENDPOINT, SESSION_KEY,
+  type AdminUser, type AuditEntry, type AvatarItem, type DealPolicy, type LedgerEntry, type LobbyTemplate,
+  type LobbyVariant, type Pagination, type Player, type Stats,
 } from './api';
 
 const roleNames = { beans_admin: '豆子管理员', deal_admin: '发牌管理员' };
@@ -44,19 +45,20 @@ function useResource<T>(path: string, revision = 0) {
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [missing, setMissing] = useState(false);
   const [retry, setRetry] = useState(0);
   const reload = useCallback(() => setRetry(n => n + 1), []);
   useEffect(() => {
     const controller = new AbortController();
-    setLoading(true); setError(''); setData(null);
+    setLoading(true); setError(''); setMissing(false); setData(null);
     api<T>(path, { signal: controller.signal }).then(result => {
       if (!controller.signal.aborted) setData(result);
     }).catch(err => {
-      if (!controller.signal.aborted) setError(messageOf(err));
+      if (!controller.signal.aborted) { setError(messageOf(err)); setMissing(isMissingEndpoint(err)); }
     }).finally(() => { if (!controller.signal.aborted) setLoading(false); });
     return () => controller.abort();
   }, [path, revision, retry]);
-  return { data, loading, error, reload };
+  return { data, loading, error, missing, reload };
 }
 
 function IconButton({ title, children, onClick, disabled = false }: {
@@ -71,6 +73,13 @@ function ErrorBanner({ message, retry }: { message: string; retry?: () => void }
 
 function Loading() { return <div className="empty-state" role="status"><LoaderCircle className="spin" size={21} /><span>正在加载</span></div>; }
 function Empty({ children = '暂无记录' }: { children?: ReactNode }) { return <div className="empty-state"><History size={24} /><span>{children}</span></div>; }
+
+// 头像缩略图：被驳回或没传时服务端会跳到默认灰头像；图片加载失败（如本地 vite 未代理 /media）时退回首字。
+function Avatar({ url, name, alt = '' }: { url?: string; name: string; alt?: string }) {
+  const src = mediaUrl(url);
+  const [failed, setFailed] = useState('');
+  return <div className="avatar">{src && failed !== src ? <img src={src} alt={alt} loading="lazy" onError={() => setFailed(src)} /> : name.slice(0, 1)}</div>;
+}
 
 function Pager({ data, onPage }: { data: Pagination; onPage: (page: number) => void }) {
   const last = Math.max(1, Math.ceil(data.total / data.pageSize));
@@ -107,7 +116,7 @@ function Modal({ title, subtitle, children, onClose, busy = false, wide = false 
     function onKey(event: KeyboardEvent) {
       if (event.key === 'Escape' && !busy) closeRef.current();
       if (event.key === 'Tab' && panel.current) {
-        const elements = Array.from(panel.current.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled), textarea:not(:disabled), [tabindex="0"]'));
+        const elements = Array.from(panel.current.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex="0"]'));
         const first = elements[0], last = elements[elements.length - 1];
         if (!first) { event.preventDefault(); return; }
         if (event.shiftKey && (document.activeElement === first || document.activeElement === panel.current)) { event.preventDefault(); last.focus(); }
@@ -212,6 +221,34 @@ function Ledger({ player, onClose, onCorrect }: { player: Player; onClose: () =>
   </Modal>;
 }
 
+// 驳回头像 / 昵称（R9）：原因 1–200 字，服务端留审计记录；两种管理员都能操作。
+interface RejectTarget { kind: 'avatar' | 'nickname'; userId: string; username: string; nickname: string; avatarUrl?: string }
+
+function Rejection({ target, onClose, onSaved }: { target: RejectTarget; onClose: () => void; onSaved: () => void }) {
+  const [reason, setReason] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const isAvatar = target.kind === 'avatar';
+  const name = target.nickname || target.username;
+  const validReason = reason.trim().length >= 1 && reason.trim().length <= 200;
+  async function submit(event: FormEvent) {
+    event.preventDefault(); if (!validReason) return;
+    setBusy(true); setError('');
+    try {
+      await api(`/users/${encodeURIComponent(target.userId)}/${isAvatar ? 'avatar' : 'nickname'}-rejection`, { method: 'POST', body: JSON.stringify({ reason: reason.trim() }) });
+      onSaved();
+    } catch (err) { setError(messageOf(err)); } finally { setBusy(false); }
+  }
+  return <Modal title={isAvatar ? '驳回头像' : '驳回昵称'} subtitle={`${name} · ${target.username}`} onClose={onClose} busy={busy}>
+    <form className="modal-form" onSubmit={submit}>
+      <div className="user-cell"><Avatar url={target.avatarUrl} name={name} alt={`${name} 的头像`} /><div><strong>{target.nickname || '未设置昵称'}</strong><div className="secondary">{isAvatar ? '驳回后头像变回默认灰色头像，玩家下次登录要重新上传。' : '驳回后玩家下次登录要重新填写昵称。'}</div></div></div>
+      <label>驳回原因<textarea required maxLength={200} rows={3} value={reason} disabled={busy} placeholder="1–200 字" onChange={e => { setReason(e.target.value); setError(''); }} /></label>
+      {error && <ErrorBanner message={error} />}
+      <div className="modal-actions"><button type="button" className="secondary-button" disabled={busy} onClick={onClose}>取消</button><button className="danger-button" disabled={busy || !validReason}>{busy ? <LoaderCircle size={17} className="spin" /> : <Ban size={17} />}确认驳回</button></div>
+    </form>
+  </Modal>;
+}
+
 function Wallets({ onChange, revision, notify }: { onChange: () => void; revision: number; notify: (message: string) => void }) {
   const [query, setQuery] = useState('');
   const [page, setPage] = useState(1);
@@ -219,16 +256,148 @@ function Wallets({ onChange, revision, notify }: { onChange: () => void; revisio
   const { data, error, loading, reload } = useResource<Pagination & { users: Player[] }>(`/users?query=${encodeURIComponent(search)}&page=${page}`, revision);
   const [adjusting, setAdjusting] = useState<(Player & { reference?: LedgerEntry }) | null>(null);
   const [ledger, setLedger] = useState<Player | null>(null);
+  const [rejecting, setRejecting] = useState<RejectTarget | null>(null);
+  const reject = (kind: RejectTarget['kind'], player: Player) => setRejecting({ kind, userId: player.id, username: player.username, nickname: player.nickname, avatarUrl: player.avatarUrl });
   return <section className="workspace-section"><div className="section-toolbar"><div><h2>用户豆子</h2><span className="secondary">{data ? `${data.total} 位用户` : '账户余额与账目'}</span></div><div className="toolbar-actions"><SearchInput value={query} onChange={value => { setQuery(value); setPage(1); }} /><IconButton title="刷新用户" disabled={loading} onClick={reload}><RefreshCw size={18} /></IconButton></div></div>
     {error ? <ErrorBanner message={error} retry={reload} /> : loading ? <Loading /> : !data?.users.length ? <Empty>没有符合条件的用户</Empty> : <>
-      <div className="table-scroll"><table className="wallet-table"><thead><tr><th>用户</th><th>用户 ID</th><th>状态</th><th className="number">豆子余额</th><th className="actions-cell">操作</th></tr></thead><tbody>{data.users.map(player => <tr key={player.id}>
-        <td><div className="user-cell"><div className="avatar">{(player.nickname || player.username).slice(0, 1)}</div><div><strong>{player.nickname || player.username}</strong><div className="secondary">{player.username}</div></div></div></td>
+      <div className="table-scroll"><table className="wallet-table"><thead><tr><th>头像</th><th>用户</th><th>用户 ID</th><th>状态</th><th className="number">豆子余额</th><th className="actions-cell">操作</th></tr></thead><tbody>{data.users.map(player => <tr key={player.id}>
+        <td><Avatar url={player.avatarUrl} name={player.nickname || player.username} alt={`${player.nickname || player.username} 的头像`} />{player.avatarStatus === 'rejected' && <div className="secondary negative">已驳回</div>}</td>
+        <td><div className="user-cell"><div><strong>{player.nickname || player.username}</strong><div className="secondary">{player.username}</div>{player.nicknameRejected && <div className="secondary negative">昵称已驳回</div>}</div></div></td>
         <td className="mono id-cell">{player.id}</td><td><span className={`status ${player.online ? 'online' : ''}`}><i />{player.online ? '在线' : '离线'}</span></td><td className={`number amount ${isNegative(player.balance) ? 'negative' : ''}`}>{balanceText(player.balance)}</td>
-        <td><div className="row-actions"><button type="button" className="text-button" onClick={() => setLedger(player)}><History size={16} />账目</button><button type="button" className="secondary-button compact" onClick={() => setAdjusting(player)}><Coins size={16} />调整</button></div></td>
+        <td><div className="row-actions"><button type="button" className="text-button" onClick={() => setLedger(player)}><History size={16} />账目</button>
+          <button type="button" className="text-button" disabled={!(player.avatarStatus === 'active' && player.avatarHash)} onClick={() => reject('avatar', player)}><ImageOff size={16} />驳回头像</button>
+          <button type="button" className="text-button" disabled={!!player.nicknameRejected} onClick={() => reject('nickname', player)}><UserX size={16} />驳回昵称</button>
+          <button type="button" className="secondary-button compact" onClick={() => setAdjusting(player)}><Coins size={16} />调整</button></div></td>
       </tr>)}</tbody></table></div><Pager data={data} onPage={setPage} />
     </>}
     {adjusting && <Adjustment player={adjusting} reference={adjusting.reference} onClose={() => setAdjusting(null)} onSaved={() => { setAdjusting(null); onChange(); notify('豆子调整已入账'); }} />}
     {ledger && <Ledger player={ledger} onClose={() => setLedger(null)} onCorrect={(reference, balance) => { setAdjusting({ ...ledger, balance, reference }); setLedger(null); }} />}
+    {rejecting && <Rejection target={rejecting} onClose={() => setRejecting(null)} onSaved={() => { setRejecting(null); onChange(); notify(rejecting.kind === 'avatar' ? '头像已驳回' : '昵称已驳回'); }} />}
+  </section>;
+}
+
+// 头像审核（R9）：最近上传的头像，两种管理员都能看、都能驳回头像或昵称。
+const avatarStatusNames: Record<string, string> = { active: '使用中', rejected: '已驳回' };
+
+function AvatarReview({ revision, onChange, notify }: { revision: number; onChange: () => void; notify: (message: string) => void }) {
+  const [page, setPage] = useState(1);
+  const { data, error, loading, reload } = useResource<Pagination & { items: AvatarItem[] }>(`/avatars?page=${page}`, revision);
+  const [rejecting, setRejecting] = useState<RejectTarget | null>(null);
+  const reject = (kind: RejectTarget['kind'], item: AvatarItem) => setRejecting({ kind, userId: item.userId, username: item.username, nickname: item.nickname, avatarUrl: item.avatarUrl });
+  return <section className="workspace-section"><div className="section-toolbar"><div><h2>头像审核</h2><span className="secondary">{data ? `${data.total} 张头像` : '最近上传的头像'}</span></div><div className="toolbar-actions"><IconButton title="刷新头像" disabled={loading} onClick={reload}><RefreshCw size={18} /></IconButton></div></div>
+    {error ? <ErrorBanner message={error} retry={reload} /> : loading ? <Loading /> : !data?.items?.length ? <Empty>还没有玩家上传头像</Empty> : <>
+      <div className="avatar-grid">{data.items.map(item => {
+        const name = item.nickname || item.username;
+        return <div className="avatar-card" key={item.userId}>
+          <Avatar url={item.avatarUrl} name={name} alt={`${name} 的头像`} />
+          <div><strong>{name}</strong>{item.nicknameRejected && <div className="secondary negative">昵称已驳回</div>}<div className="secondary">{item.username}</div><div className="secondary">上传于 {dateText(item.uploadedAt)}</div></div>
+          <span className={`status ${item.avatarStatus === 'active' ? 'online' : ''}`}><i />{avatarStatusNames[item.avatarStatus] ?? item.avatarStatus}</span>
+          <div className="row-actions"><button type="button" className="text-button" disabled={!(item.avatarStatus === 'active' && item.avatarHash)} onClick={() => reject('avatar', item)}><ImageOff size={16} />驳回头像</button>
+            <button type="button" className="text-button" disabled={item.nicknameRejected} onClick={() => reject('nickname', item)}><UserX size={16} />驳回昵称</button></div>
+        </div>;
+      })}</div><Pager data={data} onPage={setPage} />
+    </>}
+    {rejecting && <Rejection target={rejecting} onClose={() => setRejecting(null)} onSaved={() => { setRejecting(null); onChange(); notify(rejecting.kind === 'avatar' ? '头像已驳回' : '昵称已驳回'); }} />}
+  </section>;
+}
+
+// 大厅桌模板（R2）：只给豆子管理员。不提供删除，停用用 enabled=false。
+// options 与玩家开房同形；需要手填底分的玩法写 options.baseBeans（字符串），需要手选人数的写 options.playerNum。
+type OptionsResult = { options: Record<string, unknown>; error: '' } | { options: null; error: string };
+
+function parseOptions(text: string): OptionsResult {
+  try {
+    const value: unknown = JSON.parse(text);
+    if (!value || typeof value !== 'object' || Array.isArray(value)) return { options: null, error: 'options 必须是 JSON 对象（用 { } 包起来）。' };
+    return { options: value as Record<string, unknown>, error: '' };
+  } catch (err) { return { options: null, error: `options 不是合法的 JSON：${messageOf(err)}` }; }
+}
+
+const optionsText = (options: Record<string, unknown> = {}) => JSON.stringify(options, null, 2);
+const isIntegerIn = (value: string, min: number, max: number) => /^-?\d+$/.test(value) && Number(value) >= min && Number(value) <= max;
+
+function NumberField({ label, value, onChange, min, max, unit, disabled }: {
+  label: string; value: string; onChange: (value: string) => void; min: number; max: number; unit?: string; disabled: boolean;
+}) {
+  const id = useId();
+  return <div className="probability-heading"><label htmlFor={id}>{label}</label><div className="number-input"><input id={id} type="number" min={min} max={max} step={1} required value={value} disabled={disabled} onChange={e => onChange(e.target.value.trim())} />{unit && <span>{unit}</span>}</div></div>;
+}
+
+function TemplateEditor({ template, variants, nextSortOrder, onClose, onSaved }: {
+  template: LobbyTemplate | null; variants: LobbyVariant[]; nextSortOrder: number; onClose: () => void; onSaved: () => void;
+}) {
+  const [variantKey, setVariantKey] = useState(template?.variantKey ?? variants[0]?.key ?? '');
+  const [text, setText] = useState(() => optionsText(template?.options ?? variants.find(v => v.key === variantKey)?.defaults));
+  const [standingEmpty, setStandingEmpty] = useState(String(template?.standingEmpty ?? 3));
+  const [thresholdMultiplier, setThresholdMultiplier] = useState(String(template?.thresholdMultiplier ?? 10));
+  const [idleClearMinutes, setIdleClearMinutes] = useState(String(template?.idleClearMinutes ?? 10));
+  const [sortOrder, setSortOrder] = useState(String(template?.sortOrder ?? nextSortOrder));
+  const [enabled, setEnabled] = useState(template?.enabled ?? true);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const mutate = (action: () => void) => { action(); setError(''); };
+  const variant = variants.find(v => v.key === variantKey);
+  const parsed = parseOptions(text);
+  const options = parsed.options;
+  // 底分、人数两个输入框直接改 JSON 里的字段，管理员看到的就是要提交的 options。
+  const setOption = (key: string, value: unknown) => { if (options) mutate(() => setText(optionsText({ ...options, [key]: value }))); };
+  const baseBeans = typeof options?.baseBeans === 'string' ? options.baseBeans : options?.baseBeans === undefined ? '' : String(options.baseBeans);
+  const problem = !variantKey ? '请选择玩法。'
+    : !options ? ''
+    : variant?.needsBaseBeans && !(typeof options.baseBeans === 'string' && /^(?:0|[1-9]\d{0,79})(?:\.\d{1,12})?$/.test(options.baseBeans) && /[1-9]/.test(options.baseBeans)) ? '底分要填大于 0 的数，最多 12 位小数。'
+    : variant && !variant.needsBaseBeans && options.baseBeans !== undefined ? '这个玩法用原版底分，请从 options 里去掉 baseBeans。'
+    : variant?.needsPlayerNum && ![2, 3, 4].includes(options.playerNum as number) ? '请选择人数。'
+    : !isIntegerIn(standingEmpty, 0, 20) ? '常驻空桌要填 0–20 的整数。'
+    : !isIntegerIn(thresholdMultiplier, 1, 1000) ? '门槛倍数要填 1–1000 的整数。'
+    : !isIntegerIn(idleClearMinutes, 1, 120) ? '清座时限要填 1–120 的整数。'
+    : !isIntegerIn(sortOrder, -999999, 999999) ? '排序要填整数。' : '';
+  async function submit(event: FormEvent) {
+    event.preventDefault(); if (!options || problem) return;
+    setBusy(true); setError('');
+    try {
+      const body = { variantKey, options, standingEmpty: Number(standingEmpty), thresholdMultiplier: Number(thresholdMultiplier), idleClearMinutes: Number(idleClearMinutes), enabled, sortOrder: Number(sortOrder) };
+      await api(template ? `/lobby-templates/${encodeURIComponent(template.id)}` : '/lobby-templates', { method: template ? 'PUT' : 'POST', body: JSON.stringify(body) });
+      onSaved();
+    } catch (err) { setError(isMissingEndpoint(err) ? MISSING_ENDPOINT : messageOf(err)); } finally { setBusy(false); }
+  }
+  return <Modal title={template ? '编辑大厅桌模板' : '新建大厅桌模板'} subtitle={template ? `${template.variantName || template.variantKey} · ${template.id}` : '按模板常驻空桌，玩家点桌入座'} onClose={onClose} busy={busy}>
+    <form className="modal-form" onSubmit={submit}>
+      <label>玩法<select aria-label="玩法" value={variantKey} disabled={busy} onChange={e => { const key = e.target.value; mutate(() => { setVariantKey(key); setText(optionsText(variants.find(v => v.key === key)?.defaults)); }); }}>
+        {!variantKey && <option value="">请选择玩法</option>}
+        {variants.map(item => <option key={item.key} value={item.key}>{item.name}</option>)}
+        {template && !variants.some(item => item.key === template.variantKey) && <option value={template.variantKey}>{template.variantName || template.variantKey}</option>}
+      </select></label>
+      {variant?.needsBaseBeans && <label>底分<input inputMode="decimal" required value={baseBeans} disabled={busy || !options} placeholder="例如 1" onChange={e => setOption('baseBeans', e.target.value.trim())} /></label>}
+      {variant?.needsPlayerNum && <div className="segmented" role="group" aria-label="人数">{[2, 3, 4].map(count => <button type="button" key={count} aria-pressed={options?.playerNum === count} className={options?.playerNum === count ? 'selected' : ''} disabled={busy || !options} onClick={() => setOption('playerNum', count)}><Users size={17} />{count} 人</button>)}</div>}
+      <label>玩法选项（options JSON）<textarea className="mono" rows={8} spellCheck={false} aria-invalid={!!parsed.error} value={text} disabled={busy} onChange={e => mutate(() => setText(e.target.value))} />{parsed.error && <span className="secondary negative">{parsed.error}</span>}</label>
+      <NumberField label="常驻空桌（0–20）" value={standingEmpty} min={0} max={20} unit="张" disabled={busy} onChange={value => mutate(() => setStandingEmpty(value))} />
+      <NumberField label="入座门槛倍数（1–1000）" value={thresholdMultiplier} min={1} max={1000} unit="倍" disabled={busy} onChange={value => mutate(() => setThresholdMultiplier(value))} />
+      <NumberField label="清座时限（1–120）" value={idleClearMinutes} min={1} max={120} unit="分钟" disabled={busy} onChange={value => mutate(() => setIdleClearMinutes(value))} />
+      <NumberField label="排序（小的在前）" value={sortOrder} min={-999999} max={999999} disabled={busy} onChange={value => mutate(() => setSortOrder(value))} />
+      <label className="switch-row"><span>启用模板</span><input type="checkbox" role="switch" checked={enabled} disabled={busy} onChange={e => mutate(() => setEnabled(e.target.checked))} /><span className="switch-track" aria-hidden="true" /></label>
+      {problem && <div className="secondary negative">{problem}</div>}
+      {error && <ErrorBanner message={error} />}
+      <div className="modal-actions"><button type="button" className="secondary-button" disabled={busy} onClick={onClose}>取消</button><button className="primary-button" disabled={busy || !options || !!problem}>{busy ? <LoaderCircle size={17} className="spin" /> : <Check size={17} />}保存模板</button></div>
+    </form>
+  </Modal>;
+}
+
+function LobbyTemplates({ revision, onChange, notify }: { revision: number; onChange: () => void; notify: (message: string) => void }) {
+  const { data, error, missing, loading, reload } = useResource<{ templates: LobbyTemplate[]; variants: LobbyVariant[] }>('/lobby-templates', revision);
+  const [editing, setEditing] = useState<LobbyTemplate | 'new' | null>(null);
+  const templates = data?.templates ?? [], variants = data?.variants ?? [];
+  return <section className="workspace-section"><div className="section-toolbar"><div><h2>大厅桌模板</h2><span className="secondary">{data ? `${templates.length} 个模板` : '系统常驻桌配置'}</span></div><div className="toolbar-actions"><button type="button" className="primary-button compact" disabled={!variants.length} onClick={() => setEditing('new')}><Plus size={16} />新建模板</button><IconButton title="刷新模板" disabled={loading} onClick={reload}><RefreshCw size={18} /></IconButton></div></div>
+    {error ? <ErrorBanner message={missing ? MISSING_ENDPOINT : error} retry={reload} /> : loading ? <Loading /> : !templates.length ? <Empty>还没有大厅桌模板</Empty> : <>
+      <div className="table-scroll"><table><thead><tr><th>玩法</th><th className="number">底分 / 人数 / 局数</th><th className="number">常驻空桌</th><th className="number">门槛倍数</th><th className="number">清座时限</th><th>状态</th><th className="number">排序</th><th className="number">当前桌况</th><th className="actions-cell">操作</th></tr></thead><tbody>{templates.map(template => <tr key={template.id}>
+        <td><strong>{template.variantName || template.variantKey}</strong><div className="secondary mono">{template.variantKey}</div></td>
+        <td className="number">{template.summary ? `${balanceText(template.summary.baseBeans)} / ${template.summary.playerNum} 人 / ${template.summary.rounds} 局` : '—'}</td>
+        <td className="number">{template.standingEmpty} 张</td><td className="number">{template.thresholdMultiplier} 倍</td><td className="number">{template.idleClearMinutes} 分钟</td>
+        <td><span className={`status ${template.enabled ? 'online' : ''}`}><i />{template.enabled ? '已启用' : '已停用'}</span></td><td className="number">{template.sortOrder}</td>
+        <td className="number">{template.openTables} 桌 · {template.seatedPlayers} 人</td>
+        <td><div className="row-actions"><button type="button" className="secondary-button compact" onClick={() => setEditing(template)}><Settings2 size={16} />编辑</button></div></td>
+      </tr>)}</tbody></table></div>
+    </>}
+    {editing && <TemplateEditor template={editing === 'new' ? null : editing} variants={variants} nextSortOrder={templates.reduce((max, item) => Math.max(max, item.sortOrder + 1), 0)} onClose={() => setEditing(null)} onSaved={() => { const created = editing === 'new'; setEditing(null); onChange(); notify(created ? '大厅桌模板已新建' : '大厅桌模板已保存'); }} />}
   </section>;
 }
 
@@ -322,7 +491,7 @@ export default function App() {
   const [sessionError, setSessionError] = useState('');
   const [sessionRetry, setSessionRetry] = useState(0);
   const [expired, setExpired] = useState(false);
-  const [view, setView] = useState<'main' | 'audit'>('main');
+  const [view, setView] = useState<'main' | 'audit' | 'avatars' | 'lobby'>('main');
   const [revision, setRevision] = useState(0);
   const [notice, setNotice] = useState('');
   useEffect(() => {
@@ -355,12 +524,16 @@ export default function App() {
   if (!user) return <Login expired={expired} onLogin={value => { setUser(value); setExpired(false); setRevision(n => n + 1); }} />;
   const isBeans = user.role === 'beans_admin';
   const changed = () => setRevision(value => value + 1);
+  // 头像审核两种管理员都有；大厅桌模板只给豆子管理员，策略审计只给发牌管理员。
+  const viewName = view === 'avatars' ? '头像审核' : isBeans ? view === 'lobby' ? '大厅桌模板' : '用户豆子' : view === 'audit' ? '策略审计' : '发牌策略';
   return <div className="app-shell"><aside className="sidebar"><div className="brand"><Dices size={28} /><div><strong>斗十四</strong><span>运营管理台</span></div></div>
-    <div className="nav-label">工作空间</div><nav aria-label="管理导航"><button className={view === 'main' ? 'active' : ''} onClick={() => setView('main')}>{isBeans ? <Coins size={19} /> : <Settings2 size={19} />}{isBeans ? '用户豆子' : '发牌策略'}</button>{!isBeans && <button className={view === 'audit' ? 'active' : ''} onClick={() => setView('audit')}><History size={19} />策略审计</button>}</nav>
+    <div className="nav-label">工作空间</div><nav aria-label="管理导航"><button className={view === 'main' ? 'active' : ''} onClick={() => setView('main')}>{isBeans ? <Coins size={19} /> : <Settings2 size={19} />}{isBeans ? '用户豆子' : '发牌策略'}</button>{isBeans && <button className={view === 'lobby' ? 'active' : ''} onClick={() => setView('lobby')}><LayoutGrid size={19} />大厅桌模板</button>}{!isBeans && <button className={view === 'audit' ? 'active' : ''} onClick={() => setView('audit')}><History size={19} />策略审计</button>}<button className={view === 'avatars' ? 'active' : ''} onClick={() => setView('avatars')}><Images size={19} />头像审核</button></nav>
     <div className="sidebar-bottom"><ShieldCheck size={17} /><span>{roleNames[user.role]}</span></div>
-  </aside><div className="main-column"><header className="topbar"><div className="breadcrumbs"><span>管理台</span><ChevronRight size={14} /><strong>{isBeans ? '用户豆子' : view === 'audit' ? '策略审计' : '发牌策略'}</strong></div><div className="account-menu"><span>{user.nickname || user.username}</span><IconButton title="退出登录" onClick={logout}><LogOut size={18} /></IconButton></div></header>
+  </aside><div className="main-column"><header className="topbar"><div className="breadcrumbs"><span>管理台</span><ChevronRight size={14} /><strong>{viewName}</strong></div><div className="account-menu"><span>{user.nickname || user.username}</span><IconButton title="退出登录" onClick={logout}><LogOut size={18} /></IconButton></div></header>
     <main className="main-content"><div className="page-heading"><div><div className="eyebrow">{roleNames[user.role]}</div><h1>{isBeans ? '豆子管理' : '发牌管理'}</h1></div><IconButton title="刷新全部数据" onClick={changed}><RefreshCw size={18} /></IconButton></div><Statistics role={user.role} revision={revision} />
-      {isBeans ? <Wallets revision={revision} onChange={changed} notify={setNotice} /> : view === 'main' ? <Policies revision={revision} onChange={changed} notify={setNotice} /> : <Audit revision={revision} />}
+      {view === 'avatars' ? <AvatarReview revision={revision} onChange={changed} notify={setNotice} />
+        : isBeans ? view === 'lobby' ? <LobbyTemplates revision={revision} onChange={changed} notify={setNotice} /> : <Wallets revision={revision} onChange={changed} notify={setNotice} />
+        : view === 'audit' ? <Audit revision={revision} /> : <Policies revision={revision} onChange={changed} notify={setNotice} />}
     </main><footer className="page-footer"><span>斗十四 · 管理台</span><span>{roleNames[user.role]}</span></footer>
   </div>{notice && <div className="toast" role="status"><Check size={18} />{notice}<IconButton title="关闭通知" onClick={() => setNotice('')}><X size={16} /></IconButton></div>}</div>;
 }

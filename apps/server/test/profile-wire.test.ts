@@ -96,4 +96,11 @@ test('R6/R7: the original table protocol requires a finished profile and shows e
   assert.equal(fresh.picUrl, (await profiles.get(actors[0]!.id)).avatarUrl);
   assert.notEqual(fresh.picUrl, urls[0]);
   assert.equal(fresh.sex, 1);
+
+  // 原版设置页的男女切换（65/66）写回资料，下次进桌用对的声音。
+  const changed = await c.request(65, { hwRequestChangeSex: { sex: 0 } }, 66);
+  assert.equal((changed.frame.data.hwResponseChangeSex as any).sex ?? 0, 0);
+  assert.equal((await profiles.get(actors[0]!.id)).sex, 1);
+  await c.request(65, { hwRequestChangeSex: { sex: 1 } }, 66);
+  assert.equal((await profiles.get(actors[0]!.id)).sex, 2);
 });
