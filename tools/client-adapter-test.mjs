@@ -174,7 +174,9 @@ test('V2 room creation metadata carries only required exact bean and player fiel
 test('Qionglai response and replay restore exact options; another region cannot accept the snapshot', () => {
   const { api } = adapter(true);
   assert.equal(api.supportsArea(8), true);
-  for (const id of [2, 3, 6, 13, 17, 18, 101]) assert.equal(api.supportsArea(id), false);
+  // 以现行版本的保留玩法为准：保留的都能开，已移除的都不能开。
+  for (const id of clientEdition.gameIds) assert.equal(api.supportsArea(id), true);
+  for (const id of [2, 3, 13, 17, 18, 101]) assert.equal(api.supportsArea(id), false);
   const qionglai = { version: clientEdition.qionglaiVersion, qlTianDiHu: 0, qlHongHeiHu: 1, qlHongHei50: 1 };
   const options = { baseBeans: '0.125', baseBeansSource: 'manual', playerNum: 3, playerNumSource: 'original', qionglai };
   const table = { roomId: 654321, playerNum: 3, areaType: 8 };
@@ -283,9 +285,12 @@ for (const native of [false, true]) {
 test('original score fonts retain original glyphs and source decimal pixels', async () => {
   const manifest = JSON.parse(await readFile(resolve(project, 'client/decimal-font-manifest.json'), 'utf8'));
   assert.equal(manifest.length, 2);
+  // 原版 APK 解包资源只在原开发机上（work/apk），本机没有。项目里存一份字体定义当基准：
+  // 2026-10-30 由当时的补丁文件去掉「.」字形得到，用来防止以后改到「.」以外的字形。
+  const originals = JSON.parse(await readFile(resolve(project, 'client/decimal-font-original.json'), 'utf8'));
   for (const entry of manifest) {
     const fontPath = `assets/dss/import/${entry.id.slice(0, 2)}/${entry.id}.json`;
-    const original = JSON.parse(await readFile(resolve(project, '../../work/apk/assets', fontPath), 'utf8'))[5][0][3];
+    const original = originals[entry.id];
     const patched = JSON.parse(await readFile(resolve(project, 'client/public', fontPath), 'utf8'))[5][0][3];
     const point = patched.fontDefDictionary[46];
     assert.ok(point.rect.width > 0 && point.rect.height > 0);

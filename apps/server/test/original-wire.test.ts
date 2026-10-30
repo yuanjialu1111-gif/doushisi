@@ -381,7 +381,7 @@ test('R11 AC2/AC3: rooms never ask for a location, old GPS rooms included, and t
   assert.equal((await db.query('SELECT count(*)::int AS n FROM ledger_operations')).rows[0]!.n, 0);
 });
 
-test('R3 AC1/AC2: the create-room extension opens a public AA room only when 公开到大厅 is ticked', async t => {
+test('R3 AC1/AC2, R5 AC2: the create-room extension opens a public AA room only when 公开到大厅 is ticked and the host meets the threshold', async t => {
   const db = await openDatabase(); await migrate(db);
   const app = Fastify(); await app.register(websocket);
   const auth = new AuthService(db); const ledger = new LedgerService(db); const policies = new PolicyService(db);
@@ -401,8 +401,17 @@ test('R3 AC1/AC2: the create-room extension opens a public AA room only when 公
   async function create(client: typeof a, uid: string, createRoom: NonNullable<OriginalExtension['createRoom']>) {
     const start = client.inbox.length;
     client.socket.send(encodeOriginalResponse(3, body, uid, { createRoom }));
-    return (await client.wait(4, start)).frame.data.hwResponseCreateTable as any;
+    const received = await client.wait(4, start);
+    return Object.assign(received.frame.data.hwResponseCreateTable as any, { error: received.extension?.error });
   }
+  // 房主豆子不够「底分 × 10」就不开公开房，并提示还差多少（DEC-20261030-公开房房主也查门槛）。
+  const refused = await create(a, uids[0]!, { baseBeans: '1', visibility: 'public' });
+  assert.equal(refused.error?.code, 'BELOW_THRESHOLD');
+  assert.match(refused.error?.message, /至少要 10 豆，你还差 10 豆/);
+  assert.equal((await db.query('SELECT count(*)::int AS n FROM rooms')).rows[0]!.n, 0);
+  const admin = await auth.create('public_beans_admin', 'test-password-only', 'beans_admin');
+  const host = (await db.query("SELECT id FROM accounts WHERE username='public_host_0'")).rows[0]!;
+  await ledger.adjust(admin, host.id, '10', 'public host threshold', 'public-host-threshold');
   const opened = await create(a, uids[0]!, { baseBeans: '1', visibility: 'public' });
   assert.equal(opened.result, 1);
   assert.equal(opened.tableInfo.useCardType, 2);

@@ -113,6 +113,8 @@ export class RoomService extends EventEmitter {
     const { id } = await this.db.transaction(async tx => {
       await tx.query('SELECT pg_advisory_xact_lock(hashtextextended($1,0))', [`player-room:${actor.id}`]);
       await this.requireNoRoom(tx, actor.id);
+      // 公开房的房主和后来入座的人用同一道门槛，不够就不开房（R5，DEC-20261030-公开房房主也查门槛）。
+      if (visibility === 'public') await this.requireThreshold(tx, actor.id, { rules: prepared.rules, lobby_template_id: null });
       const room = await this.insertRoom(tx, actor.id, prepared, visibility, null);
       await tx.query('INSERT INTO room_members(room_id,user_id,seat) VALUES($1,$2,1)', [room.id, actor.id]);
       return room;

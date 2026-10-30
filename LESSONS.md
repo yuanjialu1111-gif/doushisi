@@ -20,6 +20,13 @@
 - **做法**：设好 `edit.string` 之后，再 `node.emit('text-changed')`。
 - **证据**：只设 string 的话，`prepareCreateRoom` 会用草稿值（空字符串）把输入框改回去，结果提示「请输入正数底分」，2026-10-30 实测。
 
+## 脚本勾开房面板的多选项要直接调控制器
+
+- **场景**：自检时用脚本勾开房面板里的「公开到大厅」。
+- **做法**：调 `controller.onClickToggle(toggle 节点, 'publicLobby')`，再看 `_rules.publicLobby`。底分要先填好再勾。
+- **证据**：对选项节点 `emit('click')` 后 `_rules.publicLobby` 一直是 0；直接调 `onClickToggle` 就变成 1，并自动切 AA、弹提示，2026-10-30 实测。
+- **边界**：原版按勾选框当前显示的状态来翻转，脚本直接改了勾选框以后，显示和规则会对不上。
+
 ## 原版按钮的缩放写多少，以实际显示为准
 
 - **场景**：调整原版带「按下缩放」动效的按钮的 scale。

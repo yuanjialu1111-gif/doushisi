@@ -1209,10 +1209,24 @@
     if (playing) card.opacity = 215;
     return card;
   }
+  // 从大厅桌退出后回到大厅桌列表；好友房仍回主大厅（DEC-20261030-退桌回大厅桌列表）。
+  var lobbyReturn = null;
   function lobbyJoin(lobby, code) {
     if (lobby.joiningAt && Date.now() - lobby.joiningAt < 2000) return;
     lobby.joiningAt = Date.now();
+    lobbyReturn = { code: String(code), entered: false };
     cc.mm.hallserver.requestJoinRoom(String(code));
+  }
+  function noteLobbyTable() {
+    var room = cc.mm.gameserver && cc.mm.gameserver.room_data;
+    if (!lobbyReturn || lobbyReturn.entered || !room || !room.roomId) return;
+    if (String(room.roomId) === lobbyReturn.code) lobbyReturn.entered = true;
+    else lobbyReturn = null;
+  }
+  function returnToLobby(hall) {
+    if (!lobbyReturn || !lobbyReturn.entered || window.Standalone.hasLiveRoom() || !hall.node.activeInHierarchy) return;
+    lobbyReturn = null;
+    openLobby(hall);
   }
   // 快速开始（R4）：服务端挑好桌并入座，返回房号；再走原版输房号进房，和点桌子是同一条路。
   function lobbyQuickStart(controller) {
@@ -1548,6 +1562,7 @@
       var locationButton = controller.views.locationbtn;
       if (locationButton) { locationButton.opacity = 0; locationButton.active = false; }
       useBeansAtTable(controller);
+      if (!(window.StandaloneReplay && StandaloneReplay.active())) noteLobbyTable();
       if (!controller._standaloneCurrencyNormalized) { normalizeCurrencyLabels(controller.node); controller._standaloneCurrencyNormalized = true; }
       if (window.StandaloneReplay && StandaloneReplay.active()) hide(controller.views, ['readyBtn', 'tg_bg', 'ntfOperate', 'sureTip', 'select', 'gy_btn_chat', 'menunode/gy_btn_tuoguan']);
     },
@@ -1592,6 +1607,7 @@
     hall: function (controller) {
       checkProfile();
       patchHallLobbyEntry(controller);
+      returnToLobby(controller);
       if (!profileKit && !profileKitQueue) withProfileKit(function () {});
       var nickname = controller.views['hallHeadBtn/namelabel'];
       if (nickname && !nickname._standaloneNameBounds) {
