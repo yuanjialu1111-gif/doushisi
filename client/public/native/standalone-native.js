@@ -1064,7 +1064,7 @@
     var title = lobbyLabel(controller.views.backBtn, '大厅', 30, 0, 36, cc.color(255, 255, 255), 0.5, true);
     var outline = title.node.addComponent(cc.LabelOutline); outline.color = cc.color(32, 86, 168); outline.width = 2;
     var quick = controller.views['left/quick_start'];
-    quick.active = true; quick.scale = 0.72; quick.setPosition(-245, -306);
+    quick.active = true; quick.scale = 1; quick.setPosition(-245, -306);
     controller.views['left/quick_start/label'].getComponent(cc.Label).string = '快速开始';
     quick.off('click');
     cc.mm.uitools.addBtnLister(quick, function () { lobbyQuickStart(controller); }, controller);
