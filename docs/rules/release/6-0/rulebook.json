@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "status": "approved",
+  "basis": "user-approved",
+  "variantKey": "6:0",
+  "ruleVersion": "yaan-independent-v1",
+  "title": "雅安红二十独立规则 v1",
+  "approval": {
+    "path": "docs/rules/release/6-0/approval.json",
+    "sha256": "805758a10e3516d6cc1a0ac824e84bf36eff1ce6cb9a063b0cd6523f371b3053"
+  },
+  "requiredCoverage": [
+    "wildcards",
+    "gold-hook",
+    "declared-wait-lock",
+    "concealed-four-pairs",
+    "payments"
+  ],
+  "sources": [
+    "docs/rules/YAAN-INDEPENDENT.md",
+    "docs/rules/IMPLEMENTATION-20260916.md",
+    "packages/rules/src/edition.ts",
+    "apps/server/src/game/yaan-pack.ts",
+    "apps/server/src/game/yaan-win.ts",
+    "apps/server/src/game/yaan-round.ts"
+  ],
+  "summary": {
+    "deck": "52 ordinary cards; configured wang and enabled sevens are in-hand wildcards; qiWangNum=0 keeps ordinary sevens.",
+    "win": "Four groups of sum-14 pairs, same-rank peng/tou triples, or gang/ba quads; concealed four-pairs is an independent structure.",
+    "scoring": "The package-backed scorer uses explicit qia20, baoJiao, anDui/dragon, gang, color, and fifty switches.",
+    "declaration": "A declaration locks the server-computed wait faces; response melds are forbidden after declaration.",
+    "goldHook": "Three exposed peng/gang/ba groups plus two concealed cards that form a legal group after the winning card."
+  }
+}

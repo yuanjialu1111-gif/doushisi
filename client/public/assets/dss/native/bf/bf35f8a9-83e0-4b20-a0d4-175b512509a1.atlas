@@ -1,0 +1,125 @@
+
+huo-touxiang.png
+size: 1301,326
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+huo_00000
+  rotate: false
+  xy: 878, 22
+  size: 140, 150
+  orig: 180, 180
+  offset: 18, 13
+  index: -1
+huo_00002
+  rotate: false
+  xy: 734, 22
+  size: 142, 150
+  orig: 180, 180
+  offset: 17, 13
+  index: -1
+huo_00004
+  rotate: false
+  xy: 590, 22
+  size: 142, 152
+  orig: 180, 180
+  offset: 17, 13
+  index: -1
+huo_00006
+  rotate: false
+  xy: 302, 10
+  size: 140, 155
+  orig: 180, 180
+  offset: 18, 13
+  index: -1
+huo_00008
+  rotate: true
+  xy: 1128, 180
+  size: 144, 159
+  orig: 180, 180
+  offset: 16, 13
+  index: -1
+huo_00010
+  rotate: false
+  xy: 2, 2
+  size: 150, 163
+  orig: 180, 180
+  offset: 13, 13
+  index: -1
+huo_00012
+  rotate: true
+  xy: 477, 177
+  size: 147, 164
+  orig: 180, 180
+  offset: 14, 14
+  index: -1
+huo_00014
+  rotate: false
+  xy: 154, 2
+  size: 146, 163
+  orig: 180, 180
+  offset: 15, 13
+  index: -1
+huo_00016
+  rotate: false
+  xy: 162, 167
+  size: 153, 157
+  orig: 180, 180
+  offset: 11, 14
+  index: -1
+huo_00018
+  rotate: false
+  xy: 2, 167
+  size: 158, 157
+  orig: 180, 180
+  offset: 9, 13
+  index: -1
+huo_00020
+  rotate: false
+  xy: 317, 169
+  size: 158, 155
+  orig: 180, 180
+  offset: 9, 13
+  index: -1
+huo_00022
+  rotate: true
+  xy: 966, 180
+  size: 144, 160
+  orig: 180, 180
+  offset: 16, 13
+  index: -1
+huo_00024
+  rotate: true
+  xy: 643, 176
+  size: 148, 160
+  orig: 180, 180
+  offset: 14, 13
+  index: -1
+huo_00026
+  rotate: true
+  xy: 805, 174
+  size: 150, 159
+  orig: 180, 180
+  offset: 13, 13
+  index: -1
+huo_00028
+  rotate: false
+  xy: 444, 13
+  size: 144, 154
+  orig: 180, 180
+  offset: 16, 13
+  index: -1
+huo_00030
+  rotate: false
+  xy: 1020, 25
+  size: 138, 153
+  orig: 180, 180
+  offset: 19, 13
+  index: -1
+huo_00031
+  rotate: false
+  xy: 1160, 26
+  size: 139, 152
+  orig: 180, 180
+  offset: 18, 13
+  index: -1

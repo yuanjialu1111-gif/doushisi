@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "status": "approved",
+  "basis": "user-approved",
+  "variantKey": "4:0",
+  "ruleVersion": "xinjin-independent-v1",
+  "title": "新津斗十四独立规则 v1",
+  "approval": {
+    "path": "docs/rules/release/4-0/approval.json",
+    "sha256": "15cebf25c558a45ec0eb8744ae33ef6298ff2ce8602f8c17b30a7879401ab580"
+  },
+  "requiredCoverage": [
+    "declared-wait-lock",
+    "concealed-four-pairs",
+    "payments"
+  ],
+  "sources": [
+    "docs/rules/XINJIN-INDEPENDENT.md",
+    "docs/rules/cases/xinjin-pack-v1.json",
+    "apps/server/src/game/xinjin-pack.ts",
+    "apps/server/src/game/xinjin-win.ts",
+    "apps/server/src/game/xinjin-round.ts"
+  ],
+  "summary": {
+    "deck": "52 ordinary cards plus configured 3/5/6/9 special cards; qiToWang changes only the four physical sevens.",
+    "win": "Four groups: sum-14 pairs, exposed same-rank triples, or quads; concealed four-pairs is independent.",
+    "scoring": "Package-backed fan table with qia20, longDui, xiaoHu, qia40/qia50 exclusivity and siGuiYi boundaries.",
+    "declaration": "Declaration locks the server-computed wait faces.",
+    "payments": "Exact per-payer 12-place rounding and no duplicate settlement.",
+    "zeroFan": "A legal structure meeting the red-point threshold wins at zero fan for one settlement unit."
+  }
+}

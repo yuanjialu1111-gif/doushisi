@@ -1,0 +1,15 @@
+node_modules/
+dist/
+.env
+.local/
+test-results/
+playwright-report/
+*.log
+*.jks
+*.keystore
+
+# 本机资料：部署包含令牌、本机设置
+线上部署包/
+.claude/settings.local.json
+*.apk
+*.idsig

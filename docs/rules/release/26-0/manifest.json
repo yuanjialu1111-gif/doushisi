@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "variantKey": "26:0",
+  "ruleVersion": "ganluo-independent-v1",
+  "rulebook": {
+    "path": "docs/rules/release/26-0/rulebook.json",
+    "sha256": "852b3aa8e72571e1736f9d9b7826d31201c0b4de82decf54b45928ceccc67139"
+  },
+  "cases": {
+    "path": "docs/rules/release/26-0/cases.json",
+    "sha256": "0da337ca1df4907b8e13842b7fb0fc7b25a52e0a73fcaed8ca06c55668c88944"
+  },
+  "generatedAt": "2026-10-03T06:05:28.539Z"
+}

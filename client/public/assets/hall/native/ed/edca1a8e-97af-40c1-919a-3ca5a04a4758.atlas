@@ -1,0 +1,83 @@
+
+zhoukadali.png
+size: 172,461
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+3
+  rotate: true
+  xy: 111, 132
+  size: 85, 52
+  orig: 85, 52
+  offset: 0, 0
+  index: -1
+4
+  rotate: false
+  xy: 131, 275
+  size: 32, 54
+  orig: 32, 54
+  offset: 0, 0
+  index: -1
+di
+  rotate: true
+  xy: 2, 219
+  size: 126, 127
+  orig: 129, 131
+  offset: 0, 0
+  index: -1
+dou2
+  rotate: false
+  xy: 91, 2
+  size: 68, 45
+  orig: 68, 46
+  offset: 0, 1
+  index: -1
+guang
+  rotate: true
+  xy: 2, 347
+  size: 112, 130
+  orig: 119, 130
+  offset: 4, 0
+  index: -1
+guang6
+  rotate: false
+  xy: 2, 148
+  size: 107, 69
+  orig: 110, 73
+  offset: 2, 0
+  index: -1
+shanguang
+  rotate: true
+  xy: 131, 262
+  size: 11, 12
+  orig: 12, 12
+  offset: 0, 0
+  index: -1
+shouchong
+  rotate: true
+  xy: 2, 5
+  size: 64, 87
+  orig: 98, 87
+  offset: 16, 0
+  index: -1
+shouchong2
+  rotate: true
+  xy: 2, 71
+  size: 75, 89
+  orig: 82, 91
+  offset: 2, 0
+  index: -1
+wenzi
+  rotate: true
+  xy: 134, 331
+  size: 128, 36
+  orig: 128, 36
+  offset: 0, 0
+  index: -1
+xing
+  rotate: false
+  xy: 93, 49
+  size: 74, 81
+  orig: 77, 85
+  offset: 0, 4
+  index: -1

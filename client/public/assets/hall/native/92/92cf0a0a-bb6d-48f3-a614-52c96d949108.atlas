@@ -1,0 +1,76 @@
+
+lingdou.png
+size: 220,157
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+body
+  rotate: false
+  xy: 136, 33
+  size: 82, 122
+  orig: 82, 122
+  offset: 0, 0
+  index: -1
+denglong
+  rotate: false
+  xy: 98, 61
+  size: 27, 24
+  orig: 27, 24
+  offset: 0, 0
+  index: -1
+denglong2
+  rotate: false
+  xy: 65, 60
+  size: 31, 56
+  orig: 31, 56
+  offset: 0, 0
+  index: -1
+douzi
+  rotate: false
+  xy: 98, 87
+  size: 29, 29
+  orig: 29, 29
+  offset: 0, 0
+  index: -1
+guang
+  rotate: true
+  xy: 2, 9
+  size: 107, 61
+  orig: 111, 66
+  offset: 2, 1
+  index: -1
+heidi
+  rotate: false
+  xy: 2, 118
+  size: 132, 37
+  orig: 134, 39
+  offset: 1, 1
+  index: -1
+youyan
+  rotate: false
+  xy: 116, 44
+  size: 10, 15
+  orig: 10, 15
+  offset: 0, 0
+  index: -1
+zi
+  rotate: false
+  xy: 65, 2
+  size: 107, 29
+  orig: 109, 31
+  offset: 1, 1
+  index: -1
+zuoshou
+  rotate: false
+  xy: 65, 34
+  size: 32, 24
+  orig: 32, 24
+  offset: 0, 0
+  index: -1
+zuoyan
+  rotate: false
+  xy: 99, 44
+  size: 15, 15
+  orig: 15, 15
+  offset: 0, 0
+  index: -1

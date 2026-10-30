@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "variantKey": "4:0",
+  "ruleVersion": "xinjin-independent-v1",
+  "rulebook": {
+    "path": "docs/rules/release/4-0/rulebook.json",
+    "sha256": "414c826388655a4448134b20fecacd29a7a22410e61b8680c1426cc31b181ddf"
+  },
+  "cases": {
+    "path": "docs/rules/release/4-0/cases.json",
+    "sha256": "39b1ab60f6ec0f451884346a0273449a5fe4872eb048ef3c7a4f20c0b521d06d"
+  },
+  "generatedAt": "2026-10-03T06:11:38.202Z"
+}

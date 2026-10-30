@@ -1,0 +1,210 @@
+{
+  "schemaVersion": 1,
+  "verifiedAt": "2026-09-09T08:51:20.567Z",
+  "status": "evidence-insufficient-for-d03-deck-definition",
+  "scope": "Static, local APK evidence only. No original client module was executed, no server was contacted, and no rules or engines were changed.",
+  "originalApk": {
+    "path": "E:/codex/xwechat_files/wxid_9q7z8f89g9fg12_dd9a/msg/file/2026-09/296902a8-126e-4274-859f-3068efa490d6.apk.1.1",
+    "expectedSha256": "a9e8e06e2ce5a70b125d6d166df7de16e655e6affd793d8a8f923d7d70549d5f",
+    "verified": true,
+    "bytes": 182015188
+  },
+  "checkedSources": [
+    {
+      "file": "work/apk/assets/assets/dss/index.js",
+      "sha256": "52680e5a2fb2c2934f4ae0829ad1604c53a7fe066939144e7c0d070c929838be",
+      "bytes": 206628,
+      "actualSha256": "52680e5a2fb2c2934f4ae0829ad1604c53a7fe066939144e7c0d070c929838be"
+    },
+    {
+      "file": "work/apk/assets/assets/main/index.js",
+      "sha256": "e99623ba8f071a6692df390c612e622f67f0c3465097a7332b2e06231130cb97",
+      "bytes": 1315253,
+      "actualSha256": "e99623ba8f071a6692df390c612e622f67f0c3465097a7332b2e06231130cb97"
+    },
+    {
+      "file": "work/apk/assets/assets/dss/config.json",
+      "sha256": "25f64acb7fd4ed3c13fee0c827945e041005fa2c7ebf29513601fb5f3927f102",
+      "bytes": 72455,
+      "actualSha256": "25f64acb7fd4ed3c13fee0c827945e041005fa2c7ebf29513601fb5f3927f102"
+    },
+    {
+      "file": "work/apk/assets/assets/dss/import/7c/7c953d7a-1743-4d67-afb2-3c28aa7df5db.json",
+      "sha256": "d0b69982816849dfaf28d703579580ae37e2fb1802592061012eef40c988f11b",
+      "bytes": 3556,
+      "actualSha256": "d0b69982816849dfaf28d703579580ae37e2fb1802592061012eef40c988f11b"
+    },
+    {
+      "file": "outputs/apk-deep-analysis/modules/dss/dss_gameModel.js",
+      "sha256": "3d4b87d7b7201fe12a0579f260d4d0c9f0ea0196e96ea1e4d7851c78936452da",
+      "bytes": 10410,
+      "actualSha256": "3d4b87d7b7201fe12a0579f260d4d0c9f0ea0196e96ea1e4d7851c78936452da"
+    },
+    {
+      "file": "outputs/apk-deep-analysis/modules/dss/dss_tools.js",
+      "sha256": "d8a9398b785971520461a36e89d5006d5ea3e28914fcef99a7360610818ac308",
+      "bytes": 3610,
+      "actualSha256": "d8a9398b785971520461a36e89d5006d5ea3e28914fcef99a7360610818ac308"
+    },
+    {
+      "file": "outputs/apk-deep-analysis/modules/main/FrameGameConfig.js",
+      "sha256": "d3bd17bf6ad48f75c7f82c0de158d597f5d1b5346b7991eedcebf850f20c66b4",
+      "bytes": 69499,
+      "actualSha256": "d3bd17bf6ad48f75c7f82c0de158d597f5d1b5346b7991eedcebf850f20c66b4"
+    }
+  ],
+  "anchors": [
+    {
+      "id": "fire-game-configuration",
+      "file": "outputs/apk-deep-analysis/modules/main/FrameGameConfig.js",
+      "occurrence": 0,
+      "line": 245,
+      "utf8ByteOffset": 3355,
+      "text": "3: [ {\nname: \"火十四\",\ngameId: 3,"
+    },
+    {
+      "id": "fire-one-deck-tooltip",
+      "file": "outputs/apk-deep-analysis/modules/main/FrameGameConfig.js",
+      "occurrence": 0,
+      "line": 336,
+      "utf8ByteOffset": 4462,
+      "text": "wenhao: \"6个10，6个7（4个7加大小王），6个4\""
+    },
+    {
+      "id": "fire-two-deck-tooltip",
+      "file": "outputs/apk-deep-analysis/modules/main/FrameGameConfig.js",
+      "occurrence": 0,
+      "line": 341,
+      "utf8ByteOffset": 4565,
+      "text": "wenhao: \"8个10，12个7（8个7加4个大小王），8个4\""
+    },
+    {
+      "id": "fire-white-card-wild-tooltip",
+      "file": "outputs/apk-deep-analysis/modules/main/FrameGameConfig.js",
+      "occurrence": 0,
+      "line": 357,
+      "utf8ByteOffset": 4854,
+      "text": "wenhao: \"白皮当癞子可以替换成任意牌\""
+    },
+    {
+      "id": "fire-eight-tens-tooltip",
+      "file": "outputs/apk-deep-analysis/modules/main/FrameGameConfig.js",
+      "occurrence": 1,
+      "line": 372,
+      "utf8ByteOffset": 5155,
+      "text": "wenhao: \"庄家起手8个10天胡算100分\""
+    },
+    {
+      "id": "special-card-value-display-helper",
+      "file": "work/apk/assets/assets/dss/index.js",
+      "occurrence": 0,
+      "line": 489,
+      "utf8ByteOffset": 26332,
+      "text": "return 1001 == Number(e) ? 14 : 1002 == Number(e) ? 15 : 1003 == Number(e) ? 16 : Number(e) % 100;"
+    },
+    {
+      "id": "salt-yin-display-substitution",
+      "file": "work/apk/assets/assets/dss/index.js",
+      "occurrence": 0,
+      "line": 4434,
+      "utf8ByteOffset": 201677,
+      "text": "return t != s.EN_AREA_TYPE_PKDDS_ZTYJ || !a || 107 != e && 207 != e && 307 != e && 407 != e ? cc.mm.dss.resmap.get(String(e)) : cc.mm.dss.resmap.get(String(1004));"
+    },
+    {
+      "id": "server-card-info-populates-client-counts",
+      "file": "outputs/apk-deep-analysis/modules/dss/dss_gameModel.js",
+      "occurrence": 0,
+      "line": 67,
+      "utf8ByteOffset": 2760,
+      "text": "for (var i in t) this.tipsCards[t[i].cardValue] = t[i].num;"
+    },
+    {
+      "id": "card-info-protobuf-fields",
+      "file": "work/apk/assets/assets/main/index.js",
+      "occurrence": 0,
+      "line": 23355,
+      "utf8ByteOffset": 695091,
+      "text": "e.prototype.cardValue = 0;\ne.prototype.num = 0;"
+    }
+  ],
+  "spriteAtlas": {
+    "file": "work/apk/assets/assets/dss/import/7c/7c953d7a-1743-4d67-afb2-3c28aa7df5db.json",
+    "numericSpriteNameCount": 59,
+    "ordinaryFaceNameCount": 52,
+    "ordinaryFaceNames": [
+      "101",
+      "102",
+      "103",
+      "104",
+      "105",
+      "106",
+      "107",
+      "108",
+      "109",
+      "110",
+      "111",
+      "112",
+      "113",
+      "201",
+      "202",
+      "203",
+      "204",
+      "205",
+      "206",
+      "207",
+      "208",
+      "209",
+      "210",
+      "211",
+      "212",
+      "213",
+      "301",
+      "302",
+      "303",
+      "304",
+      "305",
+      "306",
+      "307",
+      "308",
+      "309",
+      "310",
+      "311",
+      "312",
+      "313",
+      "401",
+      "402",
+      "403",
+      "404",
+      "405",
+      "406",
+      "407",
+      "408",
+      "409",
+      "410",
+      "411",
+      "412",
+      "413"
+    ],
+    "specialSpriteNames": [
+      "1001",
+      "1002",
+      "1003",
+      "1004",
+      "1007",
+      "1012"
+    ]
+  },
+  "findings": [
+    "The client ships 52 ordinary face-resource names: 101–113, 201–213, 301–313, and 401–413.",
+    "The client also ships six special numeric sprite names: 1001, 1002, 1003, 1004, 1007, and 1012.",
+    "The Fire Fourteen room UI contains one-deck/two-deck tooltips, a white-card-as-wildcard tooltip, and an eight-tens opening-hand tooltip.",
+    "The gameplay client receives per-card counts as server-originated CardInfo(cardValue, num) and uses them for its remaining-card display.",
+    "For one area option, the client substitutes four normal 7 resources with sprite 1004 only while rendering; it does not change the card input value."
+  ],
+  "nonFindings": [
+    "No observed GameStart.cardInfo payload records the card values or multiplicities selected by an original server.",
+    "No static source anchor enumerates a complete physical deck, total deck size, or the multiplicity of each ordinary or special card for every room configuration.",
+    "The SpriteAtlas is a display-resource namespace. It cannot establish a physical card count, wildcard legality outside the labelled option, or a regional deck definition.",
+    "The D03 candidates “52 ordinary physical cards plus additions” and “Ya’an default 62 cards” remain unverified and must not be registered as original rules from this evidence."
+  ]
+}

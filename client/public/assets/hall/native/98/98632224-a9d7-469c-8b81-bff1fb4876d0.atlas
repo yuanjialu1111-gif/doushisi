@@ -1,0 +1,48 @@
+
+gouyu-1fupai.png
+size: 498,209
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+doudizhu-biaoti
+  rotate: true
+  xy: 449, 10
+  size: 63, 32
+  orig: 63, 32
+  offset: 0, 0
+  index: -1
+doudizhu-biaoti-1
+  rotate: true
+  xy: 403, 2
+  size: 119, 44
+  orig: 121, 46
+  offset: 1, 1
+  index: -1
+doudizhu-diban
+  rotate: true
+  xy: 278, 9
+  size: 198, 123
+  orig: 198, 123
+  offset: 0, 0
+  index: -1
+doudizhu-tubiao
+  rotate: false
+  xy: 403, 123
+  size: 93, 84
+  orig: 93, 84
+  offset: 0, 0
+  index: -1
+guang
+  rotate: false
+  xy: 2, 23
+  size: 274, 184
+  orig: 274, 189
+  offset: 0, 0
+  index: -1
+xing
+  rotate: true
+  xy: 449, 75
+  size: 46, 47
+  orig: 57, 53
+  offset: 6, 4
+  index: -1

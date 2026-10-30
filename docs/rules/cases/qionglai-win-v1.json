@@ -1,0 +1,31 @@
+{
+  "version": "qionglai-independent-v1",
+  "scope": "Independently authored hand and score references, not original-server observations or full-room tests.",
+  "cases": [
+    { "name": "exact-red20", "hand": [110,204,309,205,101,413,206,408], "red": 20, "black": 24, "fan": 3, "units": "4", "patterns": {"qia20":3} },
+    { "name": "red19-below-threshold", "hand": [110,204,309,205,201,413,206,408], "red": 19, "black": 25, "reason": "points" },
+    { "name": "all-black-structure-waives-red", "hand": [201,413,202,412,203,411,204,410], "red": 0, "black": 23, "fan": 4, "units": "5", "patterns": {"blackHu":4} },
+    { "name": "all-red-structure", "hand": [101,313,102,312,103,311,104,310], "red": 23, "black": 0, "fan": 3, "units": "4", "patterns": {"redHu":3} },
+    { "name": "disabled-black-special", "hand": [201,413,202,412,203,411,204,410], "options": {"qlHongHeiHu":0}, "reason": "points" },
+    { "name": "original-heaven-plus-red20", "hand": [110,204,309,205,101,413,206,408], "source": "original-hand", "fan": 6, "units": "7", "patterns": {"tianHu":3,"qia20":3} },
+    { "name": "heaven-capped-four-exponential", "hand": [110,204,309,205,101,413,206,408], "source": "original-hand", "options": {"maxFan":4,"chengFan":1}, "fan": 6, "capped":4, "units": "16" },
+    { "name": "earth-first-dealer-discard", "hand": [110,204,309,205,101,413,206,408], "source":"discard", "winnerSeat":2, "sourceSeat":1, "discardCount":1, "fan":6, "units":"7", "patterns":{"diHu":3,"qia20":3} },
+    { "name": "later-dealer-discard-not-earth", "hand": [110,204,309,205,101,413,206,408], "source":"discard", "winnerSeat":2, "sourceSeat":1, "discardCount":2, "fan":3, "units":"4", "patterns":{"qia20":3} },
+    { "name": "ordinary-own-flip-plain-three", "hand": [110,104,305,109,201,213,206,208], "options":{"keSuHu":1}, "fan":3, "units":"4", "patterns":{"keSuHu":3} },
+    { "name": "plain-hu-off", "hand": [110,104,305,109,201,213,206,208], "reason":"minimum-fan" },
+    { "name": "plain-hu-not-other-flip", "hand": [110,104,305,109,201,213,206,208], "options":{"keSuHu":1}, "sourceSeat":2, "reason":"minimum-fan" },
+    { "name": "bonus-one-not-plain-stack", "hand": [110,104,305,109,201,213,206,208], "bonus":[1001], "options":{"keSuHu":1}, "fan":1, "units":"2", "patterns":{"bonus":1} },
+    { "name": "king-is-not-wild", "hand": [110,204,309,205,101,413,206,1001], "reason":"special-card-in-hand" },
+    { "name": "concealed-triples-not-exposed", "hand": [105,205,305,106,206,306,101,213], "reason":"shape" },
+    { "name": "four-pairs-one-dragon", "hand": [105,205,305,405,109,209,110,310], "options":{"anDui":1,"siGuiYi":1}, "fan":6, "units":"7", "patterns":{"anDui":3,"dragon":3} },
+    { "name": "four-pairs-disabled", "hand": [105,205,305,405,109,209,110,310], "options":{"anDui":0}, "reason":"shape" },
+    { "name": "best-of-two-structures", "hand": [105,205,305,405,109,209,309,409], "options":{"anDui":1,"siGuiYi":1}, "fan":9, "units":"10", "patterns":{"anDui":3,"dragon":6} },
+    { "name": "ordinary-two-separate-quads", "hand": [105,205,305,405,109,209,309,409], "options":{"anDui":0,"siGuiYi":1}, "fan":2, "units":"3", "patterns":{"siGuiYi":2} },
+    { "name": "red49", "hand":[110,204], "melds":[{"kind":"peng","cards":[108,308,208]},{"kind":"peng","cards":[109,309,209]},{"kind":"chi","cards":[105,409]}], "red":49, "reason":"minimum-fan" },
+    { "name": "red50", "hand":[110,204], "melds":[{"kind":"peng","cards":[108,308,208]},{"kind":"peng","cards":[109,309,209]},{"kind":"chi","cards":[106,408]}], "red":50, "fan":3, "units":"4", "patterns":{"red50":3} },
+    { "name": "red51", "hand":[110,204], "melds":[{"kind":"peng","cards":[108,308,208]},{"kind":"peng","cards":[109,309,209]},{"kind":"chi","cards":[107,407]}], "red":51, "fan":3, "units":"4", "patterns":{"red50":3} },
+    { "name": "gold-hook-and-red55", "hand":[101,213], "melds":[{"kind":"peng","cards":[108,308,208]},{"kind":"peng","cards":[109,309,409]},{"kind":"peng","cards":[110,310,410]}], "red":55, "black":28, "fan":6, "units":"7", "patterns":{"red50":3,"jinGouDiao":3} },
+    { "name": "gold-hook-and-black55", "hand":[201,313], "melds":[{"kind":"peng","cards":[108,208,408]},{"kind":"peng","cards":[109,209,409]},{"kind":"peng","cards":[110,210,410]}], "red":28, "black":55, "fan":6, "units":"7", "patterns":{"black50":3,"jinGouDiao":3} },
+    { "name": "gold-hook-includes-kong", "hand":[101,213], "melds":[{"kind":"gang","cards":[108,208,308,408]},{"kind":"peng","cards":[109,309,409]},{"kind":"peng","cards":[110,310,410]}], "options":{"siGuiYi":1}, "fan":6, "units":"7", "patterns":{"red50":3,"jinGouDiao":3} }
+  ]
+}

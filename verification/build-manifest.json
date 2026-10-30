@@ -1,0 +1,802 @@
+{
+  "version": 1,
+  "builtAt": "2026-10-18T14:56:42.116Z",
+  "sources": {
+    "sha256": "10c2ce573514cbaa2b570a917b107bf26383c5fa43cb1d0def519107eed9d196",
+    "files": [
+      {
+        "path": "apps/admin/index.html",
+        "sha256": "05acaf73a90098aa7e776bcb66ac9f41fda3ee66ca320f66487cddd76f02efb3"
+      },
+      {
+        "path": "apps/admin/package.json",
+        "sha256": "3bc5bff3ce5f95ac79146cd6cdf48e54400c9ba09f61061b3ffa91d3b472da3b"
+      },
+      {
+        "path": "apps/admin/src/App.tsx",
+        "sha256": "6750640de97859b6c6e14ea6f6fbc30d771844937c449eeed880c14bd53f0631"
+      },
+      {
+        "path": "apps/admin/src/api.ts",
+        "sha256": "2742a339e89eb3ac98be30d39e1ab4e56eee41473189cd2c73e0bf92c431a3c0"
+      },
+      {
+        "path": "apps/admin/src/main.tsx",
+        "sha256": "a920ec27028d3f1997c93d79da61fa77c0ff613085a6fb2a8ea2dea92cab28a9"
+      },
+      {
+        "path": "apps/admin/src/styles.css",
+        "sha256": "9f40528f60159a5e471e84fc4f7258f7883485cd3e0a0133bdd5ee2e0fcd8dc3"
+      },
+      {
+        "path": "apps/admin/tsconfig.json",
+        "sha256": "e2af0ad481f09974998292715bb63264cd837f450e5f039ad1964d46fbedfabd"
+      },
+      {
+        "path": "apps/admin/vite.config.ts",
+        "sha256": "c3e1847a1a57299231b6e590a5d87781cf40f6c9c1d132553985dac6f71dd93a"
+      },
+      {
+        "path": "apps/server/migrations/001-initial.sql",
+        "sha256": "ba11fffee1b337356fd7c5c2931645bc0d404f6339e7b7ca8998d2f89e63eb20"
+      },
+      {
+        "path": "apps/server/migrations/002-linked-adjustments.sql",
+        "sha256": "953c550ea05ebdb631065014d71236cad0f2f6b38d15936dd8273cce6171254b"
+      },
+      {
+        "path": "apps/server/migrations/003-replay-origins.sql",
+        "sha256": "357b2cedba0bca4fc6985e027cb5164a4c56694a211f4fe1b9915a89985705fa"
+      },
+      {
+        "path": "apps/server/migrations/004-confirmed-round-scores.sql",
+        "sha256": "4e9533cbd9382a2c5affeeb24b5d57c1b80cf8996306459cb2ac7b1052d9d86d"
+      },
+      {
+        "path": "apps/server/migrations/005-round-state-versions.sql",
+        "sha256": "a40bb45570a4928cfa2228775be3828687339d5999ce4106231d719080a84d7d"
+      },
+      {
+        "path": "apps/server/migrations/006-engine-interaction-deadlines.sql",
+        "sha256": "59f5ffb630eefd7ffee2744b6b03f3df973431dffdfdd5e1319c4dc0a520e405"
+      },
+      {
+        "path": "apps/server/migrations/007-room-member-bean-projections.sql",
+        "sha256": "f1556391573a7d08bbd1c57daf7bec65d27eaf25b1797767b8be072bf1ddf7dd"
+      },
+      {
+        "path": "apps/server/migrations/008-exact-transfers.sql",
+        "sha256": "180126fb64e33b065b3afc5250819fd5353ed213ee76e1ae582a342ce4ae2d4f"
+      },
+      {
+        "path": "apps/server/migrations/009-round-continuation.sql",
+        "sha256": "3d5692ecf52037ff7756da5deb2c5c9a3a227d7888d6b84dd9918d3ef77f03bb"
+      },
+      {
+        "path": "apps/server/package.json",
+        "sha256": "64a840737670ca609b59db6c0a2937de7b000ce758258a5a3df441dffb131710"
+      },
+      {
+        "path": "apps/server/src/app.ts",
+        "sha256": "70df2ec6cca002967f81a7fc515f85b9a2fdb19ee1dda2d0b537a5d561b63789"
+      },
+      {
+        "path": "apps/server/src/auth.ts",
+        "sha256": "6d26b7c34ca7fef84992bb934aecaee6a629b760baefe9e1f5146f137d61d6aa"
+      },
+      {
+        "path": "apps/server/src/bootstrap-admin.ts",
+        "sha256": "b13065fd0eb52e90ae1d01ee8947c3acfd7b9263e53bdf88e05af5557ff075cf"
+      },
+      {
+        "path": "apps/server/src/confirmed-scores.ts",
+        "sha256": "e62c1c901c7f2f7889de8b9b0f5e3e64d089e0628886aad47aa8b94d05edaccb"
+      },
+      {
+        "path": "apps/server/src/database.ts",
+        "sha256": "e9e741b4545d0592a3c02fdf781aa7cc7ad5d9b3b33a71aa088c6f20a4a8746a"
+      },
+      {
+        "path": "apps/server/src/engine-interactions.ts",
+        "sha256": "a952a1a6d3827d225256f6a20f2c27347d511a2b460d671eef4e2df7c63070d1"
+      },
+      {
+        "path": "apps/server/src/engines.ts",
+        "sha256": "f95c569f4003e7fec0780c3081826effecca5353f3042e73d8b02d78f207e497"
+      },
+      {
+        "path": "apps/server/src/errors.ts",
+        "sha256": "0927e07c889f29c3b843a05453f267e8f09772d4fab2df8e89f4302cb598cf00"
+      },
+      {
+        "path": "apps/server/src/game/aba-engine.ts",
+        "sha256": "2b632599d4baab937fd028e29e8d79e7dcfb2e9d0066c35a46632e3042b2d12b"
+      },
+      {
+        "path": "apps/server/src/game/aba-pack.ts",
+        "sha256": "5369b8712a721ae9e9d25a70398801db314bf865fa4cc9b788abd46334c14717"
+      },
+      {
+        "path": "apps/server/src/game/aba-round.ts",
+        "sha256": "818a8c48c2f60270998ef5e66711c3fbd68fe822ae1e8e1a78021b0fe3494c68"
+      },
+      {
+        "path": "apps/server/src/game/aba-win.ts",
+        "sha256": "7abb099493821c5a701404ae4205c86e2b3029adde809193111838041710959e"
+      },
+      {
+        "path": "apps/server/src/game/anyue-engine.ts",
+        "sha256": "3d977ddd93e3f8a7c61d556321d7230ca0940b6fb787a22eadcd4230a6c92674"
+      },
+      {
+        "path": "apps/server/src/game/anyue-pack.ts",
+        "sha256": "59a78dc7d2618c0db9688658586e465f7934c40488e4fb8a95afef8363bc928c"
+      },
+      {
+        "path": "apps/server/src/game/anyue-round.ts",
+        "sha256": "15cb35a2174394ef953d4861f0f15cd948987657cf953cecf90a3e3afa5a0ba6"
+      },
+      {
+        "path": "apps/server/src/game/anyue-win.ts",
+        "sha256": "d6fa358977febd5decdcce897c0f736f1621874c7546af3267c45f00797038a6"
+      },
+      {
+        "path": "apps/server/src/game/cards.ts",
+        "sha256": "ee7385654385baf4348585c8cbf1b68564334639501e7f0d3611421b5112f5cc"
+      },
+      {
+        "path": "apps/server/src/game/claims.ts",
+        "sha256": "3a08222c0b45239fbbc4a24e46f67d4e245354aac67369db8faee61f1c5df280"
+      },
+      {
+        "path": "apps/server/src/game/combinations.ts",
+        "sha256": "6702ba13002eaafc6acbcf4c08f32fcada8130365e302a5b09de4948b840d4a7"
+      },
+      {
+        "path": "apps/server/src/game/declared-waits.ts",
+        "sha256": "9b7da0be2054b863e7da110c1e9fb62d909c642f445cd6050bf49e35e5dd2236"
+      },
+      {
+        "path": "apps/server/src/game/ordinary-melds.ts",
+        "sha256": "5360b609ab5c6d0c53a2bf0af75090c3431f56658c84caccc9a4171508f1bdaa"
+      },
+      {
+        "path": "apps/server/src/game/pujiang-engine.ts",
+        "sha256": "5601276ed6ea99c6fa6324636718131c8cf3b54650c61dab046dd7e750664b03"
+      },
+      {
+        "path": "apps/server/src/game/pujiang-pack.ts",
+        "sha256": "5d3088d62a1745a0f57989cfdde7bb2b98446686b01a018661fe8fd5a556d254"
+      },
+      {
+        "path": "apps/server/src/game/pujiang-round.ts",
+        "sha256": "b7a943304b30ac5f3fd4218c0783b1b1998f061326f8aac71f2fd8cf2b7ffa91"
+      },
+      {
+        "path": "apps/server/src/game/pujiang-win.ts",
+        "sha256": "3e62b31f0c1b831d40e2cd126c47409a8ad649462010082b0af55335b632d336"
+      },
+      {
+        "path": "apps/server/src/game/qionglai-deal.ts",
+        "sha256": "c020bb3cd128d3be9c4ead3487910b2fb1daad3b1c358393d08ebf7168c4aea0"
+      },
+      {
+        "path": "apps/server/src/game/qionglai-engine.ts",
+        "sha256": "8cfda50ca516e3a306c41b740913aab1f921e7aa5decb0a7dc1899d9a1ccfcc2"
+      },
+      {
+        "path": "apps/server/src/game/qionglai-original.ts",
+        "sha256": "e3406b2a9c2a097c1842c0d784a45b70123b02c32616ae33d297dfb0bd64a669"
+      },
+      {
+        "path": "apps/server/src/game/qionglai-pack.ts",
+        "sha256": "cff5cda3585b0d7c65f52d043b2652f47822354005d30b91c7828ee519b1e150"
+      },
+      {
+        "path": "apps/server/src/game/qionglai-payments.ts",
+        "sha256": "5ad077a1d0f7f30334722e9d2c74571f68f260d7b632ccb9194af647dbdbfd18"
+      },
+      {
+        "path": "apps/server/src/game/qionglai-round.ts",
+        "sha256": "c25da83614e6b1e78c20fe5ce28581f60ebd05f3e2752ad25d826d691abd7df6"
+      },
+      {
+        "path": "apps/server/src/game/qionglai-win.ts",
+        "sha256": "a956025f907cc2f0d8b6521d27cd6cd72f23010521f7c49ad833d1e3aac143d8"
+      },
+      {
+        "path": "apps/server/src/game/red-region-win.ts",
+        "sha256": "4cdad0e8ba4814991457416df7925512d5b2bf353d01f96a930e2573da2f857c"
+      },
+      {
+        "path": "apps/server/src/game/regional-profile.ts",
+        "sha256": "c5599958521acf50eb07c0b40245baf7af77f837a5ab89db20abbd7a91158f94"
+      },
+      {
+        "path": "apps/server/src/game/round-original.ts",
+        "sha256": "ff2b1de85730a386c7e8d9b947e1202cae3c3eb863e5c117756c914137c19149"
+      },
+      {
+        "path": "apps/server/src/game/score-region-engine.ts",
+        "sha256": "0a8762b1869cfbb9b9fcad9894da69ecba705053478671c2c3086736e29adcd1"
+      },
+      {
+        "path": "apps/server/src/game/score-region-pack.ts",
+        "sha256": "1ad0430542870239881b49901aa333c84e0aa845a32b74cc79c462d0259a6e7f"
+      },
+      {
+        "path": "apps/server/src/game/score-region-round.ts",
+        "sha256": "1ebac7c8aa5071d11faa78cfd31fdf11a90d75195c0e8eba856abf06c7b4d295"
+      },
+      {
+        "path": "apps/server/src/game/score-region-win.ts",
+        "sha256": "800125de824ab0c1c86902ece1ec522727831d7d6b5dd69c6f4b7fb5d96dcef7"
+      },
+      {
+        "path": "apps/server/src/game/xinjin-engine.ts",
+        "sha256": "e0c587397a8fb0fb328170ba7e12d7c8ff67280ba108e595ac7e38e9203b7414"
+      },
+      {
+        "path": "apps/server/src/game/xinjin-pack.ts",
+        "sha256": "78ed0cccdc5aea8990fb01f8aae2a8b6bf031891e58f4ef47ced6f44fa64e6f0"
+      },
+      {
+        "path": "apps/server/src/game/xinjin-round.ts",
+        "sha256": "5a84ee5a8973b0786d2d1f9b0bed806f07fc3dfb8a6a44cc6879b768c200d547"
+      },
+      {
+        "path": "apps/server/src/game/xinjin-win.ts",
+        "sha256": "b0451b537179469055f919540ebe69db79f83bf691b3640439430f6267ba1784"
+      },
+      {
+        "path": "apps/server/src/game/yaan-engine.ts",
+        "sha256": "3fafb1285636ebf4ac5c6b73e7ae649df43e8fe680e4dbf63743201637659ddc"
+      },
+      {
+        "path": "apps/server/src/game/yaan-pack.ts",
+        "sha256": "bc2e9e016d3ffc54bc8cae4f2b4bf8fe058c992e39a5c4a1ca42886f59d2c5cd"
+      },
+      {
+        "path": "apps/server/src/game/yaan-round.ts",
+        "sha256": "a5a375cd4c5963eafd0ec69087064bfce437d94b798b819942111356472dfee1"
+      },
+      {
+        "path": "apps/server/src/game/yaan-win.ts",
+        "sha256": "1e25d6a8d8e0e42eaee481bc58dd7019524e50c27e127cfbbab0fcfb193be998"
+      },
+      {
+        "path": "apps/server/src/ledger.ts",
+        "sha256": "78971eaa3a92f06a7f37afbb1a6f293c3fbe4a4d9989587c3a8bb54bbccfb8bf"
+      },
+      {
+        "path": "apps/server/src/local-backups.ts",
+        "sha256": "fd8a8f1b1384d62610120e8bca6a5e159ae948ecc2de1fcc9e5247963617601b"
+      },
+      {
+        "path": "apps/server/src/local-control.ts",
+        "sha256": "dbc5097e0a8a02a39fc088643dd5ca05d9f9c08c044d64c9f651a32f7ee7caab"
+      },
+      {
+        "path": "apps/server/src/local-restore.ts",
+        "sha256": "60ac2d14f6978c0aa7457b4358146b61120b397b3bb53f89be65efc33908f379"
+      },
+      {
+        "path": "apps/server/src/local-setup.ts",
+        "sha256": "e5b08cdca985e5d948479e15749542a9c2c1c9797784a60631656046f6c197b9"
+      },
+      {
+        "path": "apps/server/src/main.ts",
+        "sha256": "ed91752dca7eaca94d6fc2622697e6597728651037cbfed1f7bf2927cf642560"
+      },
+      {
+        "path": "apps/server/src/migrate.ts",
+        "sha256": "fbd7a8730324237c2e3f954cf18b875ff94312d1f1bf149064b22c3f0d1a8186"
+      },
+      {
+        "path": "apps/server/src/money.ts",
+        "sha256": "049ea7d2bca7668702af7bfc495d9022c113428856bd64f390853531104d4351"
+      },
+      {
+        "path": "apps/server/src/original-wire.ts",
+        "sha256": "e5453139a5af0d2f8e0d1dd83db5f0268cc301dd3d31d3ae9b3e507edffefdbb"
+      },
+      {
+        "path": "apps/server/src/policies.ts",
+        "sha256": "68b448c68fce209064023ed8c001af28a6ccdabacc47bba974c57b74518228e6"
+      },
+      {
+        "path": "apps/server/src/preview.ts",
+        "sha256": "6f6f35b96ece541475e7ff745bd62b747a1767d8edb7fc5ce8478073b84d611c"
+      },
+      {
+        "path": "apps/server/src/qionglai-patterns.ts",
+        "sha256": "1a22a00b21b97cc86b1829def8f29025a372bc75b2b093a5f96eb430140e74fd"
+      },
+      {
+        "path": "apps/server/src/qionglai-scoring.ts",
+        "sha256": "a8f038ba7389fffd7bc6dbc3468c3c192aaef086254f41ac45181f82a6dc6aca"
+      },
+      {
+        "path": "apps/server/src/replays.ts",
+        "sha256": "852d79b966b9771a9d10e1a93433d71050e42fbcc30759ccab15429825b072d5"
+      },
+      {
+        "path": "apps/server/src/room-scheduler.ts",
+        "sha256": "ef25a617f3563c5f6cc0c9ae4fbf5b86c093868408d51381859718c34ee712b6"
+      },
+      {
+        "path": "apps/server/src/rooms.ts",
+        "sha256": "4a6c5ada166aac5f660aff2531faf8a61e035cfbaa898ef8da4798e5e3a35be7"
+      },
+      {
+        "path": "apps/server/src/round-context.ts",
+        "sha256": "39ba3bea387a494de8b65174b1937c6d8f7fda6f48978bfb7bab230ed5e34912"
+      },
+      {
+        "path": "apps/server/src/runtime-engines.ts",
+        "sha256": "d018bc77f3c21144194b55b0b959f0ad8671a14cc4d82aa4287d20e4c0bdf344"
+      },
+      {
+        "path": "apps/server/src/transfers.ts",
+        "sha256": "8d257a030ff05823ea5f5d2305c58668fb8083837fea43086216cca33b6fbe37"
+      },
+      {
+        "path": "apps/server/src/yaan-scoring.ts",
+        "sha256": "a0880aa38f2da438b35434a34e1781d45e649473e2b10ca937f36f207337f6ed"
+      },
+      {
+        "path": "apps/server/tsconfig.json",
+        "sha256": "240d9dc83796dd2bf53628eed43d9f5bb5b4ab1c4a3ec42d52afc8027b0bf58b"
+      },
+      {
+        "path": "package.json",
+        "sha256": "670563ce7c6812cc571f0a984c501796ec111df326f59079b5d6946c9765d6a7"
+      },
+      {
+        "path": "packages/protocol/package.json",
+        "sha256": "da6263c8b525270d94b48230facf695f60b1b8ced84603f9ca7e67abd7b9a847"
+      },
+      {
+        "path": "packages/protocol/src/body-fields.ts",
+        "sha256": "25ede2aaba629444815c7cc77235f456a4a1cf753347f1bd88e852aec3af8c8e"
+      },
+      {
+        "path": "packages/protocol/src/commands.ts",
+        "sha256": "164ab8e024988f83a94f48cc1202912eae69b9caed7cfcd2e7a198e19bbaed42"
+      },
+      {
+        "path": "packages/protocol/src/generated.js",
+        "sha256": "ed1a1259ea44a878070f312ee43421d4dfc0cbc124d25f078ef1924505ae7636"
+      },
+      {
+        "path": "packages/protocol/src/index.ts",
+        "sha256": "de38413776160ff2fed67a9ed337a3636df2bb516ce2f35bdf38eb9801ce43a3"
+      },
+      {
+        "path": "packages/protocol/tsconfig.json",
+        "sha256": "2532c1481d52fb166d009a5f67469b44108197c4cc3c3090ccd874578e6ebf70"
+      },
+      {
+        "path": "packages/rules/package.json",
+        "sha256": "01cb26f2d64c55d412d0b73af83215211452e6ec6650eeff9e413e3214644a66"
+      },
+      {
+        "path": "packages/rules/src/aba.ts",
+        "sha256": "e41bb47996d434f08353167163e015b4a421cbc210d3ba12f337a15918abc0b0"
+      },
+      {
+        "path": "packages/rules/src/edition.ts",
+        "sha256": "25e6c01a57fb28affa41935e487ddc5e184f3552192ee0494095bd65b5836b8f"
+      },
+      {
+        "path": "packages/rules/src/index.ts",
+        "sha256": "669ac31c1ecd9c31b91b349b790377acd436c48af44c0aa2d9758f2d0c6d3b4a"
+      },
+      {
+        "path": "packages/rules/src/original-catalogue.ts",
+        "sha256": "8271b00b2dc76d391390e04278961557b8b5e638215523510d61ca3d8f0a6831"
+      },
+      {
+        "path": "packages/rules/src/pujiang.ts",
+        "sha256": "df09402bf77f223ed1834689f4634c852ca27922d0cae03b25397e96c5abadd3"
+      },
+      {
+        "path": "packages/rules/src/yaan.ts",
+        "sha256": "24c97777488ae63d2c2a25baad3c077671857aa78b481030c6175dcf3c2156f3"
+      },
+      {
+        "path": "packages/rules/tsconfig.json",
+        "sha256": "456f6ef5f589b9557d5b2586f2b30b3754c945da4d6384a2fe87f69b0a0e826c"
+      },
+      {
+        "path": "pnpm-lock.yaml",
+        "sha256": "ec98db18415baefa7e6e6e356e081d84605f1b8a5e8252f5269ba663d9052142"
+      },
+      {
+        "path": "pnpm-workspace.yaml",
+        "sha256": "1a0e6c4188b3b2c6a299b3f93f697aa7c312977406c6147e37178b66323bf1d2"
+      },
+      {
+        "path": "tools/build-fingerprint.mjs",
+        "sha256": "994acac51004130761644958f44d4f385076669941038dd3f5dbd39140653283"
+      },
+      {
+        "path": "tools/build.mjs",
+        "sha256": "7cfa2be217474370b998eca933ac9e18e2ec50f153ce5abb21b5bf402ea112d3"
+      },
+      {
+        "path": "tools/release-audit.mjs",
+        "sha256": "b76b295b8945c6981fc030a781a2cfa2f8f255de16e6c93d496f36723872a1b2"
+      },
+      {
+        "path": "tools/release-check.mjs",
+        "sha256": "94d322c59547073ebb73450a488eb1878c6ab35fa8f92fbc38618c2cc71deec9"
+      }
+    ]
+  },
+  "binaries": {
+    "sha256": "d17b2c083d3ade8601cd8d485fd9651a90508c57810dd058b5ebf307e2c59906",
+    "files": [
+      {
+        "path": "apps/admin/dist/assets/index-CMJ85LRU.js",
+        "sha256": "a58ab46d0ff7d9991bafe4e71363727bab20316aad173da94b24a080c561c19b"
+      },
+      {
+        "path": "apps/admin/dist/assets/index-DSXjJA71.css",
+        "sha256": "0e8f35079321ec6482541c1a576d525458d74c3997826a437f16be943d85af5c"
+      },
+      {
+        "path": "apps/admin/dist/index.html",
+        "sha256": "f79af538d3e1f35c4e773c9e330baf2679dfb8f4c5214a0be1631e523a316e81"
+      },
+      {
+        "path": "apps/server/dist/app.js",
+        "sha256": "161529ad1878f9e794a2670d4f2a06c16d50fdbab956ab2048868d722469392d"
+      },
+      {
+        "path": "apps/server/dist/auth.js",
+        "sha256": "1bb92a7a410caec6a8db506d75195d3fec09ad7e2b31fb6212452893d4c6bf9b"
+      },
+      {
+        "path": "apps/server/dist/bootstrap-admin.js",
+        "sha256": "ac8cac47ccd936445b07ccb1d288239f1d153c313b377f094c2936ee3a2920b9"
+      },
+      {
+        "path": "apps/server/dist/confirmed-scores.js",
+        "sha256": "ee08369630429d7aa289cf3e61146b3abedf99b4b733173fea6f23a7381f0145"
+      },
+      {
+        "path": "apps/server/dist/database.js",
+        "sha256": "ff81bdaf5060e9ccead1758de2ffa5ed296fe1faf22e6bbd17a1c91182511401"
+      },
+      {
+        "path": "apps/server/dist/engine-interactions.js",
+        "sha256": "0cb899a164c60a9de39815cd39d2fd95c8999808a315b1ff95390586b1d9e9d8"
+      },
+      {
+        "path": "apps/server/dist/engines.js",
+        "sha256": "d83ab5e4c16832eef1abe8ac1301c65fc9ae58372a9662e5f7ea3b000419e51d"
+      },
+      {
+        "path": "apps/server/dist/errors.js",
+        "sha256": "d76b91015a638dad131f36db36217221693d734c96fb91b282eac7e1a8b96b4d"
+      },
+      {
+        "path": "apps/server/dist/game/aba-engine.js",
+        "sha256": "d2fc0482463ef56dbf086476740c0998c2ece50f42e253475ea78fcf05d42edf"
+      },
+      {
+        "path": "apps/server/dist/game/aba-pack.js",
+        "sha256": "8919ed514b30e166c860dc98d8ee4ecdf55572c905d4541900902423151f565f"
+      },
+      {
+        "path": "apps/server/dist/game/aba-round.js",
+        "sha256": "b52ba55d0ae3563df3c36553b4b65259586c6decabaee5a37f3221e641284139"
+      },
+      {
+        "path": "apps/server/dist/game/aba-win.js",
+        "sha256": "b64ddf7315874fa6c8286404768e1b9a377038597b8e7d4168224e419a65dc41"
+      },
+      {
+        "path": "apps/server/dist/game/anyue-engine.js",
+        "sha256": "05ac4fba5f580339971f2197360045db8b09f1c186c8efce01a2b580899f24d1"
+      },
+      {
+        "path": "apps/server/dist/game/anyue-pack.js",
+        "sha256": "a93f64f7e7ff8847fe602548dd903b82275fbe624c6de1552d115a2460dd25e4"
+      },
+      {
+        "path": "apps/server/dist/game/anyue-round.js",
+        "sha256": "0722aa62c0a97cf535965cfa58620e9c86da78c7964d5bb35b47a6ff8e8a6acf"
+      },
+      {
+        "path": "apps/server/dist/game/anyue-win.js",
+        "sha256": "7ffbacaab1826b7f4bf3e8973d43922eb35919f0b7bb24d8040adfceaaddcccc"
+      },
+      {
+        "path": "apps/server/dist/game/cards.js",
+        "sha256": "b39d62d6728f7f7a42fc2fb656b9ffc80558571a3c1ba09aa70cdabf4fe94590"
+      },
+      {
+        "path": "apps/server/dist/game/claims.js",
+        "sha256": "f05b4df7ed3cb5ed832d69999621917c0282e32601387247c29a651c17283c5b"
+      },
+      {
+        "path": "apps/server/dist/game/combinations.js",
+        "sha256": "86f1f478e22969c9571895b8423bbd5364b840e329b556d18f57152790155e6d"
+      },
+      {
+        "path": "apps/server/dist/game/declared-waits.js",
+        "sha256": "536e93c8c879d6e22eed1fbfc40abda33061add30bfc81514b7f361249f1682c"
+      },
+      {
+        "path": "apps/server/dist/game/ordinary-melds.js",
+        "sha256": "396e17cfcb174ca7a305b2972b3b6b023719d5c48b8a4a9dbb11db740c66ef6a"
+      },
+      {
+        "path": "apps/server/dist/game/pujiang-engine.js",
+        "sha256": "f7cfca916d4ce4b0f90b0477ffad78609ea592860b1166e1223215d125684485"
+      },
+      {
+        "path": "apps/server/dist/game/pujiang-pack.js",
+        "sha256": "27e3cd4ba02742e689e209196d60759f7749cc7c87cf1744bd05120f5c581750"
+      },
+      {
+        "path": "apps/server/dist/game/pujiang-round.js",
+        "sha256": "9733bb7a2e082a6f856e6d1ee45ad18975ce8ec440a24bc73332d5166b0c8b37"
+      },
+      {
+        "path": "apps/server/dist/game/pujiang-win.js",
+        "sha256": "5a55f6b634142efc240455bfc7aaa21ee48f0a741ec7d5cea44ec83cfebe0509"
+      },
+      {
+        "path": "apps/server/dist/game/qionglai-deal.js",
+        "sha256": "3032fd0ff2b99c899bc86d54ef30d789d13879a166b8fed2f28ceb5eafca0397"
+      },
+      {
+        "path": "apps/server/dist/game/qionglai-engine.js",
+        "sha256": "ead12a4a2e58e03869c4fc637b1137159b0347081741cb9a75796fe568973c90"
+      },
+      {
+        "path": "apps/server/dist/game/qionglai-original.js",
+        "sha256": "29120b30335abc1b1c776b84760b0d7b2ad8369b957b79b4f57982eedf49b790"
+      },
+      {
+        "path": "apps/server/dist/game/qionglai-pack.js",
+        "sha256": "32c78107bafd256918c341ae863bf233cb990d713b4c7b9bbfd955d2da844f09"
+      },
+      {
+        "path": "apps/server/dist/game/qionglai-payments.js",
+        "sha256": "529ced81ab3e200d104523df24f36fb93a0f483f0e47b7336854841829b5b217"
+      },
+      {
+        "path": "apps/server/dist/game/qionglai-round.js",
+        "sha256": "e3a39d2fa821ce252a927260fbd806b6d2e69cdfab494b31c00520f413518a7a"
+      },
+      {
+        "path": "apps/server/dist/game/qionglai-win.js",
+        "sha256": "634561422ee63dbaa9a0a88aebdd44179137ac71ecf1003a152f2c786e4c2828"
+      },
+      {
+        "path": "apps/server/dist/game/red-region-win.js",
+        "sha256": "68605ab1cacb0eed318909421f7587e059ee4e800ac9af323e411b09abc91945"
+      },
+      {
+        "path": "apps/server/dist/game/regional-profile.js",
+        "sha256": "8e5fb0711ea0c16d4a0962379f5b31b148fc353f2e6c50de45e39c824b689323"
+      },
+      {
+        "path": "apps/server/dist/game/round-original.js",
+        "sha256": "dd7188af8f2ece759bad734cf781b4ca207eae55a8368943a44e1c4331b83fed"
+      },
+      {
+        "path": "apps/server/dist/game/score-region-engine.js",
+        "sha256": "9c3c937980533b7b16c0cc036445cda27536413ca3edf0780061b2509a2034dd"
+      },
+      {
+        "path": "apps/server/dist/game/score-region-pack.js",
+        "sha256": "c11ea3896b8ee628e92097c5f6af52eea1e10cc05a465388d347ed0592e2b8aa"
+      },
+      {
+        "path": "apps/server/dist/game/score-region-round.js",
+        "sha256": "77ab53926c64c021a214994a38efa2f7be6817702ef7d8718e62a938643c42b1"
+      },
+      {
+        "path": "apps/server/dist/game/score-region-win.js",
+        "sha256": "e5528c939c119c53b1943e7ab51419af376fbd41405310d78fba221df499f4f9"
+      },
+      {
+        "path": "apps/server/dist/game/xinjin-engine.js",
+        "sha256": "1b7653d90431135b83ed9fcf8a63c6f7faedb9a4ebb6eabc5981b49b38c7f700"
+      },
+      {
+        "path": "apps/server/dist/game/xinjin-pack.js",
+        "sha256": "911ed1038b2950e3116bc6b6aa4204a135c62a84c52eccbf9dc76f6155d9f7ef"
+      },
+      {
+        "path": "apps/server/dist/game/xinjin-round.js",
+        "sha256": "8f3ee1c85dc1a1a409df4643923197dc353c38a3a5f60fccaaf7b48d77b5496e"
+      },
+      {
+        "path": "apps/server/dist/game/xinjin-win.js",
+        "sha256": "a059127ec1be9a6e4261ce0a12aa56feeea8bf86b4ea97cb6721251ddb55d5c5"
+      },
+      {
+        "path": "apps/server/dist/game/yaan-engine.js",
+        "sha256": "2a79812d7092465fddc8794acd6259053cedcc906f00181a882dbc42b09a1b05"
+      },
+      {
+        "path": "apps/server/dist/game/yaan-pack.js",
+        "sha256": "9898b7430ce5ce6d0c615dc2504c7c702b18a05e15ddf622ec48611c53f90527"
+      },
+      {
+        "path": "apps/server/dist/game/yaan-round.js",
+        "sha256": "c79465fd06da81b2d663efc8025ff702e417629c09ec055abeb86853ef1e8528"
+      },
+      {
+        "path": "apps/server/dist/game/yaan-win.js",
+        "sha256": "c0cadb416ed5d8ffd646bdf2740105f5840d9b2481b9ef669bbe128ae03a062c"
+      },
+      {
+        "path": "apps/server/dist/ledger.js",
+        "sha256": "a824ecca5cce3e967bd33582183f92e05a23ab134c3c86a80d04cade8cde915a"
+      },
+      {
+        "path": "apps/server/dist/local-backups.js",
+        "sha256": "3a4323dab7665f23a67dda4b23c6335fbc5cf99d7d944072c6e45ac408db8752"
+      },
+      {
+        "path": "apps/server/dist/local-control.js",
+        "sha256": "78595b3abe3959f465163e222c16653ffbd7ee563bd72730276c8c6b39b0afff"
+      },
+      {
+        "path": "apps/server/dist/local-restore.js",
+        "sha256": "a9e895d8ff2a0b4d995e54760b4aeadbe83351cf6f4c20934e74547cbe90867f"
+      },
+      {
+        "path": "apps/server/dist/local-setup.js",
+        "sha256": "6c96b76a354b0c2c5ffc32dff4bb5e5f7a9e03b3a05c9cb21ba2063b4ad53c0e"
+      },
+      {
+        "path": "apps/server/dist/main.js",
+        "sha256": "e3dc5b2e05d6d79929bcfdbbc08638c75d92a43bc7aceaac07e5a6513232d2a6"
+      },
+      {
+        "path": "apps/server/dist/migrate.js",
+        "sha256": "2530b87749aa5c16dcd37c5afff21842b194b302532eef84f8a23c46e513fed1"
+      },
+      {
+        "path": "apps/server/dist/money.js",
+        "sha256": "f91ebda2512beecc1cbe870e5aecb4c78dd49f68b280b3ac0c0fd6d31a0b2610"
+      },
+      {
+        "path": "apps/server/dist/original-wire.js",
+        "sha256": "57095d20d7499923e2013f85d00273211fa7ecdc1657c7ca3c522d0c06fd132c"
+      },
+      {
+        "path": "apps/server/dist/policies.js",
+        "sha256": "7e50e1dc8d4d61bb7df78fc3cc68a9d33ea7bd39212cfe38beef7f8eb993ef25"
+      },
+      {
+        "path": "apps/server/dist/preview.js",
+        "sha256": "89b501137d97937f484c10952ce4cce03c8093d5e99cfb10836ade0e09502759"
+      },
+      {
+        "path": "apps/server/dist/qionglai-patterns.js",
+        "sha256": "36c88f9592f4ca4b0ccdabdcc4bc2e4dcacf785cb5babd70a921ee489167f2fe"
+      },
+      {
+        "path": "apps/server/dist/qionglai-scoring.js",
+        "sha256": "92086fa78209aa27c83d739d3a0e47676ac50d13371807d3d274ec007fde20a2"
+      },
+      {
+        "path": "apps/server/dist/replays.js",
+        "sha256": "b34eeb350e5ec0dced688c5ee49d5159b9db209e304f76b3aafd0e9a672c18d5"
+      },
+      {
+        "path": "apps/server/dist/room-scheduler.js",
+        "sha256": "bb9b00b14f4b3b4891923af15b80098ea94dbe59a1d97a0f1df8f70b9c799a5b"
+      },
+      {
+        "path": "apps/server/dist/rooms.js",
+        "sha256": "abb39bf90b1a3cab0dd87c513aa996104dbec43b42f1a0800ace82be8c73cdfc"
+      },
+      {
+        "path": "apps/server/dist/round-context.js",
+        "sha256": "4e9f2b3974bd703d976a7ec9c5b8bde17c29e863bc1cc4465e0094903adcf10f"
+      },
+      {
+        "path": "apps/server/dist/runtime-engines.js",
+        "sha256": "b5278a1d312f69f77408db49f64e7a647ebf1dab00cb1a1be0d74f9bd3f4cdb5"
+      },
+      {
+        "path": "apps/server/dist/transfers.js",
+        "sha256": "1adaf9525810081961412eae3bd202fa3dfa573c72c186b72799ab84add9f8d4"
+      },
+      {
+        "path": "apps/server/dist/yaan-scoring.js",
+        "sha256": "8949027e4db07e9d9c522a3cda160e99415dbf75b45a8c1d32ef25cd5d448614"
+      },
+      {
+        "path": "packages/protocol/dist/body-fields.d.ts",
+        "sha256": "a59d661822d19054b84a2ece7b454410f0aa4387943f070bf88f4df4daf87d0c"
+      },
+      {
+        "path": "packages/protocol/dist/body-fields.js",
+        "sha256": "ba3d9231e989fe209b963c90a8bae5e94eef5c7f7e578e4b8d1a3bc6741d041f"
+      },
+      {
+        "path": "packages/protocol/dist/commands.d.ts",
+        "sha256": "b001ccd597951bb1afe765ac42c50a5298fd5b796490fa266169f99525e7a209"
+      },
+      {
+        "path": "packages/protocol/dist/commands.js",
+        "sha256": "8be91ea81a2501bab98e602ba53c99140f52c4c90fd2ac8a2539ff4ca644c3c1"
+      },
+      {
+        "path": "packages/protocol/dist/generated.d.ts",
+        "sha256": "ed1d7937035aa75d26fc3ba9ac668eb9166a3db7988274c8580dfb7c6e8ebb5a"
+      },
+      {
+        "path": "packages/protocol/dist/generated.js",
+        "sha256": "5b6075885ccd51f9e2d7605abe281d5972f4f305f8e5b5e9fc2d63107fd99ef6"
+      },
+      {
+        "path": "packages/protocol/dist/index.d.ts",
+        "sha256": "e70ec828ddf94cfb084ae33faae8cb1c4fdddd9300a45197cf9e719dce239f13"
+      },
+      {
+        "path": "packages/protocol/dist/index.js",
+        "sha256": "7626cd092246ce4be805249c5d876fe3fadafdd7853d4f498f2692c050a75e94"
+      },
+      {
+        "path": "packages/rules/dist/aba.d.ts",
+        "sha256": "e41bb47996d434f08353167163e015b4a421cbc210d3ba12f337a15918abc0b0"
+      },
+      {
+        "path": "packages/rules/dist/aba.js",
+        "sha256": "e41bb47996d434f08353167163e015b4a421cbc210d3ba12f337a15918abc0b0"
+      },
+      {
+        "path": "packages/rules/dist/edition.d.ts",
+        "sha256": "8d5a0fc5f358a42ec6c4e25b89c4562381b409d86cc0ae02559dfc27f6fbc8b7"
+      },
+      {
+        "path": "packages/rules/dist/edition.js",
+        "sha256": "31df23738e547e6faf4ecbedee949eef557720a62b763e8c7c62bb5b5e2ea54d"
+      },
+      {
+        "path": "packages/rules/dist/index.d.ts",
+        "sha256": "3ee0cb6e87c16e16c429ead587059bc0451b0672c37a2097d036ad3f744594fd"
+      },
+      {
+        "path": "packages/rules/dist/index.js",
+        "sha256": "81eee8e6bf4b96f567ad88aa27f28a4100573dfb8b28c1012f09ef2eeacc4a59"
+      },
+      {
+        "path": "packages/rules/dist/original-catalogue.d.ts",
+        "sha256": "fe13ba3ce18f9390007c50541ac275f0a02c87680b11cb23f5a9f499c6f52f87"
+      },
+      {
+        "path": "packages/rules/dist/original-catalogue.js",
+        "sha256": "8e1102eb3d2d87840c190c42c6f5f247dadafcac8f2484569ba01747409f09c3"
+      },
+      {
+        "path": "packages/rules/dist/pujiang.d.ts",
+        "sha256": "73b5ddf990380f7c6572d4124eb24f6f993bc259e69f6eadc581341cd9207a4f"
+      },
+      {
+        "path": "packages/rules/dist/pujiang.js",
+        "sha256": "abe7b0f8e5945d1d85ba92c5219f0caa80e2a37f529c1e6c762edea7534dbfde"
+      },
+      {
+        "path": "packages/rules/dist/yaan.d.ts",
+        "sha256": "4276b07b617cbd6f990b08f9af94241c44d3afdab9cc7ac5359e5e39d2972842"
+      },
+      {
+        "path": "packages/rules/dist/yaan.js",
+        "sha256": "900eee78cef11004e212c1c95d2573782e815137a9e690684428d04fc0a5a185"
+      }
+    ]
+  }
+}

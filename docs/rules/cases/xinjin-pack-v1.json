@@ -1,0 +1,11 @@
+{
+  "version": "xinjin-independent-v1",
+  "variantKey": "4:0",
+  "scope": "Independent physical pack quantities for Xinjin; 7-as-king changes card roles only.",
+  "cases": [
+    { "wangNum": 3, "total": 55, "specialCounts": { "1001": 1, "1002": 1, "1003": 1 } },
+    { "wangNum": 5, "total": 57, "specialCounts": { "1001": 2, "1002": 2, "1003": 1 } },
+    { "wangNum": 6, "total": 58, "specialCounts": { "1001": 2, "1002": 2, "1003": 2 } },
+    { "wangNum": 9, "total": 61, "specialCounts": { "1001": 3, "1002": 3, "1003": 3 } }
+  ]
+}

@@ -1,0 +1,48 @@
+
+xuezhan.png
+size: 213,263
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+doudizhu-biaoti3
+  rotate: false
+  xy: 2, 229
+  size: 80, 32
+  orig: 80, 32
+  offset: 0, 0
+  index: -1
+doudizhu-diban
+  rotate: false
+  xy: 2, 2
+  size: 198, 123
+  orig: 198, 123
+  offset: 0, 0
+  index: -1
+doudizhu-tubiao
+  rotate: false
+  xy: 99, 127
+  size: 108, 86
+  orig: 109, 86
+  offset: 0, 0
+  index: -1
+doudizhu-tubiao2
+  rotate: false
+  xy: 2, 135
+  size: 95, 83
+  orig: 95, 83
+  offset: 0, 0
+  index: -1
+weizi
+  rotate: false
+  xy: 84, 220
+  size: 78, 41
+  orig: 80, 42
+  offset: 1, 1
+  index: -1
+xing
+  rotate: true
+  xy: 164, 215
+  size: 46, 47
+  orig: 57, 53
+  offset: 6, 4
+  index: -1

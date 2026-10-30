@@ -1,0 +1,55 @@
+
+gengduo.png
+size: 119,77
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+anniu
+  rotate: false
+  xy: 48, 37
+  size: 38, 38
+  orig: 38, 38
+  offset: 0, 0
+  index: -1
+bian
+  rotate: false
+  xy: 2, 31
+  size: 44, 44
+  orig: 44, 44
+  offset: 0, 0
+  index: -1
+chuo
+  rotate: true
+  xy: 88, 43
+  size: 32, 29
+  orig: 33, 29
+  offset: 1, 0
+  index: -1
+gengduo
+  rotate: false
+  xy: 2, 3
+  size: 52, 26
+  orig: 52, 26
+  offset: 0, 0
+  index: -1
+qipao
+  rotate: true
+  xy: 56, 2
+  size: 33, 32
+  orig: 35, 35
+  offset: 1, 2
+  index: -1
+qipao2
+  rotate: false
+  xy: 90, 2
+  size: 13, 13
+  orig: 15, 15
+  offset: 1, 1
+  index: -1
+qipao3
+  rotate: false
+  xy: 90, 17
+  size: 24, 24
+  orig: 26, 26
+  offset: 1, 1
+  index: -1

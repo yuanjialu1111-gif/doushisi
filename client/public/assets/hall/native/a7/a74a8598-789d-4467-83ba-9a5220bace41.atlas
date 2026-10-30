@@ -1,0 +1,158 @@
+
+long2.png
+size: 2047,1864
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+guang
+  rotate: false
+  xy: 2, 1349
+  size: 902, 237
+  orig: 949, 509
+  offset: 21, 37
+  index: -1
+huzi1
+  rotate: true
+  xy: 1627, 1705
+  size: 157, 176
+  orig: 157, 176
+  offset: 0, 0
+  index: -1
+huzi2
+  rotate: true
+  xy: 1805, 1591
+  size: 271, 240
+  orig: 272, 241
+  offset: 1, 1
+  index: -1
+huzi3
+  rotate: false
+  xy: 284, 1773
+  size: 146, 89
+  orig: 155, 89
+  offset: 0, 0
+  index: -1
+huzi4
+  rotate: false
+  xy: 148, 1779
+  size: 134, 83
+  orig: 135, 83
+  offset: 0, 0
+  index: -1
+huzi5
+  rotate: false
+  xy: 432, 1765
+  size: 323, 97
+  orig: 323, 105
+  offset: 0, 0
+  index: -1
+lou-shenti
+  rotate: false
+  xy: 2, 795
+  size: 1750, 289
+  orig: 1750, 289
+  offset: 0, 0
+  index: -1
+lou1
+  rotate: false
+  xy: 2, 435
+  size: 1750, 358
+  orig: 1750, 358
+  offset: 0, 0
+  index: -1
+lou2
+  rotate: false
+  xy: 2, 1086
+  size: 1752, 261
+  orig: 1752, 740
+  offset: 0, 0
+  index: -1
+mao1
+  rotate: true
+  xy: 2, 1789
+  size: 73, 144
+  orig: 73, 144
+  offset: 0, 0
+  index: -1
+mao2
+  rotate: false
+  xy: 574, 1588
+  size: 429, 174
+  orig: 430, 174
+  offset: 1, 0
+  index: -1
+mao3
+  rotate: false
+  xy: 757, 1764
+  size: 399, 98
+  orig: 399, 121
+  offset: 0, 0
+  index: -1
+yun-qian1
+  rotate: false
+  xy: 2, 1611
+  size: 570, 152
+  orig: 570, 171
+  offset: 0, 0
+  index: -1
+yun-shenti1
+  rotate: false
+  xy: 1005, 1509
+  size: 415, 218
+  orig: 441, 232
+  offset: 1, 13
+  index: -1
+yun2
+  rotate: false
+  xy: 1158, 1729
+  size: 467, 133
+  orig: 478, 150
+  offset: 10, 10
+  index: -1
+yunceng-hou
+  rotate: false
+  xy: 2, 2
+  size: 1096, 431
+  orig: 1097, 431
+  offset: 0, 0
+  index: -1
+
+long22.png
+size: 1980,1996
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+bg
+  rotate: false
+  xy: 2, 1244
+  size: 1950, 750
+  orig: 1950, 750
+  offset: 0, 0
+  index: -1
+lin
+  rotate: true
+  xy: 1381, 2
+  size: 1240, 597
+  orig: 1334, 597
+  offset: 0, 0
+  index: -1
+yun-qian3
+  rotate: false
+  xy: 2, 444
+  size: 1377, 798
+  orig: 1661, 875
+  offset: 280, 0
+  index: -1
+
+long23.png
+size: 1362,682
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+long-shenti
+  rotate: false
+  xy: 2, 2
+  size: 1358, 678
+  orig: 1366, 678
+  offset: 1, 0
+  index: -1

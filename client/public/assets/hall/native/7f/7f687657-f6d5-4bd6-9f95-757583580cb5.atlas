@@ -1,0 +1,97 @@
+
+juese.png
+size: 784,535
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+dian2
+  rotate: true
+  xy: 641, 220
+  size: 51, 36
+  orig: 64, 118
+  offset: 3, 76
+  index: -1
+eye-you
+  rotate: true
+  xy: 641, 142
+  size: 34, 39
+  orig: 34, 39
+  offset: 0, 0
+  index: -1
+eye-zuo
+  rotate: false
+  xy: 641, 178
+  size: 41, 40
+  orig: 42, 40
+  offset: 1, 0
+  index: -1
+hudiejie
+  rotate: true
+  xy: 692, 2
+  size: 118, 78
+  orig: 118, 78
+  offset: 0, 0
+  index: -1
+sheiti
+  rotate: false
+  xy: 2, 29
+  size: 402, 504
+  orig: 489, 505
+  offset: 47, 0
+  index: -1
+shou
+  rotate: false
+  xy: 685, 202
+  size: 97, 157
+  orig: 103, 161
+  offset: 3, 0
+  index: -1
+tou
+  rotate: true
+  xy: 406, 273
+  size: 260, 277
+  orig: 280, 277
+  offset: 1, 0
+  index: -1
+toufa1
+  rotate: true
+  xy: 406, 21
+  size: 58, 175
+  orig: 63, 175
+  offset: 0, 0
+  index: -1
+toufa2
+  rotate: false
+  xy: 684, 122
+  size: 55, 78
+  orig: 55, 78
+  offset: 0, 0
+  index: -1
+toufa3
+  rotate: false
+  xy: 546, 113
+  size: 93, 158
+  orig: 102, 160
+  offset: 0, 2
+  index: -1
+wa1
+  rotate: true
+  xy: 583, 3
+  size: 108, 107
+  orig: 109, 107
+  offset: 0, 0
+  index: -1
+wa2
+  rotate: false
+  xy: 406, 81
+  size: 138, 190
+  orig: 138, 191
+  offset: 0, 1
+  index: -1
+wa3
+  rotate: false
+  xy: 685, 361
+  size: 89, 172
+  orig: 89, 172
+  offset: 0, 0
+  index: -1

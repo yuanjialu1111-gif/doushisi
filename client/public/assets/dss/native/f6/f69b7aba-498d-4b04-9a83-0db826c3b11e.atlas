@@ -1,0 +1,13 @@
+
+diandian.png
+size: 16,16
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+shengluehao
+  rotate: false
+  xy: 2, 2
+  size: 9, 12
+  orig: 9, 12
+  offset: 0, 0
+  index: -1

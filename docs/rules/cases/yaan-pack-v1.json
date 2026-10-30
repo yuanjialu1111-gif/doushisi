@@ -1,0 +1,29 @@
+{
+  "version": "yaan-independent-v1",
+  "variantKey": "6:0",
+  "scope": "Independent physical pack quantities for Yaan classic red-twenty; not wildcard behavior, dealing, winning or scoring.",
+  "wangCounts": [3, 6, 9, 12],
+  "sevenKingCounts": [0, 4, 6, 8, 12],
+  "cases": [
+    { "wangNum": 3, "qiWangNum": 0, "total": 55 },
+    { "wangNum": 3, "qiWangNum": 4, "total": 55 },
+    { "wangNum": 3, "qiWangNum": 6, "total": 57 },
+    { "wangNum": 3, "qiWangNum": 8, "total": 107 },
+    { "wangNum": 3, "qiWangNum": 12, "total": 159 },
+    { "wangNum": 6, "qiWangNum": 0, "total": 58 },
+    { "wangNum": 6, "qiWangNum": 4, "total": 58 },
+    { "wangNum": 6, "qiWangNum": 6, "total": 60 },
+    { "wangNum": 6, "qiWangNum": 8, "total": 110 },
+    { "wangNum": 6, "qiWangNum": 12, "total": 162 },
+    { "wangNum": 9, "qiWangNum": 0, "total": 61 },
+    { "wangNum": 9, "qiWangNum": 4, "total": 61 },
+    { "wangNum": 9, "qiWangNum": 6, "total": 63 },
+    { "wangNum": 9, "qiWangNum": 8, "total": 113 },
+    { "wangNum": 9, "qiWangNum": 12, "total": 165 },
+    { "wangNum": 12, "qiWangNum": 0, "total": 64 },
+    { "wangNum": 12, "qiWangNum": 4, "total": 64 },
+    { "wangNum": 12, "qiWangNum": 6, "total": 66 },
+    { "wangNum": 12, "qiWangNum": 8, "total": 116 },
+    { "wangNum": 12, "qiWangNum": 12, "total": 168 }
+  ]
+}

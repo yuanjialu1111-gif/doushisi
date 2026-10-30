@@ -1,0 +1,47 @@
+{
+  "name": "doushisi-standalone",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "pnpm@11.19.0",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @dss/server dev",
+    "preview": "pnpm --filter @dss/server preview",
+    "dev:admin": "pnpm --filter @doushisi/admin dev",
+    "build": "node tools/build.mjs",
+    "test": "pnpm -r --if-present test",
+    "typecheck": "pnpm -r --if-present typecheck",
+    "admin:create": "pnpm --filter @dss/server admin:create",
+    "local:setup": "pnpm --filter @dss/server local:setup",
+    "release:check": "node tools/release-check.mjs",
+    "local:check": "node tools/release-check.mjs --local",
+    "local:start": "pwsh -NoProfile -File tools/local-run.ps1 -Action start",
+    "local:stop": "pwsh -NoProfile -File tools/local-run.ps1 -Action stop",
+    "local:status": "pwsh -NoProfile -File tools/local-run.ps1 -Action status",
+    "local:backup": "pwsh -NoProfile -File tools/local-run.ps1 -Action backup",
+    "android:release:build": "pwsh -NoProfile -File tools/client-native-release-build.ps1",
+    "android:acceptance-driver:build": "pwsh -NoProfile -File tools/android-acceptance-driver/build-driver.ps1",
+    "acceptance:accounting": "pnpm --filter @dss/server exec tsx ../../tools/run-local-accounting.mjs",
+    "acceptance:recovery": "pnpm --filter @dss/server exec tsx ../../tools/run-local-recovery.mjs",
+    "acceptance:network": "pnpm --filter @dss/server exec tsx ../../tools/run-local-network.mjs",
+    "acceptance:ui": "pnpm --filter @dss/server exec tsx ../../tools/run-local-ui.mjs",
+    "acceptance:complete-rooms": "pnpm --filter @dss/server exec tsx ../../tools/run-complete-room-matrix.mjs",
+    "acceptance:stability": "pnpm --filter @dss/server exec tsx ../../tools/run-local-stability.mjs",
+    "acceptance:automated": "pnpm acceptance:ui && pnpm acceptance:accounting && pnpm acceptance:network && pnpm acceptance:recovery",
+    "test:research": "node tools/check-research-evidence.mjs",
+    "test:qionglai": "pnpm --filter @dss/server exec tsx ../../tools/qionglai-smoke.mjs",
+    "test:yaan": "pnpm --filter @dss/server exec tsx ../../tools/yaan-smoke.mjs",
+    "test:xinjin": "pnpm --filter @dss/server exec tsx ../../tools/xinjin-smoke.mjs",
+    "test:anyue": "pnpm --filter @dss/server exec tsx ../../tools/anyue-smoke.mjs",
+    "test:pujiang": "pnpm --filter @dss/server exec tsx ../../tools/pujiang-smoke.mjs",
+    "test:aba": "pnpm --filter @dss/server exec tsx ../../tools/aba-smoke.mjs",
+    "test:aba10": "pnpm --filter @dss/server exec tsx ../../tools/aba10-smoke.mjs",
+    "rules:source-index": "node tools/package-rule-evidence.mjs",
+    "test:release": "pnpm --filter @dss/server exec tsx --test ../../tools/test/*.test.mjs"
+  },
+  "devDependencies": {
+    "playwright-core": "^1.63.0"
+  }
+}

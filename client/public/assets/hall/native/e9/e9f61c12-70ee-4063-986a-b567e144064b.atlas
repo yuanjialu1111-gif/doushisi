@@ -1,0 +1,41 @@
+
+bisaichang.png
+size: 790,299
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+doudizhu-biaoti
+  rotate: false
+  xy: 610, 53
+  size: 178, 69
+  orig: 183, 74
+  offset: 3, 2
+  index: -1
+doudizhu-diban
+  rotate: false
+  xy: 2, 2
+  size: 420, 295
+  orig: 420, 295
+  offset: 0, 0
+  index: -1
+doudizhu-tubiao
+  rotate: false
+  xy: 610, 124
+  size: 175, 173
+  orig: 175, 173
+  offset: 0, 0
+  index: -1
+guang
+  rotate: true
+  xy: 424, 23
+  size: 274, 184
+  orig: 274, 189
+  offset: 0, 0
+  index: -1
+xing
+  rotate: false
+  xy: 610, 4
+  size: 46, 47
+  orig: 57, 53
+  offset: 6, 4
+  index: -1

@@ -1,0 +1,146 @@
+
+shouqiquankai.png
+size: 1203,494
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+cai
+  rotate: false
+  xy: 1141, 187
+  size: 56, 56
+  orig: 56, 56
+  offset: 0, 0
+  index: -1
+danmu1
+  rotate: false
+  xy: 573, 5
+  size: 198, 77
+  orig: 200, 79
+  offset: 1, 1
+  index: -1
+danmu2
+  rotate: true
+  xy: 937, 339
+  size: 153, 48
+  orig: 155, 50
+  offset: 1, 1
+  index: -1
+danmu3
+  rotate: false
+  xy: 989, 245
+  size: 192, 65
+  orig: 194, 67
+  offset: 1, 1
+  index: -1
+danmu4
+  rotate: true
+  xy: 937, 203
+  size: 134, 50
+  orig: 136, 52
+  offset: 1, 1
+  index: -1
+danmu5
+  rotate: true
+  xy: 859, 294
+  size: 198, 76
+  orig: 200, 78
+  offset: 1, 1
+  index: -1
+danmu6
+  rotate: false
+  xy: 773, 16
+  size: 229, 66
+  orig: 231, 68
+  offset: 1, 1
+  index: -1
+eye-you
+  rotate: true
+  xy: 1087, 135
+  size: 63, 52
+  orig: 65, 54
+  offset: 1, 1
+  index: -1
+eye-zuo
+  rotate: false
+  xy: 1104, 81
+  size: 63, 52
+  orig: 65, 55
+  offset: 1, 1
+  index: -1
+guang
+  rotate: false
+  xy: 2, 14
+  size: 569, 478
+  orig: 594, 500
+  offset: 13, 11
+  index: -1
+guang3
+  rotate: false
+  xy: 991, 92
+  size: 94, 105
+  orig: 111, 116
+  offset: 5, 3
+  index: -1
+shenti
+  rotate: false
+  xy: 991, 312
+  size: 183, 180
+  orig: 197, 188
+  offset: 7, 2
+  index: -1
+tou
+  rotate: true
+  xy: 573, 196
+  size: 296, 284
+  orig: 296, 285
+  offset: 0, 1
+  index: -1
+xiang
+  rotate: false
+  xy: 1176, 317
+  size: 25, 175
+  orig: 25, 175
+  offset: 0, 0
+  index: -1
+yan
+  rotate: true
+  xy: 2, 2
+  size: 10, 58
+  orig: 10, 58
+  offset: 0, 0
+  index: -1
+youbi
+  rotate: true
+  xy: 1004, 27
+  size: 63, 98
+  orig: 65, 104
+  offset: 2, 5
+  index: -1
+youshou
+  rotate: false
+  xy: 1045, 200
+  size: 54, 43
+  orig: 54, 60
+  offset: 0, 16
+  index: -1
+zi
+  rotate: false
+  xy: 573, 84
+  size: 416, 110
+  orig: 418, 112
+  offset: 1, 1
+  index: -1
+zuobi
+  rotate: false
+  xy: 859, 196
+  size: 64, 96
+  orig: 64, 96
+  offset: 0, 0
+  index: -1
+zuoshou
+  rotate: false
+  xy: 989, 199
+  size: 54, 44
+  orig: 54, 60
+  offset: 0, 16
+  index: -1

@@ -1,0 +1,125 @@
+
+game_dss_btn_zi.png
+size: 1024,1024
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+dss_tx_bao
+  rotate: false
+  xy: 512, 513
+  size: 85, 84
+  orig: 85, 84
+  offset: 0, 0
+  index: -1
+dss_tx_chi
+  rotate: false
+  xy: 767, 715
+  size: 85, 81
+  orig: 85, 81
+  offset: 0, 0
+  index: -1
+dss_tx_gang
+  rotate: false
+  xy: 348, 320
+  size: 83, 78
+  orig: 83, 78
+  offset: 0, 0
+  index: -1
+dss_tx_hu
+  rotate: false
+  xy: 512, 427
+  size: 69, 84
+  orig: 69, 84
+  offset: 0, 0
+  index: -1
+dss_tx_peng
+  rotate: false
+  xy: 257, 224
+  size: 85, 77
+  orig: 85, 77
+  offset: 0, 0
+  index: -1
+dss_tx_tou
+  rotate: false
+  xy: 257, 303
+  size: 89, 95
+  orig: 89, 95
+  offset: 0, 0
+  index: -1
+game_slotfruit_res_Effect_starBomb_starbomb01
+  rotate: false
+  xy: 2, 798
+  size: 253, 197
+  orig: 253, 197
+  offset: 0, 0
+  index: -1
+game_slotfruit_res_Effect_starBomb_starbomb02
+  rotate: false
+  xy: 2, 599
+  size: 253, 197
+  orig: 253, 197
+  offset: 0, 0
+  index: -1
+game_slotfruit_res_Effect_starBomb_starbomb03
+  rotate: false
+  xy: 257, 798
+  size: 253, 197
+  orig: 253, 197
+  offset: 0, 0
+  index: -1
+game_slotfruit_res_Effect_starBomb_starbomb04
+  rotate: false
+  xy: 2, 400
+  size: 253, 197
+  orig: 253, 197
+  offset: 0, 0
+  index: -1
+game_slotfruit_res_Effect_starBomb_starbomb05
+  rotate: false
+  xy: 257, 599
+  size: 253, 197
+  orig: 253, 197
+  offset: 0, 0
+  index: -1
+game_slotfruit_res_Effect_starBomb_starbomb06
+  rotate: false
+  xy: 512, 798
+  size: 253, 197
+  orig: 253, 197
+  offset: 0, 0
+  index: -1
+game_slotfruit_res_Effect_starBomb_starbomb07
+  rotate: false
+  xy: 2, 201
+  size: 253, 197
+  orig: 253, 197
+  offset: 0, 0
+  index: -1
+game_slotfruit_res_Effect_starBomb_starbomb08
+  rotate: false
+  xy: 257, 400
+  size: 253, 197
+  orig: 253, 197
+  offset: 0, 0
+  index: -1
+game_slotfruit_res_Effect_starBomb_starbomb09
+  rotate: false
+  xy: 512, 599
+  size: 253, 197
+  orig: 253, 197
+  offset: 0, 0
+  index: -1
+game_slotfruit_res_Effect_starBomb_starbomb10
+  rotate: false
+  xy: 767, 798
+  size: 253, 197
+  orig: 253, 197
+  offset: 0, 0
+  index: -1
+game_slotfruit_res_Effect_starBomb_starbomb11
+  rotate: false
+  xy: 2, 2
+  size: 253, 197
+  orig: 253, 197
+  offset: 0, 0
+  index: -1

@@ -1,0 +1,9 @@
+{
+  "kind": "user-rule-approval",
+  "ruleVersion": "aba11-independent-v1",
+  "variantKey": "11:0",
+  "recordedAt": "2026-09-16T00:00:00.000Z",
+  "statement": "用户全部自动批准，允许在21项范围内补齐11:0阿坝独立规则定义。",
+  "evidenceReference": "docs/rules/INDEPENDENT-APPROVAL.md",
+  "rulebookSha256": "6b8ab6b34b8b09426eb4794dab583a377d8dcb4b3e07522a7d238e0f7da18801"
+}

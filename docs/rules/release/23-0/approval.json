@@ -1,0 +1,9 @@
+{
+  "kind": "user-rule-approval",
+  "ruleVersion": "xuzhou-independent-v1",
+  "variantKey": "23:0",
+  "recordedAt": "2026-09-16T00:00:00.000Z",
+  "statement": "用户全部自动批准，允许在21项范围内补齐23:0独立规则定义。",
+  "evidenceReference": "docs/rules/INDEPENDENT-APPROVAL.md",
+  "rulebookSha256": "e5a4bb0201f078566cf497606ead5e2eaf7e5427db722c38798a0a0e85390fcc"
+}

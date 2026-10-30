@@ -1,0 +1,9 @@
+{
+  "kind": "user-rule-approval",
+  "ruleVersion": "maoxian-independent-v1",
+  "variantKey": "15:0",
+  "recordedAt": "2026-09-16T00:00:00.000Z",
+  "statement": "用户全部自动批准，允许在21项范围内补齐15:0独立规则定义。",
+  "evidenceReference": "docs/rules/INDEPENDENT-APPROVAL.md",
+  "rulebookSha256": "6d5d2aa523fe65594ff2f55db6b20f519135acfe8b229a1597e3a17f67d7d48e"
+}

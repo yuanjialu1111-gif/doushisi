@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "variantKey": "22:0",
+  "ruleVersion": "yanjin-independent-v1",
+  "rulebook": {
+    "path": "docs/rules/release/22-0/rulebook.json",
+    "sha256": "df8d31735085eb829995ef12f9c58bad11119690840c6e2b6844358ba82a309f"
+  },
+  "cases": {
+    "path": "docs/rules/release/22-0/cases.json",
+    "sha256": "75d38553601518f87b87b1791e95bcac85f386cc72cd6a59a41781b706d4ed7c"
+  },
+  "generatedAt": "2026-10-03T06:05:25.668Z"
+}

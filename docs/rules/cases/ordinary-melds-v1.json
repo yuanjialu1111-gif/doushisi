@@ -1,0 +1,25 @@
+{
+  "version": "dou14-ordinary-structures-v1",
+  "scope": "Ordinary structural matches only, not regional legal actions or winning hands. No special cards, points, dealer rules or replacement policy.",
+  "cases": [
+    { "id": "ace-king", "codes": [101, 413], "kinds": ["chi"], "expected": [{"kind":"chi","cardIds":["c0","c1"]}] },
+    { "id": "two-queen", "codes": [202, 312], "kinds": ["chi"], "expected": [{"kind":"chi","cardIds":["c0","c1"]}] },
+    { "id": "three-jack", "codes": [303, 411], "kinds": ["chi"], "expected": [{"kind":"chi","cardIds":["c0","c1"]}] },
+    { "id": "four-ten", "codes": [104, 210], "kinds": ["chi"], "expected": [{"kind":"chi","cardIds":["c0","c1"]}] },
+    { "id": "five-nine-red", "codes": [105, 309], "kinds": ["chi"], "expected": [{"kind":"chi","cardIds":["c0","c1"]}] },
+    { "id": "six-eight-black", "codes": [206, 408], "kinds": ["chi"], "expected": [{"kind":"chi","cardIds":["c0","c1"]}] },
+    { "id": "seven-seven", "codes": [107, 207], "kinds": ["chi"], "expected": [{"kind":"chi","cardIds":["c0","c1"]}] },
+    { "id": "same-face-distinct-seven-copies", "codes": [107, 107], "kinds": ["chi"], "expected": [{"kind":"chi","cardIds":["c0","c1"]}] },
+    { "id": "queen-not-one-for-grouping", "codes": [112, 201], "kinds": ["chi"], "expected": [] },
+    { "id": "ordinary-pair-not-a-meld", "codes": [105, 205], "kinds": ["chi", "peng", "gang"], "expected": [] },
+    { "id": "sequence-is-not-chi", "codes": [101, 102, 103], "kinds": ["chi", "peng", "gang"], "expected": [] },
+    { "id": "five-five-nine-only-two-pairs", "codes": [105, 205, 309], "kinds": ["chi", "peng", "gang"], "expected": [{"kind":"chi","cardIds":["c0","c2"]},{"kind":"chi","cardIds":["c1","c2"]}] },
+    { "id": "same-rank-three-suits", "codes": [105, 205, 405], "kinds": ["peng"], "expected": [{"kind":"peng","cardIds":["c0","c1","c2"]}] },
+    { "id": "no-peng-with-mixed-ranks", "codes": [105, 205, 406], "kinds": ["peng"], "expected": [] },
+    { "id": "four-suits-one-gang", "codes": [105, 205, 305, 405], "kinds": ["gang"], "expected": [{"kind":"gang","cardIds":["c0","c1","c2","c3"]}] },
+    { "id": "three-is-not-gang", "codes": [105, 205, 305], "kinds": ["gang"], "expected": [] },
+    { "id": "peng-not-enabled-for-concealed-cover", "codes": [105, 205, 305], "kinds": ["chi"], "expected": [] },
+    { "id": "no-kinds-no-candidates", "codes": [105, 309, 205, 305, 405], "kinds": [], "expected": [] },
+    { "id": "empty", "codes": [], "kinds": ["chi", "peng", "gang"], "expected": [] }
+  ]
+}

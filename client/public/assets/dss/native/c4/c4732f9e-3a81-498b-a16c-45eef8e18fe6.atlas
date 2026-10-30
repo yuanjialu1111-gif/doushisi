@@ -1,0 +1,20 @@
+
+jiantou-tishi.png
+size: 50,37
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+images/jiantou1
+  rotate: false
+  xy: 2, 2
+  size: 33, 33
+  orig: 35, 34
+  offset: 1, 1
+  index: -1
+images/shanguang
+  rotate: false
+  xy: 37, 23
+  size: 11, 12
+  orig: 12, 12
+  offset: 0, 0
+  index: -1

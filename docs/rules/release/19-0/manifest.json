@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "variantKey": "19:0",
+  "ruleVersion": "tongjiang-independent-v1",
+  "rulebook": {
+    "path": "docs/rules/release/19-0/rulebook.json",
+    "sha256": "b54695575a9bdcc83fa9bb9127b37e24ae6c936ec748a049df103486a5af6d11"
+  },
+  "cases": {
+    "path": "docs/rules/release/19-0/cases.json",
+    "sha256": "59053a0b8f569439d62f58265b8c0ac7b956557f2127154f96a3427bc3487310"
+  },
+  "generatedAt": "2026-10-03T06:01:11.741Z"
+}

@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "variantKey": "9:0",
+  "ruleVersion": "aba-independent-v1",
+  "rulebook": {
+    "path": "docs/rules/release/9-0/rulebook.json",
+    "sha256": "40f2f34da0f242deb165ac4b4d113680ddb966ccdb40bf6fa9c7a0a11e83922f"
+  },
+  "cases": {
+    "path": "docs/rules/release/9-0/cases.json",
+    "sha256": "c8207b99490ee80e4f5c8373179850b8799c40551637c542a1beb0a7355ddda9"
+  },
+  "generatedAt": "2026-10-03T12:01:58.865Z"
+}

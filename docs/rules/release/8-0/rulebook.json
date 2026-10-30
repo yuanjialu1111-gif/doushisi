@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "status": "approved",
+  "basis": "user-approved",
+  "variantKey": "8:0",
+  "ruleVersion": "qionglai-independent-v1",
+  "title": "邛崃斗十四独立规则 v1",
+  "approval": {
+    "path": "docs/rules/release/8-0/approval.json",
+    "sha256": "7cd959735d725915750fdfb01409a69d5971a0350cc1167b29c3850cf8ffa8aa"
+  },
+  "requiredCoverage": [
+    "gold-hook",
+    "declared-wait-lock",
+    "concealed-four-pairs",
+    "payments"
+  ],
+  "sources": [
+    "docs/rules/QIONGLAI-INDEPENDENT.md",
+    "docs/rules/QIONGLAI-PACK.md",
+    "docs/rules/cases/qionglai-pack-v1.json",
+    "docs/rules/cases/qionglai-win-v1.json",
+    "docs/rules/cases/qionglai-score-v1.json",
+    "apps/server/src/game/qionglai-pack.ts",
+    "apps/server/src/game/qionglai-win.ts",
+    "apps/server/src/game/qionglai-round.ts"
+  ],
+  "summary": {
+    "deck": "Approved QL-D03-1 pack: 52 ordinary cards plus equal 3/6/9/12/15/18 special reward cards.",
+    "win": "Four groups: sum-14 pairs, same-rank exposed triples, or quads; concealed four-pairs is independent.",
+    "scoring": "Independent fan table with explicit 4/5/6/99 caps and linear or exponential formulas.",
+    "declaration": "Declaration locks server-computed waits; response melds are not allowed after declaration.",
+    "payments": "Discard pays one share per winner; public flip charges every non-winner; exact 12-place payer rounding."
+  }
+}

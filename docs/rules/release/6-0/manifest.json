@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "variantKey": "6:0",
+  "ruleVersion": "yaan-independent-v1",
+  "rulebook": {
+    "path": "docs/rules/release/6-0/rulebook.json",
+    "sha256": "4577a8b12184d50df7833b149309f219223578465be8ea3b7f49c81e8786dd12"
+  },
+  "cases": {
+    "path": "docs/rules/release/6-0/cases.json",
+    "sha256": "fb7d3f468ffe800f3332d7a6df19c379b74521474cf1943a2272115bbd82e2fd"
+  },
+  "generatedAt": "2026-10-02T20:41:17.320Z"
+}

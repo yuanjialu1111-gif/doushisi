@@ -1,0 +1,90 @@
+
+shouchong.png
+size: 263,269
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+di
+  rotate: false
+  xy: 2, 140
+  size: 126, 127
+  orig: 129, 131
+  offset: 0, 0
+  index: -1
+dou
+  rotate: false
+  xy: 209, 226
+  size: 50, 41
+  orig: 56, 41
+  offset: 6, 0
+  index: -1
+dou2
+  rotate: false
+  xy: 187, 29
+  size: 33, 33
+  orig: 33, 35
+  offset: 0, 1
+  index: -1
+dou3
+  rotate: false
+  xy: 222, 33
+  size: 37, 29
+  orig: 47, 29
+  offset: 0, 0
+  index: -1
+dou4
+  rotate: false
+  xy: 209, 193
+  size: 40, 31
+  orig: 51, 31
+  offset: 0, 0
+  index: -1
+dou5
+  rotate: true
+  xy: 116, 2
+  size: 27, 20
+  orig: 34, 20
+  offset: 7, 0
+  index: -1
+guang
+  rotate: false
+  xy: 2, 8
+  size: 112, 130
+  orig: 119, 130
+  offset: 4, 0
+  index: -1
+longdan
+  rotate: true
+  xy: 116, 31
+  size: 107, 69
+  orig: 110, 73
+  offset: 2, 0
+  index: -1
+shanguang
+  rotate: false
+  xy: 138, 17
+  size: 11, 12
+  orig: 12, 12
+  offset: 0, 0
+  index: -1
+shouchong
+  rotate: true
+  xy: 130, 185
+  size: 82, 77
+  orig: 82, 77
+  offset: 0, 0
+  index: -1
+wenzi
+  rotate: false
+  xy: 130, 147
+  size: 128, 36
+  orig: 128, 36
+  offset: 0, 0
+  index: -1
+xing
+  rotate: false
+  xy: 187, 64
+  size: 74, 81
+  orig: 77, 85
+  offset: 0, 4
+  index: -1

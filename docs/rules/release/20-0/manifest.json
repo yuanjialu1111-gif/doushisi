@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "variantKey": "20:0",
+  "ruleVersion": "rongxian-independent-v1",
+  "rulebook": {
+    "path": "docs/rules/release/20-0/rulebook.json",
+    "sha256": "410e3768853fd18cb63dcbb7f0b8c1546677918a67760d1be1618dc5e1ad06b7"
+  },
+  "cases": {
+    "path": "docs/rules/release/20-0/cases.json",
+    "sha256": "9da2603d07d2778e4c3fc2ade9c470cee8d422b843801eb67c8060a864fdf8af"
+  },
+  "generatedAt": "2026-10-03T06:05:25.097Z"
+}

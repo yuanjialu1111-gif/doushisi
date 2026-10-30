@@ -1,0 +1,717 @@
+{
+  "report": {
+    "at": "2026-09-09T18:44:26.869Z",
+    "endpoint": "ws://d14api.handka.com:8002",
+    "scope": "Original server, own dedicated test accounts and private room only",
+    "case": {
+      "gameId": 8,
+      "wangNum": 9,
+      "qiWangNum": null,
+      "playerNum": 2
+    },
+    "actions": [
+      {
+        "player": "A",
+        "action": "login",
+        "currentRoom": 0,
+        "roomCards": 0,
+        "beans": "0"
+      },
+      {
+        "player": "B",
+        "action": "login",
+        "currentRoom": 0,
+        "roomCards": 0,
+        "beans": "0"
+      },
+      {
+        "action": "create",
+        "result": 1
+      },
+      {
+        "player": "B",
+        "action": "join",
+        "result": 1
+      },
+      {
+        "player": "A",
+        "action": "enter",
+        "result": 1,
+        "seat": 1,
+        "tableInfo": {
+          "againUsers": [],
+          "roomId": 704560,
+          "roomType": 100,
+          "areaType": 8,
+          "gameNum": 4,
+          "roomCardNum": 0,
+          "useCardType": 2,
+          "basicTimes": 1,
+          "playerNum": 2,
+          "creatorUid": "39952802",
+          "notChu_10": false,
+          "maxFan": 99,
+          "openGps": false,
+          "lon": 0,
+          "lat": 0,
+          "yiPaoDuoXiang": false,
+          "processType": 1,
+          "scoreChangeTimely": false,
+          "baoJiao": true,
+          "tianHu": true,
+          "diHu": true,
+          "chengFan": false,
+          "quanHongHei": true,
+          "baoJiaoYingbao": true,
+          "diHuChuDiyizhang": false,
+          "yifupai": false,
+          "qia20": true,
+          "qige7": false,
+          "jiaqiang": false,
+          "baipi": true,
+          "bage10tianhu": false,
+          "kouPai": false,
+          "jiaDxh": false,
+          "qiToWang": false,
+          "zuoPiao": false,
+          "dianpaoBaopei": true,
+          "zhuangJiadi": false,
+          "anDui": true,
+          "cheLong": false,
+          "piaoType": 0,
+          "wangNum": 9,
+          "hongHei_50": 0,
+          "jinGouDiao": true,
+          "chaJiao": true,
+          "ziChi": false,
+          "keSuHu": false,
+          "gangHua": false,
+          "gangPao": false,
+          "qiWangNum": 0,
+          "siGuiYi": false,
+          "hpToTingyong": false,
+          "huRedScore": 0,
+          "doubleInOut": false,
+          "jiaFan_258": false,
+          "haiDiLao": false,
+          "quanXing": false,
+          "baojiaoCondition": 0,
+          "baipiType": 0,
+          "shunZi": false,
+          "zimoJiafan": false,
+          "zha": false,
+          "guoZhuang": false,
+          "zhuang8Xian7": false,
+          "duiziShunzi": false,
+          "qianfenJiafan": false,
+          "qia50": false,
+          "quanDaXiaoLan": false,
+          "wangToTingyong": false,
+          "chaoFanJiaDi": 0,
+          "daXiaoJia": false,
+          "qia25": false,
+          "quanHeiSuanDian": false,
+          "siCaiErJing": false,
+          "tingyongHuDaFan": false,
+          "daQuanHong": false,
+          "keBaWang": false,
+          "baNoGuo": false,
+          "guoZhangNoCaozuo": false,
+          "gangDuoZhang": false,
+          "tianHuKeTou": false,
+          "ownBaKeQiang": false,
+          "anDuiFanNum": 0,
+          "yiDianZhu": false,
+          "quanQiuRen": false,
+          "menQing": false,
+          "siZhangLuoDi": false,
+          "luanHu": false,
+          "qiFanDianNum": 0,
+          "banMingTang": false,
+          "qiang_7Hu": false,
+          "daShaQiangHu": false,
+          "da_7hong_7hei": false,
+          "ziQiangHu": false,
+          "xiaoHu": false,
+          "longDui": false,
+          "qia40": false,
+          "meiLunZuidaZhaJiafen": false,
+          "yaoJiu": false,
+          "jiangDui": false,
+          "hou_4BiHu": false,
+          "zhongFaBai": false,
+          "baiJiao": false,
+          "baiJiaoBiHu": false,
+          "baiJiaoNoChu": false,
+          "fangXiaoHuDa": false,
+          "dianGangHuaDp": false,
+          "holdCardNum": 0,
+          "zimoType": 0,
+          "changeThreeCard": false,
+          "seatRandom": false,
+          "kaXinWu": false
+        },
+        "tableState": 0
+      },
+      {
+        "player": "B",
+        "action": "enter",
+        "result": 1,
+        "seat": 2,
+        "tableInfo": {
+          "againUsers": [],
+          "roomId": 704560,
+          "roomType": 100,
+          "areaType": 8,
+          "gameNum": 4,
+          "roomCardNum": 0,
+          "useCardType": 2,
+          "basicTimes": 1,
+          "playerNum": 2,
+          "creatorUid": "39952802",
+          "notChu_10": false,
+          "maxFan": 99,
+          "openGps": false,
+          "lon": 0,
+          "lat": 0,
+          "yiPaoDuoXiang": false,
+          "processType": 1,
+          "scoreChangeTimely": false,
+          "baoJiao": true,
+          "tianHu": true,
+          "diHu": true,
+          "chengFan": false,
+          "quanHongHei": true,
+          "baoJiaoYingbao": true,
+          "diHuChuDiyizhang": false,
+          "yifupai": false,
+          "qia20": true,
+          "qige7": false,
+          "jiaqiang": false,
+          "baipi": true,
+          "bage10tianhu": false,
+          "kouPai": false,
+          "jiaDxh": false,
+          "qiToWang": false,
+          "zuoPiao": false,
+          "dianpaoBaopei": true,
+          "zhuangJiadi": false,
+          "anDui": true,
+          "cheLong": false,
+          "piaoType": 0,
+          "wangNum": 9,
+          "hongHei_50": 0,
+          "jinGouDiao": true,
+          "chaJiao": true,
+          "ziChi": false,
+          "keSuHu": false,
+          "gangHua": false,
+          "gangPao": false,
+          "qiWangNum": 0,
+          "siGuiYi": false,
+          "hpToTingyong": false,
+          "huRedScore": 0,
+          "doubleInOut": false,
+          "jiaFan_258": false,
+          "haiDiLao": false,
+          "quanXing": false,
+          "baojiaoCondition": 0,
+          "baipiType": 0,
+          "shunZi": false,
+          "zimoJiafan": false,
+          "zha": false,
+          "guoZhuang": false,
+          "zhuang8Xian7": false,
+          "duiziShunzi": false,
+          "qianfenJiafan": false,
+          "qia50": false,
+          "quanDaXiaoLan": false,
+          "wangToTingyong": false,
+          "chaoFanJiaDi": 0,
+          "daXiaoJia": false,
+          "qia25": false,
+          "quanHeiSuanDian": false,
+          "siCaiErJing": false,
+          "tingyongHuDaFan": false,
+          "daQuanHong": false,
+          "keBaWang": false,
+          "baNoGuo": false,
+          "guoZhangNoCaozuo": false,
+          "gangDuoZhang": false,
+          "tianHuKeTou": false,
+          "ownBaKeQiang": false,
+          "anDuiFanNum": 0,
+          "yiDianZhu": false,
+          "quanQiuRen": false,
+          "menQing": false,
+          "siZhangLuoDi": false,
+          "luanHu": false,
+          "qiFanDianNum": 0,
+          "banMingTang": false,
+          "qiang_7Hu": false,
+          "daShaQiangHu": false,
+          "da_7hong_7hei": false,
+          "ziQiangHu": false,
+          "xiaoHu": false,
+          "longDui": false,
+          "qia40": false,
+          "meiLunZuidaZhaJiafen": false,
+          "yaoJiu": false,
+          "jiangDui": false,
+          "hou_4BiHu": false,
+          "zhongFaBai": false,
+          "baiJiao": false,
+          "baiJiaoBiHu": false,
+          "baiJiaoNoChu": false,
+          "fangXiaoHuDa": false,
+          "dianGangHuaDp": false,
+          "holdCardNum": 0,
+          "zimoType": 0,
+          "changeThreeCard": false,
+          "seatRandom": false,
+          "kaXinWu": false
+        },
+        "tableState": 0
+      },
+      {
+        "player": "A",
+        "action": "ready",
+        "result": 1020,
+        "state": false,
+        "leftCardNum": 61,
+        "showType": [
+          21,
+          10
+        ]
+      },
+      {
+        "player": "A",
+        "action": "dissolve",
+        "result": 1
+      }
+    ],
+    "started": false,
+    "completedRounds": 0,
+    "closed": true,
+    "requestedOptions": {
+      "useCardType": 2,
+      "gameNum": 4,
+      "playerNum": 2,
+      "maxFan": 99,
+      "wangNum": 9,
+      "baoJiaoYingbao": 1,
+      "chaJiao": 1,
+      "chengFan": 0,
+      "qia20": true,
+      "jinGouDiao": true,
+      "anDui": true,
+      "keSuHu": false,
+      "siGuiYi": false,
+      "openGps": false,
+      "areaType": 8
+    },
+    "roomId": 704560,
+    "error": "Original ready rejected: 1020",
+    "messages": 16
+  },
+  "observations": [
+    {
+      "at": "2026-09-09T18:44:26.993Z",
+      "player": "A",
+      "command": 2,
+      "data": {
+        "hwResponseGameLogin": {
+          "state": true,
+          "uid": "39952802",
+          "posType": 0,
+          "nick": "39952802",
+          "sex": 0,
+          "roomCardNum": 0,
+          "goldNum": "0",
+          "diamondNum": 0,
+          "hbTicketNum": 0,
+          "mustUpdate": false,
+          "downloadUrl": "https://jzy.ink/CCIBxh",
+          "freeVideoTimes": 0,
+          "weekCardDays": 0,
+          "headType": 0,
+          "shiName": "成都市",
+          "xianName": "邛崃",
+          "areaType": [
+            8,
+            101,
+            502,
+            601
+          ],
+          "showShouchong": true,
+          "showMonthcard": true,
+          "showYuandan": false,
+          "showChunjie": false,
+          "showZhaohuiHyhg": false,
+          "kfPngUrl": "https://cylcd.oss-cn-chengdu.aliyuncs.com/images/1001_kf_20260909.png",
+          "gzhPngUrl": "",
+          "gzhJumpUrl": "https://m.lanrendapai.cn/"
+        }
+      }
+    },
+    {
+      "at": "2026-09-09T18:44:27.098Z",
+      "player": "B",
+      "command": 2,
+      "data": {
+        "hwResponseGameLogin": {
+          "state": true,
+          "uid": "74060892",
+          "posType": 0,
+          "nick": "74060892",
+          "sex": 0,
+          "roomCardNum": 0,
+          "goldNum": "0",
+          "diamondNum": 0,
+          "hbTicketNum": 0,
+          "mustUpdate": false,
+          "downloadUrl": "https://jzy.ink/CCIBxh",
+          "freeVideoTimes": 0,
+          "weekCardDays": 0,
+          "headType": 0,
+          "showShouchong": true,
+          "showMonthcard": true,
+          "showYuandan": false,
+          "showChunjie": false,
+          "showZhaohuiHyhg": false,
+          "kfPngUrl": "https://cylcd.oss-cn-chengdu.aliyuncs.com/images/1001_kf_20260909.png",
+          "gzhPngUrl": "",
+          "gzhJumpUrl": "https://m.lanrendapai.cn/"
+        }
+      }
+    },
+    {
+      "at": "2026-09-09T18:44:27.134Z",
+      "player": "A",
+      "command": 4,
+      "data": {
+        "hwResponseCreateTable": {
+          "result": 1,
+          "tableInfo": {
+            "roomId": 704560,
+            "roomType": 100,
+            "areaType": 8
+          }
+        }
+      }
+    },
+    {
+      "at": "2026-09-09T18:44:27.168Z",
+      "player": "B",
+      "command": 6,
+      "data": {
+        "hwResponseEnterTable": {
+          "result": 1,
+          "tableInfo": {
+            "roomId": 704560,
+            "roomType": 100,
+            "areaType": 8
+          }
+        }
+      }
+    },
+    {
+      "at": "2026-09-09T18:44:27.170Z",
+      "player": "A",
+      "command": 7,
+      "data": {
+        "hwNotifyEnterTable": {
+          "userInfo": {
+            "uid": "74060892",
+            "nick": "74060892",
+            "score": "0",
+            "changeScore": "0",
+            "seatIndex": 2,
+            "choice": false,
+            "isReady": false,
+            "sex": 0,
+            "online": true,
+            "giveUp": false,
+            "huScore": "0",
+            "piaoNum": -1,
+            "weekCardDays": 0,
+            "headType": 0,
+            "gameNum": 0,
+            "winNum": 0,
+            "winRate": "0",
+            "maxGoldLevel": 201
+          }
+        }
+      }
+    },
+    {
+      "at": "2026-09-09T18:44:27.203Z",
+      "player": "B",
+      "command": 203,
+      "data": {
+        "hwNotifyLocation": {}
+      }
+    },
+    {
+      "at": "2026-09-09T18:44:27.204Z",
+      "player": "A",
+      "command": 48,
+      "data": {
+        "hwResponseEnterTableFinish": {
+          "result": 1,
+          "userInfo": [
+            {
+              "uid": "39952802",
+              "nick": "39952802",
+              "score": "0",
+              "changeScore": "0",
+              "seatIndex": 1,
+              "choice": false,
+              "isReady": false,
+              "sex": 0,
+              "online": true,
+              "giveUp": false,
+              "huScore": "0",
+              "piaoNum": -1,
+              "weekCardDays": 0,
+              "headType": 0,
+              "gameNum": 0,
+              "winNum": 0,
+              "winRate": "0",
+              "maxGoldLevel": 201
+            },
+            {
+              "uid": "74060892",
+              "nick": "74060892",
+              "score": "0",
+              "changeScore": "0",
+              "seatIndex": 2,
+              "choice": false,
+              "isReady": false,
+              "sex": 0,
+              "online": true,
+              "giveUp": false,
+              "huScore": "0",
+              "piaoNum": -1,
+              "weekCardDays": 0,
+              "headType": 0,
+              "gameNum": 0,
+              "winNum": 0,
+              "winRate": "0",
+              "maxGoldLevel": 201
+            }
+          ],
+          "tableInfo": {
+            "roomId": 704560,
+            "roomType": 100,
+            "areaType": 8,
+            "gameNum": 4,
+            "useCardType": 2,
+            "basicTimes": 1,
+            "playerNum": 2,
+            "creatorUid": "39952802",
+            "maxFan": 99,
+            "openGps": false,
+            "processType": 1,
+            "baoJiao": true,
+            "tianHu": true,
+            "diHu": true,
+            "chengFan": false,
+            "quanHongHei": true,
+            "baoJiaoYingbao": true,
+            "qia20": true,
+            "baipi": true,
+            "qiToWang": false,
+            "dianpaoBaopei": true,
+            "anDui": true,
+            "wangNum": 9,
+            "jinGouDiao": true,
+            "chaJiao": true,
+            "ziChi": false,
+            "keSuHu": false,
+            "siGuiYi": false
+          },
+          "seatIndex": 1,
+          "leftCardNum": 61,
+          "round": 1,
+          "shiName": "成都市",
+          "xianName": "邛崃",
+          "showPipeiPic": false,
+          "pipeiCd": 0
+        }
+      }
+    },
+    {
+      "at": "2026-09-09T18:44:27.204Z",
+      "player": "A",
+      "command": 203,
+      "data": {
+        "hwNotifyLocation": {}
+      }
+    },
+    {
+      "at": "2026-09-09T18:44:27.238Z",
+      "player": "B",
+      "command": 48,
+      "data": {
+        "hwResponseEnterTableFinish": {
+          "result": 1,
+          "userInfo": [
+            {
+              "uid": "39952802",
+              "nick": "39952802",
+              "score": "0",
+              "changeScore": "0",
+              "seatIndex": 1,
+              "choice": false,
+              "isReady": false,
+              "sex": 0,
+              "online": true,
+              "giveUp": false,
+              "huScore": "0",
+              "piaoNum": -1,
+              "weekCardDays": 0,
+              "headType": 0,
+              "gameNum": 0,
+              "winNum": 0,
+              "winRate": "0",
+              "maxGoldLevel": 201
+            },
+            {
+              "uid": "74060892",
+              "nick": "74060892",
+              "score": "0",
+              "changeScore": "0",
+              "seatIndex": 2,
+              "choice": false,
+              "isReady": false,
+              "sex": 0,
+              "online": true,
+              "giveUp": false,
+              "huScore": "0",
+              "piaoNum": -1,
+              "weekCardDays": 0,
+              "headType": 0,
+              "gameNum": 0,
+              "winNum": 0,
+              "winRate": "0",
+              "maxGoldLevel": 201
+            }
+          ],
+          "tableInfo": {
+            "roomId": 704560,
+            "roomType": 100,
+            "areaType": 8,
+            "gameNum": 4,
+            "useCardType": 2,
+            "basicTimes": 1,
+            "playerNum": 2,
+            "creatorUid": "39952802",
+            "maxFan": 99,
+            "openGps": false,
+            "processType": 1,
+            "baoJiao": true,
+            "tianHu": true,
+            "diHu": true,
+            "chengFan": false,
+            "quanHongHei": true,
+            "baoJiaoYingbao": true,
+            "qia20": true,
+            "baipi": true,
+            "qiToWang": false,
+            "dianpaoBaopei": true,
+            "anDui": true,
+            "wangNum": 9,
+            "jinGouDiao": true,
+            "chaJiao": true,
+            "ziChi": false,
+            "keSuHu": false,
+            "siGuiYi": false
+          },
+          "seatIndex": 2,
+          "leftCardNum": 61,
+          "round": 1,
+          "shiName": "成都市",
+          "xianName": "邛崃",
+          "showPipeiPic": false,
+          "pipeiCd": 0
+        }
+      }
+    },
+    {
+      "at": "2026-09-09T18:44:27.238Z",
+      "player": "B",
+      "command": 203,
+      "data": {
+        "hwNotifyLocation": {}
+      }
+    },
+    {
+      "at": "2026-09-09T18:44:27.239Z",
+      "player": "A",
+      "command": 203,
+      "data": {
+        "hwNotifyLocation": {}
+      }
+    },
+    {
+      "at": "2026-09-09T18:44:27.271Z",
+      "player": "A",
+      "command": 9,
+      "data": {
+        "hwResponseReadyForGame": {
+          "result": 1020,
+          "showType": [
+            21,
+            10
+          ],
+          "leftCardNum": 61
+        }
+      }
+    },
+    {
+      "at": "2026-09-09T18:44:27.305Z",
+      "player": "B",
+      "command": 32,
+      "data": {
+        "hwNotifyDissolvedTable": {
+          "roomId": 704560,
+          "result": true,
+          "dating": true
+        }
+      }
+    },
+    {
+      "at": "2026-09-09T18:44:27.306Z",
+      "player": "A",
+      "command": 30,
+      "data": {
+        "hwResponseDissolveTable": {
+          "result": 1
+        }
+      }
+    },
+    {
+      "at": "2026-09-09T18:44:27.306Z",
+      "player": "A",
+      "command": 32,
+      "data": {
+        "hwNotifyDissolvedTable": {
+          "roomId": 704560,
+          "result": true,
+          "dating": true
+        }
+      }
+    },
+    {
+      "at": "2026-09-09T18:44:27.339Z",
+      "player": "B",
+      "command": 30,
+      "data": {
+        "hwResponseDissolveTable": {
+          "result": 1043
+        }
+      }
+    }
+  ]
+}

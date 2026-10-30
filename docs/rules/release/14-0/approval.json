@@ -1,0 +1,9 @@
+{
+  "kind": "user-rule-approval",
+  "ruleVersion": "wenchuan-independent-v1",
+  "variantKey": "14:0",
+  "recordedAt": "2026-09-16T00:00:00.000Z",
+  "statement": "用户全部自动批准，允许在21项范围内补齐14:0独立规则定义。",
+  "evidenceReference": "docs/rules/INDEPENDENT-APPROVAL.md",
+  "rulebookSha256": "a990cb225c78b5a2a42328cedf8c1b477a4dd335d97cd740136f856986d60655"
+}

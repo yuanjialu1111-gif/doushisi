@@ -1,0 +1,48 @@
+
+sanwandou.png
+size: 392,119
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+dou
+  rotate: false
+  xy: 349, 51
+  size: 29, 27
+  orig: 38, 28
+  offset: 0, 1
+  index: -1
+guang
+  rotate: true
+  xy: 134, 5
+  size: 112, 130
+  orig: 119, 130
+  offset: 4, 0
+  index: -1
+shanguang
+  rotate: false
+  xy: 349, 37
+  size: 11, 12
+  orig: 12, 12
+  offset: 0, 0
+  index: -1
+shouchong
+  rotate: false
+  xy: 2, 2
+  size: 130, 115
+  orig: 130, 115
+  offset: 0, 0
+  index: -1
+wenzi
+  rotate: false
+  xy: 266, 80
+  size: 124, 37
+  orig: 124, 37
+  offset: 0, 0
+  index: -1
+xing
+  rotate: true
+  xy: 266, 4
+  size: 74, 81
+  orig: 77, 85
+  offset: 0, 4
+  index: -1

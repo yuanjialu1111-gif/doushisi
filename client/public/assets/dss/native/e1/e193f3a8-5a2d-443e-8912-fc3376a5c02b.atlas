@@ -1,0 +1,34 @@
+
+ti.png
+size: 1025,147
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+images/di
+  rotate: false
+  xy: 626, 2
+  size: 264, 143
+  orig: 266, 145
+  offset: 0, 2
+  index: -1
+images/guang
+  rotate: false
+  xy: 2, 2
+  size: 622, 143
+  orig: 622, 206
+  offset: 0, 26
+  index: -1
+images/yezi
+  rotate: false
+  xy: 892, 3
+  size: 19, 19
+  orig: 21, 21
+  offset: 1, 1
+  index: -1
+images/zi
+  rotate: false
+  xy: 892, 24
+  size: 131, 121
+  orig: 138, 125
+  offset: 3, 4
+  index: -1

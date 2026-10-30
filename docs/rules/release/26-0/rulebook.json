@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "status": "approved",
+  "basis": "user-approved",
+  "variantKey": "26:0",
+  "ruleVersion": "ganluo-independent-v1",
+  "title": "26:0 红色阈值斗十四独立规则",
+  "approval": {
+    "path": "docs/rules/release/26-0/approval.json",
+    "sha256": "548a349194ada6b3b71cab066810aeb6c12c092f8700600fb9197fc19f36bc1e"
+  },
+  "requiredCoverage": [
+    "declared-wait-lock",
+    "concealed-four-pairs",
+    "payments"
+  ],
+  "sources": [
+    "docs/rules/variants/26-0.md",
+    "docs/rules/ORDINARY-STRUCTURES.md",
+    "apps/server/src/game/regional-profile.ts",
+    "apps/server/src/game/red-region-win.ts",
+    "apps/server/src/game/score-region-round.ts"
+  ],
+  "summary": {
+    "deck": "The regional pack is generated from the frozen wang/seven/option configuration.",
+    "win": "The red-point threshold gates a legal four-group structure; wildcards never add red points.",
+    "scoring": "The frozen regional fan schedule converts red points and fan items into exact transfer units.",
+    "declaration": "Declaration locks the server-computed waits when the variant exposes it.",
+    "payments": "Exact per-payer 12-place rounding and no duplicate settlement."
+  }
+}

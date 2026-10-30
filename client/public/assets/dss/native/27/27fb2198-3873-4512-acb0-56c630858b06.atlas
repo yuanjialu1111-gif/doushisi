@@ -1,0 +1,103 @@
+
+heiwushi.png
+size: 1873,1828
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+bao
+  rotate: false
+  xy: 427, 858
+  size: 609, 382
+  orig: 675, 421
+  offset: 32, 18
+  index: -1
+di
+  rotate: false
+  xy: 537, 2
+  size: 1334, 750
+  orig: 1334, 750
+  offset: 0, 0
+  index: -1
+fei1
+  rotate: false
+  xy: 2, 1757
+  size: 141, 69
+  orig: 141, 69
+  offset: 0, 0
+  index: -1
+fei2
+  rotate: false
+  xy: 145, 1721
+  size: 236, 105
+  orig: 236, 107
+  offset: 0, 0
+  index: -1
+guang1
+  rotate: false
+  xy: 917, 1623
+  size: 843, 203
+  orig: 879, 204
+  offset: 19, 1
+  index: -1
+guang2
+  rotate: false
+  xy: 1038, 754
+  size: 803, 486
+  orig: 818, 494
+  offset: 8, 4
+  index: -1
+juese
+  rotate: false
+  xy: 2, 907
+  size: 423, 600
+  orig: 423, 602
+  offset: 0, 0
+  index: -1
+long
+  rotate: false
+  xy: 2, 341
+  size: 533, 515
+  orig: 533, 515
+  offset: 0, 0
+  index: -1
+tiao
+  rotate: false
+  xy: 472, 1242
+  size: 1334, 379
+  orig: 1334, 381
+  offset: 0, 2
+  index: -1
+you-lang
+  rotate: false
+  xy: 383, 1714
+  size: 301, 112
+  orig: 301, 115
+  offset: 0, 3
+  index: -1
+you-lou
+  rotate: false
+  xy: 686, 1660
+  size: 229, 166
+  orig: 230, 166
+  offset: 1, 0
+  index: -1
+zi
+  rotate: false
+  xy: 2, 1509
+  size: 468, 203
+  orig: 471, 207
+  offset: 0, 4
+  index: -1
+
+heiwushi2.png
+size: 1338,754
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+hei
+  rotate: false
+  xy: 2, 2
+  size: 1334, 750
+  orig: 1334, 750
+  offset: 0, 0
+  index: -1

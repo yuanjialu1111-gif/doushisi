@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "variantKey": "8:0",
+  "ruleVersion": "qionglai-independent-v1",
+  "rulebook": {
+    "path": "docs/rules/release/8-0/rulebook.json",
+    "sha256": "636f096fe42b5d5b11a2c8ba9484a840b59d5d6cfe3d2fecb72f8bae0c19fb33"
+  },
+  "cases": {
+    "path": "docs/rules/release/8-0/cases.json",
+    "sha256": "155f1d2e8740e2c7632f087fd95f1f4aef6395f308adb3729e78398254ee11df"
+  },
+  "generatedAt": "2026-10-03T06:16:47.137Z"
+}

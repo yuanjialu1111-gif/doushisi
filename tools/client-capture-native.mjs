@@ -1,0 +1,13 @@
+import { execFileSync } from 'node:child_process';
+import { mkdir, writeFile } from 'node:fs/promises';
+import { dirname, resolve } from 'node:path';
+const ld = resolve(process.argv[2]);
+const target = resolve(process.argv[3]);
+const remote = '/sdcard/doushisi-capture.png';
+execFileSync(ld, ['-s', '0', 'screencap', '-p', remote]);
+const encoded = execFileSync(ld, ['-s', '0', 'base64', remote], { maxBuffer: 16 * 1024 * 1024, encoding: 'utf8' });
+const png = Buffer.from(encoded.replace(/\s+/g, ''), 'base64');
+if (png.subarray(0, 8).toString('hex') !== '89504e470d0a1a0a') throw new Error('Invalid screenshot');
+await mkdir(dirname(target), { recursive: true });
+await writeFile(target, png);
+console.log(target);

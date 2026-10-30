@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "status": "approved",
+  "basis": "user-approved",
+  "variantKey": "24:0",
+  "ruleVersion": "leibo-independent-v1",
+  "title": "24:0 红色阈值斗十四独立规则",
+  "approval": {
+    "path": "docs/rules/release/24-0/approval.json",
+    "sha256": "2d9fd6b6f21746a4dcf29b2cf13afd942150915f17559f6d9c91e4d19eb6400b"
+  },
+  "requiredCoverage": [
+    "payments"
+  ],
+  "sources": [
+    "docs/rules/variants/24-0.md",
+    "docs/rules/ORDINARY-STRUCTURES.md",
+    "apps/server/src/game/regional-profile.ts",
+    "apps/server/src/game/red-region-win.ts",
+    "apps/server/src/game/score-region-round.ts"
+  ],
+  "summary": {
+    "deck": "The regional pack is generated from the frozen wang/seven/option configuration.",
+    "win": "The red-point threshold gates a legal four-group structure; wildcards never add red points.",
+    "scoring": "The frozen regional fan schedule converts red points and fan items into exact transfer units.",
+    "declaration": "Declaration locks the server-computed waits when the variant exposes it.",
+    "payments": "Exact per-payer 12-place rounding and no duplicate settlement."
+  }
+}

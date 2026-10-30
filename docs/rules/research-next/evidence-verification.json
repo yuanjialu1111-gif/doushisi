@@ -1,0 +1,150 @@
+{
+  "schemaVersion": 1,
+  "verifiedAt": "2026-10-02T10:50:13.028Z",
+  "status": "research-only-unapproved",
+  "sourceIndex": "docs/rules/research-next/source-index.json",
+  "checkedSourceCount": 17,
+  "checkedSources": [
+    {
+      "file": "outputs/apk-deep-analysis/modules/hall/HallHelpUIController.js",
+      "sha256": "966a7f73a0939c56f889f08caa2b50da0113ae55124074d8a586e660d2859560",
+      "bytes": 1499
+    },
+    {
+      "file": "outputs/apk-deep-analysis/modules/main/CommonPlayUIController.js",
+      "sha256": "afabb7f5e0cda800897978e44b3cb9d189ef4bcad1ec1ba8cd339e7457a2b67f",
+      "bytes": 24601
+    },
+    {
+      "file": "outputs/apk-deep-analysis/modules/dss/dss_gameController.js",
+      "sha256": "1d98d08eb879dbe3e4c85fb19843d75c3d0519c47cc910aa7364e7c4575a9c47",
+      "bytes": 77163
+    },
+    {
+      "file": "work/apk/assets/assets/dss/config.json",
+      "sha256": "25f64acb7fd4ed3c13fee0c827945e041005fa2c7ebf29513601fb5f3927f102",
+      "bytes": 72455
+    },
+    {
+      "file": "work/apk/assets/assets/dss/native/75/7591849e-bbfc-4e7a-82ba-2bb03051a6a3.png",
+      "sha256": "aaf735bdd6a62b864d8c9ca7c0d51ebaf6babbf08f447d2a535a17120668a0e2",
+      "bytes": 2772
+    },
+    {
+      "file": "work/apk/assets/assets/dss/native/a1/a1a50a48-5cab-4dbe-ac06-5001bf885903.png",
+      "sha256": "8f0b84ec3b10d66f1a9718c5bea6dfdb72b1cacd154b671482a3e45f15e26c3d",
+      "bytes": 50044
+    },
+    {
+      "file": "work/apk/assets/assets/dss/native/88/887ee9c7-0a1d-4a70-b5d5-44350a2bf5f1.png",
+      "sha256": "bf38f8971b51e546810fd79a0b57ec8fcc439faf0a8203b58ca4dc60994b89a7",
+      "bytes": 4058
+    },
+    {
+      "file": "work/research-next/book118.html",
+      "sha256": "da2f767de0904065f09d761c23ebd060fc882470c0d69d7e67fabd96790cf22c",
+      "bytes": 53854
+    },
+    {
+      "file": "work/research-next/doc88.html",
+      "sha256": "60932f2463905f92d11ec6e9cce285c7435ed7d19841906fca5f08473b36fd34",
+      "bytes": 262
+    },
+    {
+      "file": "work/research-next/docin.html",
+      "sha256": "e907e30e65f79c0e36876f65793cfad0d483d4f99bc96c4933866e043e1add07",
+      "bytes": 258
+    },
+    {
+      "file": "work/research-next/sohu.html",
+      "sha256": "b0ab266b692c43623b1ccbc69b08ee5a2d840bca2ca388be8ac67cb2f5ba1b08",
+      "bytes": 262
+    },
+    {
+      "file": "work/research-next/itmop.html",
+      "sha256": "5016067d63a32097e4cb9fbd399787949da68603e0f5e3da72d53353c128fd7c",
+      "bytes": 258
+    },
+    {
+      "file": "work/research-next/docin-direct.html",
+      "sha256": "6796a666dd12fe4c6df2740d0895771ea5ebb5cfeb3ca0c2bf51e5c103429991",
+      "bytes": 57030
+    },
+    {
+      "file": "work/research-next/doc88-direct.html",
+      "sha256": "49fa27a7032e88dab7b7ebce86a0ead6864b0ea02aef8077a9b2a9b283c834cc",
+      "bytes": 38352
+    },
+    {
+      "file": "work/research-next/sohu-direct.html",
+      "sha256": "bd38f2d71931b481f83e99ccb9d8467388e8122e96ea6b990a251532d7c26aa5",
+      "bytes": 17902
+    },
+    {
+      "file": "work/research-next/wenda.html",
+      "sha256": "80fc80c4869d1836236c03589050298b496b7c1aa8a85e060b2607b80a075835",
+      "bytes": 75762
+    },
+    {
+      "file": "work/research-next/teaching-redirect.html",
+      "sha256": "b754499f04b29c15a790149dc0e076dba1ce0b2017d6ea43264e8c9448e7b2e9",
+      "bytes": 300
+    }
+  ],
+  "checkedAnchors": [
+    {
+      "id": "client-chi-selects-two",
+      "source": "outputs/apk-deep-analysis/modules/dss/dss_gameController.js",
+      "text": "EN_COL_TYPE_CHI ? this.select_num = 2",
+      "boundary": "client-action-selection",
+      "found": true
+    },
+    {
+      "id": "client-choice-selects-one",
+      "source": "outputs/apk-deep-analysis/modules/dss/dss_gameController.js",
+      "text": "a.isChoice && (this.select_num = 1);",
+      "boundary": "client-action-selection",
+      "found": true
+    },
+    {
+      "id": "client-fire-eight-tens-label",
+      "source": "outputs/apk-deep-analysis/modules/main/FrameGameConfig.js",
+      "text": "name: \"八个10天胡\"",
+      "boundary": "client-option-label",
+      "found": true
+    },
+    {
+      "id": "client-fire-six-tens-evidence",
+      "source": "outputs/apk-deep-analysis/modules/main/FrameGameConfig.js",
+      "text": "6个10，6个7（4个7加大小王），6个4",
+      "boundary": "client-option-tooltip",
+      "found": true
+    },
+    {
+      "id": "client-fire-eight-tens-evidence",
+      "source": "outputs/apk-deep-analysis/modules/main/FrameGameConfig.js",
+      "text": "8个10，12个7（8个7加4个大小王），8个4",
+      "boundary": "client-option-tooltip",
+      "found": true
+    },
+    {
+      "id": "client-lei-bo-action-text",
+      "source": "outputs/apk-deep-analysis/modules/dss/dss_gameController.js",
+      "text": "e.ownBaKeQiang && (i += \"不能抢胡手上去巴的牌、\");",
+      "boundary": "client-rendered-description",
+      "found": true
+    },
+    {
+      "id": "client-lei-bo-play-ui-text",
+      "source": "outputs/apk-deep-analysis/modules/main/CommonPlayUIController.js",
+      "text": "e.ownBaKeQiang && (t += \"不能抢胡手上去巴的牌、\");",
+      "boundary": "client-rendered-description",
+      "found": true
+    }
+  ],
+  "limitations": [
+    "Anchors prove extracted client strings and selection branches only.",
+    "They do not prove original-server deck, Hu, scoring, settlement, or regional equivalence.",
+    "D03, D04 and D05 remain awaiting user confirmation; no gameplay engine is enabled by this report."
+  ]
+}

@@ -1,0 +1,20 @@
+
+jianfen.png
+size: 618,90
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+images/guang1
+  rotate: false
+  xy: 2, 2
+  size: 527, 86
+  orig: 602, 125
+  offset: 13, 20
+  index: -1
+images/xing
+  rotate: false
+  xy: 531, 3
+  size: 85, 85
+  orig: 104, 103
+  offset: 8, 9
+  index: -1

@@ -1,0 +1,8 @@
+{
+  "version": "anyue-independent-v1",
+  "variantKey": "5:0",
+  "scope": "Independent physical pack for Anyue. The original menu has no king selector; three kings (one of each face) are an independent definition. 7-as-king changes roles only.",
+  "cases": [
+    { "wangNum": 3, "total": 55, "specialCounts": { "1001": 1, "1002": 1, "1003": 1 } }
+  ]
+}

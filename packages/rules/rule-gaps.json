@@ -1,0 +1,1486 @@
+{
+  "schemaVersion": 2,
+  "ledgerVersion": "rule-gap-ledger-v2",
+  "ruleVersion": "apk-4.0-options-v1",
+  "scope": {
+    "retainedConfigurations": 21,
+    "originalAuditConfigurations": 7
+  },
+  "summary": {
+    "releaseVerifiedConfigurations": 21,
+    "gameplayReadyConfigurations": 21,
+    "blockedConfigurations": 0,
+    "blockingGaps": 0,
+    "resolvedGaps": 28,
+    "auditOnlyBlockingGaps": 1
+  },
+  "retained": [
+    {
+      "variantKey": "4:0",
+      "name": "新津斗十四",
+      "gameId": 4,
+      "ruleVersion": "apk-4.0-options-v1",
+      "evidenceStatus": "verified-release",
+      "gameplayReady": true,
+      "fieldCount": 19,
+      "unresolvedFields": [
+        "basicTimes"
+      ],
+      "releaseEvidence": {
+        "status": "verified-release",
+        "ruleVersion": "xinjin-independent-v1",
+        "rulebook": {
+          "path": "docs/rules/release/4-0/rulebook.json",
+          "sha256": "414c826388655a4448134b20fecacd29a7a22410e61b8680c1426cc31b181ddf"
+        },
+        "cases": {
+          "path": "docs/rules/release/4-0/cases.json",
+          "sha256": "39b1ab60f6ec0f451884346a0273449a5fe4872eb048ef3c7a4f20c0b521d06d",
+          "count": 50
+        },
+        "approval": {
+          "path": "docs/rules/release/4-0/approval.json",
+          "sha256": "15cebf25c558a45ec0eb8744ae33ef6298ff2ce8602f8c17b30a7879401ab580"
+        },
+        "manifest": {
+          "path": "docs/rules/release/4-0/manifest.json",
+          "sha256": "2f67271411dda04efd91a58b4616f46939accf9d5bc160b3bda0de8abb6b90cb"
+        }
+      },
+      "gapIds": [
+        "4:0:basicTimes"
+      ],
+      "blockingGapIds": []
+    },
+    {
+      "variantKey": "5:0",
+      "name": "安岳斗十四",
+      "gameId": 5,
+      "ruleVersion": "apk-4.0-options-v1",
+      "evidenceStatus": "verified-release",
+      "gameplayReady": true,
+      "fieldCount": 13,
+      "unresolvedFields": [
+        "basicTimes"
+      ],
+      "releaseEvidence": {
+        "status": "verified-release",
+        "ruleVersion": "anyue-independent-v1",
+        "rulebook": {
+          "path": "docs/rules/release/5-0/rulebook.json",
+          "sha256": "d7d37a4d95cbf75e5d053f3e35f914e03da2aa17ca42e3dca589c5d72b56b9e8"
+        },
+        "cases": {
+          "path": "docs/rules/release/5-0/cases.json",
+          "sha256": "439618aec9ac83fbd0e72f4fd95e0cea0d37d72f14023d7daa1be5423d67aa09",
+          "count": 36
+        },
+        "approval": {
+          "path": "docs/rules/release/5-0/approval.json",
+          "sha256": "688e5409ba70b06edd3d40d31c81fc3d50cbff3c4e48feced23157dd0164d86b"
+        },
+        "manifest": {
+          "path": "docs/rules/release/5-0/manifest.json",
+          "sha256": "e10fca3dc711e993f257c28cc1f573173a7447c04d7843026f0d0997ade59e56"
+        }
+      },
+      "gapIds": [
+        "5:0:basicTimes"
+      ],
+      "blockingGapIds": []
+    },
+    {
+      "variantKey": "6:0",
+      "name": "雅安红二十",
+      "gameId": 6,
+      "ruleVersion": "apk-4.0-options-v1",
+      "evidenceStatus": "verified-release",
+      "gameplayReady": true,
+      "fieldCount": 16,
+      "unresolvedFields": [
+        "basicTimes"
+      ],
+      "releaseEvidence": {
+        "status": "verified-release",
+        "ruleVersion": "yaan-independent-v1",
+        "rulebook": {
+          "path": "docs/rules/release/6-0/rulebook.json",
+          "sha256": "4577a8b12184d50df7833b149309f219223578465be8ea3b7f49c81e8786dd12"
+        },
+        "cases": {
+          "path": "docs/rules/release/6-0/cases.json",
+          "sha256": "fb7d3f468ffe800f3332d7a6df19c379b74521474cf1943a2272115bbd82e2fd",
+          "count": 47
+        },
+        "approval": {
+          "path": "docs/rules/release/6-0/approval.json",
+          "sha256": "805758a10e3516d6cc1a0ac824e84bf36eff1ce6cb9a063b0cd6523f371b3053"
+        },
+        "manifest": {
+          "path": "docs/rules/release/6-0/manifest.json",
+          "sha256": "e506f9496a0f4e0856179fb1f47154bd21ef6154a781be4b79f9815103d404c3"
+        }
+      },
+      "gapIds": [
+        "6:0:basicTimes"
+      ],
+      "blockingGapIds": []
+    },
+    {
+      "variantKey": "7:0",
+      "name": "蒲江斗十四",
+      "gameId": 7,
+      "ruleVersion": "apk-4.0-options-v1",
+      "evidenceStatus": "verified-release",
+      "gameplayReady": true,
+      "fieldCount": 14,
+      "unresolvedFields": [
+        "basicTimes"
+      ],
+      "releaseEvidence": {
+        "status": "verified-release",
+        "ruleVersion": "pujiang-independent-v1",
+        "rulebook": {
+          "path": "docs/rules/release/7-0/rulebook.json",
+          "sha256": "9bcf3a7e4eaeb218a3a3b96881a35a524f8844e8e6fa9200234830ad9fae5694"
+        },
+        "cases": {
+          "path": "docs/rules/release/7-0/cases.json",
+          "sha256": "39f2924429452917ca952b757606f87c4d94fddb1aeb74c21db9a8f5f1dea540",
+          "count": 41
+        },
+        "approval": {
+          "path": "docs/rules/release/7-0/approval.json",
+          "sha256": "21322f3a4150f92e0e250fbd15c31a34ae57b5a4a6f304284fb0c24d34f6e639"
+        },
+        "manifest": {
+          "path": "docs/rules/release/7-0/manifest.json",
+          "sha256": "909ac85f94e3622b1754a5d5704f98c27eb8b45d430f820759c4a1d5a68b5e8b"
+        }
+      },
+      "gapIds": [
+        "7:0:basicTimes"
+      ],
+      "blockingGapIds": []
+    },
+    {
+      "variantKey": "8:0",
+      "name": "邛崃斗十四",
+      "gameId": 8,
+      "ruleVersion": "apk-4.0-options-v1",
+      "evidenceStatus": "verified-release",
+      "gameplayReady": true,
+      "fieldCount": 17,
+      "unresolvedFields": [
+        "basicTimes"
+      ],
+      "releaseEvidence": {
+        "status": "verified-release",
+        "ruleVersion": "qionglai-independent-v1",
+        "rulebook": {
+          "path": "docs/rules/release/8-0/rulebook.json",
+          "sha256": "636f096fe42b5d5b11a2c8ba9484a840b59d5d6cfe3d2fecb72f8bae0c19fb33"
+        },
+        "cases": {
+          "path": "docs/rules/release/8-0/cases.json",
+          "sha256": "155f1d2e8740e2c7632f087fd95f1f4aef6395f308adb3729e78398254ee11df",
+          "count": 49
+        },
+        "approval": {
+          "path": "docs/rules/release/8-0/approval.json",
+          "sha256": "7cd959735d725915750fdfb01409a69d5971a0350cc1167b29c3850cf8ffa8aa"
+        },
+        "manifest": {
+          "path": "docs/rules/release/8-0/manifest.json",
+          "sha256": "67a37f51bd5c42fa75d92425aeca437ec913af1686ffc8af04dbe70a2e85c361"
+        }
+      },
+      "gapIds": [
+        "8:0:basicTimes"
+      ],
+      "blockingGapIds": []
+    },
+    {
+      "variantKey": "9:0",
+      "name": "阿坝斗十四",
+      "gameId": 9,
+      "ruleVersion": "apk-4.0-options-v1",
+      "evidenceStatus": "verified-release",
+      "gameplayReady": true,
+      "fieldCount": 13,
+      "unresolvedFields": [
+        "basicTimes"
+      ],
+      "releaseEvidence": {
+        "status": "verified-release",
+        "ruleVersion": "aba-independent-v1",
+        "rulebook": {
+          "path": "docs/rules/release/9-0/rulebook.json",
+          "sha256": "40f2f34da0f242deb165ac4b4d113680ddb966ccdb40bf6fa9c7a0a11e83922f"
+        },
+        "cases": {
+          "path": "docs/rules/release/9-0/cases.json",
+          "sha256": "c8207b99490ee80e4f5c8373179850b8799c40551637c542a1beb0a7355ddda9",
+          "count": 37
+        },
+        "approval": {
+          "path": "docs/rules/release/9-0/approval.json",
+          "sha256": "7c9cdbc0a98ff4e7b7def74ee4673d8e17334bde4fd25e123cfb720c6e01c0d7"
+        },
+        "manifest": {
+          "path": "docs/rules/release/9-0/manifest.json",
+          "sha256": "3249b338359abdd0cb253cba7f70c3f7024e167f973bf14bf43b769a335d50e3"
+        }
+      },
+      "gapIds": [
+        "9:0:basicTimes",
+        "9:0:player-score"
+      ],
+      "blockingGapIds": []
+    },
+    {
+      "variantKey": "10:0",
+      "name": "阿坝斗十四",
+      "gameId": 10,
+      "ruleVersion": "apk-4.0-options-v1",
+      "evidenceStatus": "verified-release",
+      "gameplayReady": true,
+      "fieldCount": 13,
+      "unresolvedFields": [
+        "basicTimes"
+      ],
+      "releaseEvidence": {
+        "status": "verified-release",
+        "ruleVersion": "aba10-independent-v1",
+        "rulebook": {
+          "path": "docs/rules/release/10-0/rulebook.json",
+          "sha256": "eb97fe503e5518f090c0f5362e4bda129ab334ae74d4a60475b9cc8dad307cbb"
+        },
+        "cases": {
+          "path": "docs/rules/release/10-0/cases.json",
+          "sha256": "ce34b81bacd94d67c877eff97122dc04f56d3c43f808188693454efdd2378bee",
+          "count": 37
+        },
+        "approval": {
+          "path": "docs/rules/release/10-0/approval.json",
+          "sha256": "1ba7d47457dbfb42d74a18b13cbaabdb26acaed53033dcb4e036c57d1e3dba5e"
+        },
+        "manifest": {
+          "path": "docs/rules/release/10-0/manifest.json",
+          "sha256": "351e895a934af3c906c87e3b1229e533cabdb79de84b1ec161fb8117466fa43b"
+        }
+      },
+      "gapIds": [
+        "10:0:basicTimes",
+        "10:0:player-score"
+      ],
+      "blockingGapIds": []
+    },
+    {
+      "variantKey": "11:0",
+      "name": "马尔康斗十四",
+      "gameId": 11,
+      "ruleVersion": "apk-4.0-options-v1",
+      "evidenceStatus": "verified-release",
+      "gameplayReady": true,
+      "fieldCount": 14,
+      "unresolvedFields": [
+        "basicTimes"
+      ],
+      "releaseEvidence": {
+        "status": "verified-release",
+        "ruleVersion": "aba11-independent-v1",
+        "rulebook": {
+          "path": "docs/rules/release/11-0/rulebook.json",
+          "sha256": "aa5543f1b2fe0ba25360f406af1dd7d52c77f3e5b80f78f994326c87a31aa5e2"
+        },
+        "cases": {
+          "path": "docs/rules/release/11-0/cases.json",
+          "sha256": "80d562b3b22a7920fca148e4082ec12d73185d50a59bdbacd299ec45615745d6",
+          "count": 41
+        },
+        "approval": {
+          "path": "docs/rules/release/11-0/approval.json",
+          "sha256": "b8227b8655a77a6f8c3ae9b775c424373956ed1c0a29625cd12ab22d77171612"
+        },
+        "manifest": {
+          "path": "docs/rules/release/11-0/manifest.json",
+          "sha256": "5609ca086fc71d31a5250991ecf2a05d1116887cccb5a285c092314670585a08"
+        }
+      },
+      "gapIds": [
+        "11:0:basicTimes",
+        "11:0:player-score"
+      ],
+      "blockingGapIds": []
+    },
+    {
+      "variantKey": "12:0",
+      "name": "小金斗十四",
+      "gameId": 12,
+      "ruleVersion": "apk-4.0-options-v1",
+      "evidenceStatus": "verified-release",
+      "gameplayReady": true,
+      "fieldCount": 13,
+      "unresolvedFields": [
+        "basicTimes"
+      ],
+      "releaseEvidence": {
+        "status": "verified-release",
+        "ruleVersion": "aba12-independent-v1",
+        "rulebook": {
+          "path": "docs/rules/release/12-0/rulebook.json",
+          "sha256": "15f94d1c1632fcd5c2d3cd2ec0e421f2653192523dc1390bb8113789fa4a855d"
+        },
+        "cases": {
+          "path": "docs/rules/release/12-0/cases.json",
+          "sha256": "15f874b48c9e18838ada7c64b17e7453fc4344f8a0fc155b2ea2c08e985ea490",
+          "count": 37
+        },
+        "approval": {
+          "path": "docs/rules/release/12-0/approval.json",
+          "sha256": "f2be6d40b7cb7b1e16983c5d8f253ba8400eaf3f5a58aec80788bf9bc46da536"
+        },
+        "manifest": {
+          "path": "docs/rules/release/12-0/manifest.json",
+          "sha256": "cb55c07869faadb22c296810121cebc30cbe9440e22192b1a1f5eec30047213a"
+        }
+      },
+      "gapIds": [
+        "12:0:basicTimes",
+        "12:0:player-score"
+      ],
+      "blockingGapIds": []
+    },
+    {
+      "variantKey": "14:0",
+      "name": "汶川斗十四",
+      "gameId": 14,
+      "ruleVersion": "apk-4.0-options-v1",
+      "evidenceStatus": "verified-release",
+      "gameplayReady": true,
+      "fieldCount": 9,
+      "unresolvedFields": [
+        "playerNum",
+        "basicTimes"
+      ],
+      "releaseEvidence": {
+        "status": "verified-release",
+        "ruleVersion": "wenchuan-independent-v1",
+        "rulebook": {
+          "path": "docs/rules/release/14-0/rulebook.json",
+          "sha256": "32858d686f456f8d3f4ccff7e2d926428c306a5659942de18e809cbe5d65e2f4"
+        },
+        "cases": {
+          "path": "docs/rules/release/14-0/cases.json",
+          "sha256": "f7c657b3bec37948a586329d58c75932d76765dd8e4a3761eb8abaedbb323596",
+          "count": 27
+        },
+        "approval": {
+          "path": "docs/rules/release/14-0/approval.json",
+          "sha256": "00ff5be093b187b800ed416aa8c47a583061337f2193096ad60849c0235c86e2"
+        },
+        "manifest": {
+          "path": "docs/rules/release/14-0/manifest.json",
+          "sha256": "0de231cd49eab761908a6a4128142d0f83d0766209804732471ef300cf07663a"
+        }
+      },
+      "gapIds": [
+        "14:0:basicTimes",
+        "14:0:playerNum"
+      ],
+      "blockingGapIds": []
+    },
+    {
+      "variantKey": "15:0",
+      "name": "茂县斗十四",
+      "gameId": 15,
+      "ruleVersion": "apk-4.0-options-v1",
+      "evidenceStatus": "verified-release",
+      "gameplayReady": true,
+      "fieldCount": 9,
+      "unresolvedFields": [
+        "playerNum",
+        "basicTimes"
+      ],
+      "releaseEvidence": {
+        "status": "verified-release",
+        "ruleVersion": "maoxian-independent-v1",
+        "rulebook": {
+          "path": "docs/rules/release/15-0/rulebook.json",
+          "sha256": "21852af544f3e7dd7d8ebfd08057b62f85ff9b99cf428ffc2bf2ba6ae1dcb474"
+        },
+        "cases": {
+          "path": "docs/rules/release/15-0/cases.json",
+          "sha256": "0058e9622b27326a61a1d428d26948a8ba184188396a7d522fe7eeb1e71a495a",
+          "count": 27
+        },
+        "approval": {
+          "path": "docs/rules/release/15-0/approval.json",
+          "sha256": "b0087900dafd85bd845a6ae35408bea378dbb403d5e1d6eb496ed95d6a374fd2"
+        },
+        "manifest": {
+          "path": "docs/rules/release/15-0/manifest.json",
+          "sha256": "11e65ab48c51ee7d518ec10620c2791bb4faf4c1ee6cfbf5ac361f77a9f580f4"
+        }
+      },
+      "gapIds": [
+        "15:0:basicTimes",
+        "15:0:playerNum",
+        "15:0:name"
+      ],
+      "blockingGapIds": []
+    },
+    {
+      "variantKey": "16:0",
+      "name": "遂宁斗十四",
+      "gameId": 16,
+      "ruleVersion": "apk-4.0-options-v1",
+      "evidenceStatus": "verified-release",
+      "gameplayReady": true,
+      "fieldCount": 10,
+      "unresolvedFields": [
+        "basicTimes"
+      ],
+      "releaseEvidence": {
+        "status": "verified-release",
+        "ruleVersion": "suining-independent-v1",
+        "rulebook": {
+          "path": "docs/rules/release/16-0/rulebook.json",
+          "sha256": "6050996b4cf7dd4e40190b8e10d941a698fb7ea9020303c720879a2e9aeb177d"
+        },
+        "cases": {
+          "path": "docs/rules/release/16-0/cases.json",
+          "sha256": "fd0c03e36bd8c8c403c6d19b7dde4cc5ee4dcc5ca51f5bd4f8affdbabedb8adf",
+          "count": 27
+        },
+        "approval": {
+          "path": "docs/rules/release/16-0/approval.json",
+          "sha256": "ef0d8d45c063c7b8ca2e189dbeef6d2dd1c08543c95f7802dc5f7f1550065800"
+        },
+        "manifest": {
+          "path": "docs/rules/release/16-0/manifest.json",
+          "sha256": "86a90b07d9c1ec56bae20dbccdabb39eaea8ef9dfb4b2aea66b9db53fdbefdfa"
+        }
+      },
+      "gapIds": [
+        "16:0:basicTimes"
+      ],
+      "blockingGapIds": []
+    },
+    {
+      "variantKey": "19:0",
+      "name": "通江斗十四",
+      "gameId": 19,
+      "ruleVersion": "apk-4.0-options-v1",
+      "evidenceStatus": "verified-release",
+      "gameplayReady": true,
+      "fieldCount": 8,
+      "unresolvedFields": [
+        "basicTimes"
+      ],
+      "releaseEvidence": {
+        "status": "verified-release",
+        "ruleVersion": "tongjiang-independent-v1",
+        "rulebook": {
+          "path": "docs/rules/release/19-0/rulebook.json",
+          "sha256": "b54695575a9bdcc83fa9bb9127b37e24ae6c936ec748a049df103486a5af6d11"
+        },
+        "cases": {
+          "path": "docs/rules/release/19-0/cases.json",
+          "sha256": "59053a0b8f569439d62f58265b8c0ac7b956557f2127154f96a3427bc3487310",
+          "count": 25
+        },
+        "approval": {
+          "path": "docs/rules/release/19-0/approval.json",
+          "sha256": "965a37db21eae980ff7d0c770507a848800e63d26a61171cd7ac770fcb5cf56a"
+        },
+        "manifest": {
+          "path": "docs/rules/release/19-0/manifest.json",
+          "sha256": "7da8c31b5b5636de1d94a74ba4f8b27ae2d0f901755b90506656aa849dda9f74"
+        }
+      },
+      "gapIds": [
+        "19:0:basicTimes"
+      ],
+      "blockingGapIds": []
+    },
+    {
+      "variantKey": "20:0",
+      "name": "荣县斗十四",
+      "gameId": 20,
+      "ruleVersion": "apk-4.0-options-v1",
+      "evidenceStatus": "verified-release",
+      "gameplayReady": true,
+      "fieldCount": 9,
+      "unresolvedFields": [
+        "basicTimes"
+      ],
+      "releaseEvidence": {
+        "status": "verified-release",
+        "ruleVersion": "rongxian-independent-v1",
+        "rulebook": {
+          "path": "docs/rules/release/20-0/rulebook.json",
+          "sha256": "410e3768853fd18cb63dcbb7f0b8c1546677918a67760d1be1618dc5e1ad06b7"
+        },
+        "cases": {
+          "path": "docs/rules/release/20-0/cases.json",
+          "sha256": "9da2603d07d2778e4c3fc2ade9c470cee8d422b843801eb67c8060a864fdf8af",
+          "count": 36
+        },
+        "approval": {
+          "path": "docs/rules/release/20-0/approval.json",
+          "sha256": "ec60be27fa1637ea84a3a99f06a2f6b4c5c8e6d38c5493c1ed8f1d9e2f9ba0dc"
+        },
+        "manifest": {
+          "path": "docs/rules/release/20-0/manifest.json",
+          "sha256": "0031795f9538c03619a08712326530de390ae5ead4dbae7aa229a7d8f7cf570d"
+        }
+      },
+      "gapIds": [
+        "20:0:basicTimes"
+      ],
+      "blockingGapIds": []
+    },
+    {
+      "variantKey": "21:0",
+      "name": "越西斗十四",
+      "gameId": 21,
+      "ruleVersion": "apk-4.0-options-v1",
+      "evidenceStatus": "verified-release",
+      "gameplayReady": true,
+      "fieldCount": 7,
+      "unresolvedFields": [
+        "basicTimes"
+      ],
+      "releaseEvidence": {
+        "status": "verified-release",
+        "ruleVersion": "yuexi-independent-v1",
+        "rulebook": {
+          "path": "docs/rules/release/21-0/rulebook.json",
+          "sha256": "8aaf6657215408b58e87a77f5b4389704112d2dbee653d3cdb77fd4c5e00ca70"
+        },
+        "cases": {
+          "path": "docs/rules/release/21-0/cases.json",
+          "sha256": "c616fbab43cbffb5545e2d2f3f853ed10d54199aa06945b14e08e0b785b66b60",
+          "count": 22
+        },
+        "approval": {
+          "path": "docs/rules/release/21-0/approval.json",
+          "sha256": "19bd29aa45c286e6fd3f3660503872edf972715801d94476fd8760591731bd68"
+        },
+        "manifest": {
+          "path": "docs/rules/release/21-0/manifest.json",
+          "sha256": "d78bf1de0b4a66e25cb427ac5496625b96a6564567d99a6bfff5c30031af98a8"
+        }
+      },
+      "gapIds": [
+        "21:0:basicTimes"
+      ],
+      "blockingGapIds": []
+    },
+    {
+      "variantKey": "22:0",
+      "name": "盐津斗十四",
+      "gameId": 22,
+      "ruleVersion": "apk-4.0-options-v1",
+      "evidenceStatus": "verified-release",
+      "gameplayReady": true,
+      "fieldCount": 12,
+      "unresolvedFields": [
+        "basicTimes"
+      ],
+      "releaseEvidence": {
+        "status": "verified-release",
+        "ruleVersion": "yanjin-independent-v1",
+        "rulebook": {
+          "path": "docs/rules/release/22-0/rulebook.json",
+          "sha256": "df8d31735085eb829995ef12f9c58bad11119690840c6e2b6844358ba82a309f"
+        },
+        "cases": {
+          "path": "docs/rules/release/22-0/cases.json",
+          "sha256": "75d38553601518f87b87b1791e95bcac85f386cc72cd6a59a41781b706d4ed7c",
+          "count": 30
+        },
+        "approval": {
+          "path": "docs/rules/release/22-0/approval.json",
+          "sha256": "ab04ab7916c1daefd4ab18d4b53fdb3fc1f8c2d3908fd549e0a6965f22d6c3cc"
+        },
+        "manifest": {
+          "path": "docs/rules/release/22-0/manifest.json",
+          "sha256": "e561e1fffbcd892e816eeb9234c39ce0998325eb822ac48ece09b91b75ac07ea"
+        }
+      },
+      "gapIds": [
+        "22:0:basicTimes"
+      ],
+      "blockingGapIds": []
+    },
+    {
+      "variantKey": "23:0",
+      "name": "叙州斗十四",
+      "gameId": 23,
+      "ruleVersion": "apk-4.0-options-v1",
+      "evidenceStatus": "verified-release",
+      "gameplayReady": true,
+      "fieldCount": 10,
+      "unresolvedFields": [
+        "basicTimes"
+      ],
+      "releaseEvidence": {
+        "status": "verified-release",
+        "ruleVersion": "xuzhou-independent-v1",
+        "rulebook": {
+          "path": "docs/rules/release/23-0/rulebook.json",
+          "sha256": "d82faa4951ba433fc76ec3ac4f050f07968c0ee8bacf95e42139fc30a140eaa2"
+        },
+        "cases": {
+          "path": "docs/rules/release/23-0/cases.json",
+          "sha256": "58b98066a613d5cfa1a1c0ceecd2370e44e55e452bcc58985f38693f27ac63aa",
+          "count": 36
+        },
+        "approval": {
+          "path": "docs/rules/release/23-0/approval.json",
+          "sha256": "c7686d9b3717df6747d7a2307db1c87d8c7116db3797e93a74b77f5494198f25"
+        },
+        "manifest": {
+          "path": "docs/rules/release/23-0/manifest.json",
+          "sha256": "d3728d84faf202b659f79bece4abfc54c93d441f92b9fab7edbd8560f9f55c34"
+        }
+      },
+      "gapIds": [
+        "23:0:basicTimes"
+      ],
+      "blockingGapIds": []
+    },
+    {
+      "variantKey": "24:0",
+      "name": "雷波斗十四",
+      "gameId": 24,
+      "ruleVersion": "apk-4.0-options-v1",
+      "evidenceStatus": "verified-release",
+      "gameplayReady": true,
+      "fieldCount": 9,
+      "unresolvedFields": [
+        "basicTimes"
+      ],
+      "releaseEvidence": {
+        "status": "verified-release",
+        "ruleVersion": "leibo-independent-v1",
+        "rulebook": {
+          "path": "docs/rules/release/24-0/rulebook.json",
+          "sha256": "4a0fca6d331deaa3d5849e1bbc9a2d700e12f6705993f8f85d7007dba61efbf9"
+        },
+        "cases": {
+          "path": "docs/rules/release/24-0/cases.json",
+          "sha256": "94c9a59b44bb35517bd4c2df29b197e56219fa37318b5cd9fbd45d12dc2e060e",
+          "count": 34
+        },
+        "approval": {
+          "path": "docs/rules/release/24-0/approval.json",
+          "sha256": "2d9fd6b6f21746a4dcf29b2cf13afd942150915f17559f6d9c91e4d19eb6400b"
+        },
+        "manifest": {
+          "path": "docs/rules/release/24-0/manifest.json",
+          "sha256": "0979cd298e45d3bf817c0bba056ac629381f5c1a35c1340bef14b4401c943a40"
+        }
+      },
+      "gapIds": [
+        "24:0:basicTimes",
+        "24:0:ownBaKeQiang"
+      ],
+      "blockingGapIds": []
+    },
+    {
+      "variantKey": "25:0",
+      "name": "筠连斗十四",
+      "gameId": 25,
+      "ruleVersion": "apk-4.0-options-v1",
+      "evidenceStatus": "verified-release",
+      "gameplayReady": true,
+      "fieldCount": 17,
+      "unresolvedFields": [
+        "basicTimes"
+      ],
+      "releaseEvidence": {
+        "status": "verified-release",
+        "ruleVersion": "junlian25-independent-v1",
+        "rulebook": {
+          "path": "docs/rules/release/25-0/rulebook.json",
+          "sha256": "5e5e5e43e5ff8f7070125224baa5200d844588a580cdd5c6aa7ef8d861e7d2ee"
+        },
+        "cases": {
+          "path": "docs/rules/release/25-0/cases.json",
+          "sha256": "1f986926e2720e8f89dc33a729801457b391f36d353e0b338961637e6a11b6c6",
+          "count": 40
+        },
+        "approval": {
+          "path": "docs/rules/release/25-0/approval.json",
+          "sha256": "39fd3043620dacb8e1e6411e25057cabbe7696aacc222075ef8b35029a1ed406"
+        },
+        "manifest": {
+          "path": "docs/rules/release/25-0/manifest.json",
+          "sha256": "ab6717cb63601322e89c3e374a5416da644dc005d4f785553abd9be628d04237"
+        }
+      },
+      "gapIds": [
+        "25:0:basicTimes"
+      ],
+      "blockingGapIds": []
+    },
+    {
+      "variantKey": "26:0",
+      "name": "甘洛斗十四",
+      "gameId": 26,
+      "ruleVersion": "apk-4.0-options-v1",
+      "evidenceStatus": "verified-release",
+      "gameplayReady": true,
+      "fieldCount": 15,
+      "unresolvedFields": [
+        "basicTimes"
+      ],
+      "releaseEvidence": {
+        "status": "verified-release",
+        "ruleVersion": "ganluo-independent-v1",
+        "rulebook": {
+          "path": "docs/rules/release/26-0/rulebook.json",
+          "sha256": "852b3aa8e72571e1736f9d9b7826d31201c0b4de82decf54b45928ceccc67139"
+        },
+        "cases": {
+          "path": "docs/rules/release/26-0/cases.json",
+          "sha256": "0da337ca1df4907b8e13842b7fb0fc7b25a52e0a73fcaed8ca06c55668c88944",
+          "count": 42
+        },
+        "approval": {
+          "path": "docs/rules/release/26-0/approval.json",
+          "sha256": "548a349194ada6b3b71cab066810aeb6c12c092f8700600fb9197fc19f36bc1e"
+        },
+        "manifest": {
+          "path": "docs/rules/release/26-0/manifest.json",
+          "sha256": "5183cabc70212eae707a3b0348a64939114012cbe756dbbdbb16931a576e7855"
+        }
+      },
+      "gapIds": [
+        "26:0:basicTimes"
+      ],
+      "blockingGapIds": []
+    },
+    {
+      "variantKey": "27:0",
+      "name": "筠连斗十四",
+      "gameId": 27,
+      "ruleVersion": "apk-4.0-options-v1",
+      "evidenceStatus": "verified-release",
+      "gameplayReady": true,
+      "fieldCount": 20,
+      "unresolvedFields": [
+        "basicTimes"
+      ],
+      "releaseEvidence": {
+        "status": "verified-release",
+        "ruleVersion": "junlian27-independent-v1",
+        "rulebook": {
+          "path": "docs/rules/release/27-0/rulebook.json",
+          "sha256": "c9b1a7d61150006b91d233c41d258fbeebcf63b995d7d35ffa23b801a3a4a96e"
+        },
+        "cases": {
+          "path": "docs/rules/release/27-0/cases.json",
+          "sha256": "c4a3b3cc360b5b4d0d3a4ab7a0010e3416b406aa16bb07450578a6da657b8aae",
+          "count": 46
+        },
+        "approval": {
+          "path": "docs/rules/release/27-0/approval.json",
+          "sha256": "2321b12e89f2ab5ef9723cd9860246a9fbcd05a012717c50109ed4008eb4bc05"
+        },
+        "manifest": {
+          "path": "docs/rules/release/27-0/manifest.json",
+          "sha256": "920134e4fbf15dd86aeab586c310ff6b5cf31b094405e51f371e15844bccc6d0"
+        }
+      },
+      "gapIds": [
+        "27:0:basicTimes"
+      ],
+      "blockingGapIds": []
+    }
+  ],
+  "originalAudit": [
+    {
+      "variantKey": "2:0",
+      "name": "勾鱼一副牌",
+      "gameId": 2,
+      "evidenceStatus": "unverified-gameplay",
+      "gameplayReady": false,
+      "gapIds": [
+        "2:0:audit-only"
+      ]
+    },
+    {
+      "variantKey": "2:1",
+      "name": "勾鱼两副牌",
+      "gameId": 2,
+      "evidenceStatus": "unverified-gameplay",
+      "gameplayReady": false,
+      "gapIds": [
+        "2:1:audit-only"
+      ]
+    },
+    {
+      "variantKey": "3:0",
+      "name": "火十四",
+      "gameId": 3,
+      "evidenceStatus": "unverified-gameplay",
+      "gameplayReady": false,
+      "gapIds": [
+        "3:0:audit-only",
+        "3:0:eight-tens"
+      ]
+    },
+    {
+      "variantKey": "13:0",
+      "name": "平昌扯坨",
+      "gameId": 13,
+      "evidenceStatus": "unverified-gameplay",
+      "gameplayReady": false,
+      "gapIds": [
+        "13:0:audit-only"
+      ]
+    },
+    {
+      "variantKey": "17:0",
+      "name": "理塘红斗",
+      "gameId": 17,
+      "evidenceStatus": "unverified-gameplay",
+      "gameplayReady": false,
+      "gapIds": [
+        "17:0:audit-only"
+      ]
+    },
+    {
+      "variantKey": "18:0",
+      "name": "广元割胡",
+      "gameId": 18,
+      "evidenceStatus": "unverified-gameplay",
+      "gameplayReady": false,
+      "gapIds": [
+        "18:0:audit-only"
+      ]
+    },
+    {
+      "variantKey": "101:0",
+      "name": "红二十血战",
+      "gameId": 101,
+      "evidenceStatus": "unverified-gameplay",
+      "gameplayReady": false,
+      "gapIds": [
+        "101:0:audit-only",
+        "101:0:blood-battle-routing"
+      ]
+    }
+  ],
+  "gaps": [
+    {
+      "id": "2:0:audit-only",
+      "variantKey": "2:0",
+      "status": "missing-evidence",
+      "blocksGameplay": false,
+      "fields": [],
+      "description": "This original configuration is outside the retained 21-room release scope; it remains in the audit catalogue only.",
+      "evidence": [
+        "packages/rules/src/edition.ts:RETAINED_VARIANT_KEYS"
+      ],
+      "requiredEvidence": "No release evidence is required unless this configuration is added to the supported room scope.",
+      "impact": "It is not offered as a local room and is excluded from the 21-configuration readiness count."
+    },
+    {
+      "id": "2:1:audit-only",
+      "variantKey": "2:1",
+      "status": "missing-evidence",
+      "blocksGameplay": false,
+      "fields": [],
+      "description": "This original configuration is outside the retained 21-room release scope; it remains in the audit catalogue only.",
+      "evidence": [
+        "packages/rules/src/edition.ts:RETAINED_VARIANT_KEYS"
+      ],
+      "requiredEvidence": "No release evidence is required unless this configuration is added to the supported room scope.",
+      "impact": "It is not offered as a local room and is excluded from the 21-configuration readiness count."
+    },
+    {
+      "id": "3:0:audit-only",
+      "variantKey": "3:0",
+      "status": "missing-evidence",
+      "blocksGameplay": false,
+      "fields": [],
+      "description": "This original configuration is outside the retained 21-room release scope; it remains in the audit catalogue only.",
+      "evidence": [
+        "packages/rules/src/edition.ts:RETAINED_VARIANT_KEYS"
+      ],
+      "requiredEvidence": "No release evidence is required unless this configuration is added to the supported room scope.",
+      "impact": "It is not offered as a local room and is excluded from the 21-configuration readiness count."
+    },
+    {
+      "id": "3:0:eight-tens",
+      "variantKey": "3:0",
+      "status": "conflicting-client-evidence",
+      "blocksGameplay": false,
+      "fields": [
+        "yifupai",
+        "bage10tianhu"
+      ],
+      "description": "Config defaults eight-tens on; the UI forces it off for one deck and on for two decks, and onClickGameBtn overwrites the restored deck selection after loading controls.",
+      "evidence": [
+        "hall:893",
+        "hall:947",
+        "hall:1050"
+      ],
+      "impact": "Audit-only configuration outside the retained scope; it is not offered for play.",
+      "requiredEvidence": "Fresh and restored room creation payloads for both deck choices and the eight-tens win case."
+    },
+    {
+      "id": "4:0:basicTimes",
+      "variantKey": "4:0",
+      "status": "resolved-by-product-rule",
+      "blocksGameplay": false,
+      "fields": [
+        "basicTimes"
+      ],
+      "description": "The original client omits basicTimes, but the local product requires the room host to enter a positive baseBeans value for every room.",
+      "evidence": [
+        "apps/server/src/rooms.ts:45-68",
+        "apps/server/src/original-wire.ts:629-647"
+      ],
+      "impact": "This is a product-level input rule, not an inferred original default, and it does not block room creation.",
+      "requiredEvidence": "No original-client value is required because the local server requires an explicit host selection."
+    },
+    {
+      "id": "5:0:basicTimes",
+      "variantKey": "5:0",
+      "status": "resolved-by-product-rule",
+      "blocksGameplay": false,
+      "fields": [
+        "basicTimes"
+      ],
+      "description": "The original client omits basicTimes, but the local product requires the room host to enter a positive baseBeans value for every room.",
+      "evidence": [
+        "apps/server/src/rooms.ts:45-68",
+        "apps/server/src/original-wire.ts:629-647"
+      ],
+      "impact": "This is a product-level input rule, not an inferred original default, and it does not block room creation.",
+      "requiredEvidence": "No original-client value is required because the local server requires an explicit host selection."
+    },
+    {
+      "id": "6:0:basicTimes",
+      "variantKey": "6:0",
+      "status": "resolved-by-product-rule",
+      "blocksGameplay": false,
+      "fields": [
+        "basicTimes"
+      ],
+      "description": "The original client omits basicTimes, but the local product requires the room host to enter a positive baseBeans value for every room.",
+      "evidence": [
+        "apps/server/src/rooms.ts:45-68",
+        "apps/server/src/original-wire.ts:629-647"
+      ],
+      "impact": "This is a product-level input rule, not an inferred original default, and it does not block room creation.",
+      "requiredEvidence": "No original-client value is required because the local server requires an explicit host selection."
+    },
+    {
+      "id": "7:0:basicTimes",
+      "variantKey": "7:0",
+      "status": "resolved-by-product-rule",
+      "blocksGameplay": false,
+      "fields": [
+        "basicTimes"
+      ],
+      "description": "The original client omits basicTimes, but the local product requires the room host to enter a positive baseBeans value for every room.",
+      "evidence": [
+        "apps/server/src/rooms.ts:45-68",
+        "apps/server/src/original-wire.ts:629-647"
+      ],
+      "impact": "This is a product-level input rule, not an inferred original default, and it does not block room creation.",
+      "requiredEvidence": "No original-client value is required because the local server requires an explicit host selection."
+    },
+    {
+      "id": "8:0:basicTimes",
+      "variantKey": "8:0",
+      "status": "resolved-by-product-rule",
+      "blocksGameplay": false,
+      "fields": [
+        "basicTimes"
+      ],
+      "description": "The original client omits basicTimes, but the local product requires the room host to enter a positive baseBeans value for every room.",
+      "evidence": [
+        "apps/server/src/rooms.ts:45-68",
+        "apps/server/src/original-wire.ts:629-647"
+      ],
+      "impact": "This is a product-level input rule, not an inferred original default, and it does not block room creation.",
+      "requiredEvidence": "No original-client value is required because the local server requires an explicit host selection."
+    },
+    {
+      "id": "9:0:basicTimes",
+      "variantKey": "9:0",
+      "status": "resolved-by-product-rule",
+      "blocksGameplay": false,
+      "fields": [
+        "basicTimes"
+      ],
+      "description": "The original client omits basicTimes, but the local product requires the room host to enter a positive baseBeans value for every room.",
+      "evidence": [
+        "apps/server/src/rooms.ts:45-68",
+        "apps/server/src/original-wire.ts:629-647"
+      ],
+      "impact": "This is a product-level input rule, not an inferred original default, and it does not block room creation.",
+      "requiredEvidence": "No original-client value is required because the local server requires an explicit host selection."
+    },
+    {
+      "id": "9:0:player-score",
+      "variantKey": "9:0",
+      "status": "resolved-by-product-rule",
+      "blocksGameplay": false,
+      "fields": [
+        "playerNum",
+        "huRedScore"
+      ],
+      "description": "The independent Aba rules use huRedScore as a direct structure-score threshold. playerNum selects how many seats are dealt and settled, but it does not scale the threshold.",
+      "evidence": [
+        "apps/server/src/game/aba-win.ts:86,252",
+        "apps/server/src/game/aba-round.ts:328-330,463",
+        "docs/rules/ABA-INDEPENDENT.md",
+        "docs/rules/release/9-0/cases.json"
+      ],
+      "impact": "A hand below the selected huRedScore is rejected; a hand at or above it is accepted independently of the selected player count.",
+      "requiredEvidence": "No original-server value is required because the threshold is an explicitly approved independent rule. Boundary and player-count cases are release evidence, not a rule gap."
+    },
+    {
+      "id": "10:0:basicTimes",
+      "variantKey": "10:0",
+      "status": "resolved-by-product-rule",
+      "blocksGameplay": false,
+      "fields": [
+        "basicTimes"
+      ],
+      "description": "The original client omits basicTimes, but the local product requires the room host to enter a positive baseBeans value for every room.",
+      "evidence": [
+        "apps/server/src/rooms.ts:45-68",
+        "apps/server/src/original-wire.ts:629-647"
+      ],
+      "impact": "This is a product-level input rule, not an inferred original default, and it does not block room creation.",
+      "requiredEvidence": "No original-client value is required because the local server requires an explicit host selection."
+    },
+    {
+      "id": "10:0:player-score",
+      "variantKey": "10:0",
+      "status": "resolved-by-product-rule",
+      "blocksGameplay": false,
+      "fields": [
+        "playerNum",
+        "huRedScore"
+      ],
+      "description": "The independent Aba rules use huRedScore as a direct structure-score threshold. playerNum selects how many seats are dealt and settled, but it does not scale the threshold.",
+      "evidence": [
+        "apps/server/src/game/aba-win.ts:86,252",
+        "apps/server/src/game/aba-round.ts:328-330,463",
+        "docs/rules/ABA-INDEPENDENT.md",
+        "docs/rules/release/10-0/cases.json"
+      ],
+      "impact": "A hand below the selected huRedScore is rejected; a hand at or above it is accepted independently of the selected player count.",
+      "requiredEvidence": "No original-server value is required because the threshold is an explicitly approved independent rule. Boundary and player-count cases are release evidence, not a rule gap."
+    },
+    {
+      "id": "11:0:basicTimes",
+      "variantKey": "11:0",
+      "status": "resolved-by-product-rule",
+      "blocksGameplay": false,
+      "fields": [
+        "basicTimes"
+      ],
+      "description": "The original client omits basicTimes, but the local product requires the room host to enter a positive baseBeans value for every room.",
+      "evidence": [
+        "apps/server/src/rooms.ts:45-68",
+        "apps/server/src/original-wire.ts:629-647"
+      ],
+      "impact": "This is a product-level input rule, not an inferred original default, and it does not block room creation.",
+      "requiredEvidence": "No original-client value is required because the local server requires an explicit host selection."
+    },
+    {
+      "id": "11:0:player-score",
+      "variantKey": "11:0",
+      "status": "resolved-by-product-rule",
+      "blocksGameplay": false,
+      "fields": [
+        "playerNum",
+        "huRedScore"
+      ],
+      "description": "The independent Aba rules use huRedScore as a direct structure-score threshold. playerNum selects how many seats are dealt and settled, but it does not scale the threshold.",
+      "evidence": [
+        "apps/server/src/game/aba-win.ts:86,252",
+        "apps/server/src/game/aba-round.ts:328-330,463",
+        "docs/rules/ABA-INDEPENDENT.md",
+        "docs/rules/release/11-0/cases.json"
+      ],
+      "impact": "A hand below the selected huRedScore is rejected; a hand at or above it is accepted independently of the selected player count.",
+      "requiredEvidence": "No original-server value is required because the threshold is an explicitly approved independent rule. Boundary and player-count cases are release evidence, not a rule gap."
+    },
+    {
+      "id": "12:0:basicTimes",
+      "variantKey": "12:0",
+      "status": "resolved-by-product-rule",
+      "blocksGameplay": false,
+      "fields": [
+        "basicTimes"
+      ],
+      "description": "The original client omits basicTimes, but the local product requires the room host to enter a positive baseBeans value for every room.",
+      "evidence": [
+        "apps/server/src/rooms.ts:45-68",
+        "apps/server/src/original-wire.ts:629-647"
+      ],
+      "impact": "This is a product-level input rule, not an inferred original default, and it does not block room creation.",
+      "requiredEvidence": "No original-client value is required because the local server requires an explicit host selection."
+    },
+    {
+      "id": "12:0:player-score",
+      "variantKey": "12:0",
+      "status": "resolved-by-product-rule",
+      "blocksGameplay": false,
+      "fields": [
+        "playerNum",
+        "huRedScore"
+      ],
+      "description": "The independent Aba rules use huRedScore as a direct structure-score threshold. playerNum selects how many seats are dealt and settled, but it does not scale the threshold.",
+      "evidence": [
+        "apps/server/src/game/aba-win.ts:86,252",
+        "apps/server/src/game/aba-round.ts:328-330,463",
+        "docs/rules/ABA-INDEPENDENT.md",
+        "docs/rules/release/12-0/cases.json"
+      ],
+      "impact": "A hand below the selected huRedScore is rejected; a hand at or above it is accepted independently of the selected player count.",
+      "requiredEvidence": "No original-server value is required because the threshold is an explicitly approved independent rule. Boundary and player-count cases are release evidence, not a rule gap."
+    },
+    {
+      "id": "13:0:audit-only",
+      "variantKey": "13:0",
+      "status": "missing-evidence",
+      "blocksGameplay": false,
+      "fields": [],
+      "description": "This original configuration is outside the retained 21-room release scope; it remains in the audit catalogue only.",
+      "evidence": [
+        "packages/rules/src/edition.ts:RETAINED_VARIANT_KEYS"
+      ],
+      "requiredEvidence": "No release evidence is required unless this configuration is added to the supported room scope.",
+      "impact": "It is not offered as a local room and is excluded from the 21-configuration readiness count."
+    },
+    {
+      "id": "14:0:basicTimes",
+      "variantKey": "14:0",
+      "status": "resolved-by-product-rule",
+      "blocksGameplay": false,
+      "fields": [
+        "basicTimes"
+      ],
+      "description": "The original client omits basicTimes, but the local product requires the room host to enter a positive baseBeans value for every room.",
+      "evidence": [
+        "apps/server/src/rooms.ts:45-68",
+        "apps/server/src/original-wire.ts:629-647"
+      ],
+      "impact": "This is a product-level input rule, not an inferred original default, and it does not block room creation.",
+      "requiredEvidence": "No original-client value is required because the local server requires an explicit host selection."
+    },
+    {
+      "id": "14:0:playerNum",
+      "variantKey": "14:0",
+      "status": "resolved-by-product-rule",
+      "blocksGameplay": false,
+      "fields": [
+        "playerNum"
+      ],
+      "description": "The original client omits playerNum for this configuration, but the local product requires the host to choose 2, 3, or 4 players.",
+      "evidence": [
+        "apps/server/src/rooms.ts:45-52"
+      ],
+      "impact": "The host must select the player count explicitly; no original default is guessed.",
+      "requiredEvidence": "No original-client value is required because the local server requires an explicit host selection."
+    },
+    {
+      "id": "15:0:basicTimes",
+      "variantKey": "15:0",
+      "status": "resolved-by-product-rule",
+      "blocksGameplay": false,
+      "fields": [
+        "basicTimes"
+      ],
+      "description": "The original client omits basicTimes, but the local product requires the room host to enter a positive baseBeans value for every room.",
+      "evidence": [
+        "apps/server/src/rooms.ts:45-68",
+        "apps/server/src/original-wire.ts:629-647"
+      ],
+      "impact": "This is a product-level input rule, not an inferred original default, and it does not block room creation.",
+      "requiredEvidence": "No original-client value is required because the local server requires an explicit host selection."
+    },
+    {
+      "id": "15:0:playerNum",
+      "variantKey": "15:0",
+      "status": "resolved-by-product-rule",
+      "blocksGameplay": false,
+      "fields": [
+        "playerNum"
+      ],
+      "description": "The original client omits playerNum for this configuration, but the local product requires the host to choose 2, 3, or 4 players.",
+      "evidence": [
+        "apps/server/src/rooms.ts:45-52"
+      ],
+      "impact": "The host must select the player count explicitly; no original default is guessed.",
+      "requiredEvidence": "No original-client value is required because the local server requires an explicit host selection."
+    },
+    {
+      "id": "15:0:name",
+      "variantKey": "15:0",
+      "status": "non-blocking-record",
+      "blocksGameplay": false,
+      "fields": [],
+      "description": "Configured title is 茂县斗十四; the room renderer returns 阿坝斗十四 for the same area identifier.",
+      "evidence": [
+        "main:4351",
+        "dss:766"
+      ],
+      "impact": "Display naming only; it does not change legal actions or settlement.",
+      "requiredEvidence": "Reference screenshots for retained hall and room pages."
+    },
+    {
+      "id": "16:0:basicTimes",
+      "variantKey": "16:0",
+      "status": "resolved-by-product-rule",
+      "blocksGameplay": false,
+      "fields": [
+        "basicTimes"
+      ],
+      "description": "The original client omits basicTimes, but the local product requires the room host to enter a positive baseBeans value for every room.",
+      "evidence": [
+        "apps/server/src/rooms.ts:45-68",
+        "apps/server/src/original-wire.ts:629-647"
+      ],
+      "impact": "This is a product-level input rule, not an inferred original default, and it does not block room creation.",
+      "requiredEvidence": "No original-client value is required because the local server requires an explicit host selection."
+    },
+    {
+      "id": "17:0:audit-only",
+      "variantKey": "17:0",
+      "status": "missing-evidence",
+      "blocksGameplay": false,
+      "fields": [],
+      "description": "This original configuration is outside the retained 21-room release scope; it remains in the audit catalogue only.",
+      "evidence": [
+        "packages/rules/src/edition.ts:RETAINED_VARIANT_KEYS"
+      ],
+      "requiredEvidence": "No release evidence is required unless this configuration is added to the supported room scope.",
+      "impact": "It is not offered as a local room and is excluded from the 21-configuration readiness count."
+    },
+    {
+      "id": "18:0:audit-only",
+      "variantKey": "18:0",
+      "status": "missing-evidence",
+      "blocksGameplay": false,
+      "fields": [],
+      "description": "This original configuration is outside the retained 21-room release scope; it remains in the audit catalogue only.",
+      "evidence": [
+        "packages/rules/src/edition.ts:RETAINED_VARIANT_KEYS"
+      ],
+      "requiredEvidence": "No release evidence is required unless this configuration is added to the supported room scope.",
+      "impact": "It is not offered as a local room and is excluded from the 21-configuration readiness count."
+    },
+    {
+      "id": "19:0:basicTimes",
+      "variantKey": "19:0",
+      "status": "resolved-by-product-rule",
+      "blocksGameplay": false,
+      "fields": [
+        "basicTimes"
+      ],
+      "description": "The original client omits basicTimes, but the local product requires the room host to enter a positive baseBeans value for every room.",
+      "evidence": [
+        "apps/server/src/rooms.ts:45-68",
+        "apps/server/src/original-wire.ts:629-647"
+      ],
+      "impact": "This is a product-level input rule, not an inferred original default, and it does not block room creation.",
+      "requiredEvidence": "No original-client value is required because the local server requires an explicit host selection."
+    },
+    {
+      "id": "20:0:basicTimes",
+      "variantKey": "20:0",
+      "status": "resolved-by-product-rule",
+      "blocksGameplay": false,
+      "fields": [
+        "basicTimes"
+      ],
+      "description": "The original client omits basicTimes, but the local product requires the room host to enter a positive baseBeans value for every room.",
+      "evidence": [
+        "apps/server/src/rooms.ts:45-68",
+        "apps/server/src/original-wire.ts:629-647"
+      ],
+      "impact": "This is a product-level input rule, not an inferred original default, and it does not block room creation.",
+      "requiredEvidence": "No original-client value is required because the local server requires an explicit host selection."
+    },
+    {
+      "id": "21:0:basicTimes",
+      "variantKey": "21:0",
+      "status": "resolved-by-product-rule",
+      "blocksGameplay": false,
+      "fields": [
+        "basicTimes"
+      ],
+      "description": "The original client omits basicTimes, but the local product requires the room host to enter a positive baseBeans value for every room.",
+      "evidence": [
+        "apps/server/src/rooms.ts:45-68",
+        "apps/server/src/original-wire.ts:629-647"
+      ],
+      "impact": "This is a product-level input rule, not an inferred original default, and it does not block room creation.",
+      "requiredEvidence": "No original-client value is required because the local server requires an explicit host selection."
+    },
+    {
+      "id": "22:0:basicTimes",
+      "variantKey": "22:0",
+      "status": "resolved-by-product-rule",
+      "blocksGameplay": false,
+      "fields": [
+        "basicTimes"
+      ],
+      "description": "The original client omits basicTimes, but the local product requires the room host to enter a positive baseBeans value for every room.",
+      "evidence": [
+        "apps/server/src/rooms.ts:45-68",
+        "apps/server/src/original-wire.ts:629-647"
+      ],
+      "impact": "This is a product-level input rule, not an inferred original default, and it does not block room creation.",
+      "requiredEvidence": "No original-client value is required because the local server requires an explicit host selection."
+    },
+    {
+      "id": "23:0:basicTimes",
+      "variantKey": "23:0",
+      "status": "resolved-by-product-rule",
+      "blocksGameplay": false,
+      "fields": [
+        "basicTimes"
+      ],
+      "description": "The original client omits basicTimes, but the local product requires the room host to enter a positive baseBeans value for every room.",
+      "evidence": [
+        "apps/server/src/rooms.ts:45-68",
+        "apps/server/src/original-wire.ts:629-647"
+      ],
+      "impact": "This is a product-level input rule, not an inferred original default, and it does not block room creation.",
+      "requiredEvidence": "No original-client value is required because the local server requires an explicit host selection."
+    },
+    {
+      "id": "24:0:basicTimes",
+      "variantKey": "24:0",
+      "status": "resolved-by-product-rule",
+      "blocksGameplay": false,
+      "fields": [
+        "basicTimes"
+      ],
+      "description": "The original client omits basicTimes, but the local product requires the room host to enter a positive baseBeans value for every room.",
+      "evidence": [
+        "apps/server/src/rooms.ts:45-68",
+        "apps/server/src/original-wire.ts:629-647"
+      ],
+      "impact": "This is a product-level input rule, not an inferred original default, and it does not block room creation.",
+      "requiredEvidence": "No original-client value is required because the local server requires an explicit host selection."
+    },
+    {
+      "id": "24:0:ownBaKeQiang",
+      "variantKey": "24:0",
+      "status": "resolved-by-product-rule",
+      "blocksGameplay": false,
+      "fields": [
+        "ownBaKeQiang"
+      ],
+      "description": "Independent product rule for the conflicting original copy: ownBaKeQiang=1 lets other players rob-hu the tile used to complete the ba; ownBaKeQiang=0 still completes the submitter's ba normally but creates no rob-hu offer.",
+      "evidence": [
+        "main:5646",
+        "main:1167",
+        "dss:947",
+        "apps/server/src/game/score-region-round.ts:425",
+        "docs/rules/release/24-0/cases.json"
+      ],
+      "impact": "The switch controls only whether a rob-hu response window follows the submitter's ba; it does not disable the ba upgrade.",
+      "requiredEvidence": "No original-server value is required because this is an explicitly approved independent product rule. Both switch values have executable release cases."
+    },
+    {
+      "id": "25:0:basicTimes",
+      "variantKey": "25:0",
+      "status": "resolved-by-product-rule",
+      "blocksGameplay": false,
+      "fields": [
+        "basicTimes"
+      ],
+      "description": "The original client omits basicTimes, but the local product requires the room host to enter a positive baseBeans value for every room.",
+      "evidence": [
+        "apps/server/src/rooms.ts:45-68",
+        "apps/server/src/original-wire.ts:629-647"
+      ],
+      "impact": "This is a product-level input rule, not an inferred original default, and it does not block room creation.",
+      "requiredEvidence": "No original-client value is required because the local server requires an explicit host selection."
+    },
+    {
+      "id": "26:0:basicTimes",
+      "variantKey": "26:0",
+      "status": "resolved-by-product-rule",
+      "blocksGameplay": false,
+      "fields": [
+        "basicTimes"
+      ],
+      "description": "The original client omits basicTimes, but the local product requires the room host to enter a positive baseBeans value for every room.",
+      "evidence": [
+        "apps/server/src/rooms.ts:45-68",
+        "apps/server/src/original-wire.ts:629-647"
+      ],
+      "impact": "This is a product-level input rule, not an inferred original default, and it does not block room creation.",
+      "requiredEvidence": "No original-client value is required because the local server requires an explicit host selection."
+    },
+    {
+      "id": "27:0:basicTimes",
+      "variantKey": "27:0",
+      "status": "resolved-by-product-rule",
+      "blocksGameplay": false,
+      "fields": [
+        "basicTimes"
+      ],
+      "description": "The original client omits basicTimes, but the local product requires the room host to enter a positive baseBeans value for every room.",
+      "evidence": [
+        "apps/server/src/rooms.ts:45-68",
+        "apps/server/src/original-wire.ts:629-647"
+      ],
+      "impact": "This is a product-level input rule, not an inferred original default, and it does not block room creation.",
+      "requiredEvidence": "No original-client value is required because the local server requires an explicit host selection."
+    },
+    {
+      "id": "101:0:audit-only",
+      "variantKey": "101:0",
+      "status": "missing-evidence",
+      "blocksGameplay": false,
+      "fields": [],
+      "description": "This original configuration is outside the retained 21-room release scope; it remains in the audit catalogue only.",
+      "evidence": [
+        "packages/rules/src/edition.ts:RETAINED_VARIANT_KEYS"
+      ],
+      "requiredEvidence": "No release evidence is required unless this configuration is added to the supported room scope.",
+      "impact": "It is not offered as a local room and is excluded from the 21-configuration readiness count."
+    },
+    {
+      "id": "101:0:blood-battle-routing",
+      "variantKey": "101:0",
+      "status": "behavior-unverified",
+      "blocksGameplay": true,
+      "fields": [
+        "areaType",
+        "processType"
+      ],
+      "description": "ID101 has its own config but is outside the retained scope; Ya'an routes processType=2 to it. Multi-winner continuation and subsequent-hand behavior are unverified.",
+      "evidence": [
+        "hall:786",
+        "hall:864",
+        "dss:982"
+      ],
+      "exampleValid": "After a blood-battle win, the remaining players continue and the next-hand state and settlement follow the original behavior.",
+      "exampleInvalid": "A blood-battle route without a complete continuation rule is rejected instead of silently using classic Ya'an behavior.",
+      "impact": "Blood-battle routing is audit-only and cannot be enabled without a complete multi-winner round contract.",
+      "requiredEvidence": "Original request/response for blood-battle and a complete multi-winner round, including subsequent hand handling."
+    }
+  ]
+}

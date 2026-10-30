@@ -1,0 +1,48 @@
+
+bsp_win.png
+size: 649,500
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+mj_win_08
+  rotate: false
+  xy: 345, 328
+  size: 137, 65
+  orig: 137, 65
+  offset: 0, 0
+  index: -1
+mj_win_09
+  rotate: false
+  xy: 2, 2
+  size: 206, 49
+  orig: 206, 49
+  offset: 0, 0
+  index: -1
+mj_win_10
+  rotate: false
+  xy: 345, 297
+  size: 29, 29
+  orig: 29, 29
+  offset: 0, 0
+  index: -1
+mj_win_11
+  rotate: false
+  xy: 210, 30
+  size: 56, 21
+  orig: 56, 21
+  offset: 0, 0
+  index: -1
+mj_windi_03
+  rotate: false
+  xy: 2, 53
+  size: 341, 340
+  orig: 342, 340
+  offset: 1, 0
+  index: -1
+win_di
+  rotate: false
+  xy: 2, 395
+  size: 645, 103
+  orig: 645, 103
+  offset: 0, 0
+  index: -1

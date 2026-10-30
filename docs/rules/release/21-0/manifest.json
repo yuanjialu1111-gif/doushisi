@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "variantKey": "21:0",
+  "ruleVersion": "yuexi-independent-v1",
+  "rulebook": {
+    "path": "docs/rules/release/21-0/rulebook.json",
+    "sha256": "8aaf6657215408b58e87a77f5b4389704112d2dbee653d3cdb77fd4c5e00ca70"
+  },
+  "cases": {
+    "path": "docs/rules/release/21-0/cases.json",
+    "sha256": "c616fbab43cbffb5545e2d2f3f853ed10d54199aa06945b14e08e0b785b66b60"
+  },
+  "generatedAt": "2026-10-03T06:05:25.349Z"
+}

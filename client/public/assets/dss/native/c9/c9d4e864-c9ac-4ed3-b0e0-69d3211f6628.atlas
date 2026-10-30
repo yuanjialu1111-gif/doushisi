@@ -1,0 +1,125 @@
+
+gangshanghua.png
+size: 1852,881
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+1
+  rotate: false
+  xy: 1623, 155
+  size: 192, 129
+  orig: 194, 132
+  offset: 1, 1
+  index: -1
+di
+  rotate: false
+  xy: 2, 477
+  size: 1142, 402
+  orig: 1286, 445
+  offset: 110, 21
+  index: -1
+dian
+  rotate: false
+  xy: 1146, 485
+  size: 16, 15
+  orig: 18, 17
+  offset: 1, 1
+  index: -1
+guang
+  rotate: false
+  xy: 2, 187
+  size: 1027, 64
+  orig: 1044, 79
+  offset: 16, 1
+  index: -1
+guang2
+  rotate: false
+  xy: 2, 253
+  size: 1237, 222
+  orig: 1289, 223
+  offset: 25, 0
+  index: -1
+guang3
+  rotate: false
+  xy: 1574, 44
+  size: 94, 105
+  orig: 111, 116
+  offset: 5, 3
+  index: -1
+heye
+  rotate: true
+  xy: 1633, 286
+  size: 234, 189
+  orig: 235, 189
+  offset: 1, 0
+  index: -1
+huoxing
+  rotate: false
+  xy: 1241, 292
+  size: 390, 208
+  orig: 413, 224
+  offset: 4, 14
+  index: -1
+niao
+  rotate: false
+  xy: 1802, 600
+  size: 48, 49
+  orig: 48, 50
+  offset: 0, 0
+  index: -1
+wenzi
+  rotate: false
+  xy: 1146, 502
+  size: 396, 147
+  orig: 400, 150
+  offset: 2, 2
+  index: -1
+wenzi-cch
+  rotate: false
+  xy: 1241, 151
+  size: 380, 139
+  orig: 382, 140
+  offset: 1, 1
+  index: -1
+wenzi-cl
+  rotate: false
+  xy: 1544, 522
+  size: 256, 127
+  orig: 257, 128
+  offset: 1, 1
+  index: -1
+wenzi-cxl
+  rotate: false
+  xy: 1207, 2
+  size: 365, 147
+  orig: 366, 148
+  offset: 1, 1
+  index: -1
+wenzi-pch
+  rotate: false
+  xy: 642, 46
+  size: 389, 139
+  orig: 391, 140
+  offset: 1, 1
+  index: -1
+yezi
+  rotate: true
+  xy: 1033, 9
+  size: 242, 172
+  orig: 250, 177
+  offset: 5, 1
+  index: -1
+yuandi
+  rotate: false
+  xy: 2, 14
+  size: 638, 171
+  orig: 644, 178
+  offset: 4, 1
+  index: -1
+yuandi2
+  rotate: false
+  xy: 1146, 651
+  size: 701, 228
+  orig: 703, 230
+  offset: 1, 1
+  index: -1

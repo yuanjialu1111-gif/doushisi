@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "status": "approved",
+  "basis": "user-approved",
+  "variantKey": "16:0",
+  "ruleVersion": "suining-independent-v1",
+  "title": "16:0 斗十四独立规则",
+  "approval": {
+    "path": "docs/rules/release/16-0/approval.json",
+    "sha256": "ef0d8d45c063c7b8ca2e189dbeef6d2dd1c08543c95f7802dc5f7f1550065800"
+  },
+  "requiredCoverage": [
+    "concealed-four-pairs",
+    "payments"
+  ],
+  "sources": [
+    "docs/rules/variants/16-0.md",
+    "docs/rules/ORDINARY-STRUCTURES.md",
+    "apps/server/src/game/regional-profile.ts",
+    "apps/server/src/game/score-region-win.ts",
+    "apps/server/src/game/score-region-round.ts"
+  ],
+  "summary": {
+    "deck": "52 ordinary cards plus the regional special-card configuration.",
+    "win": "Four groups: sum-14 pairs, exposed same-rank triples, or quads; structure score gates the win threshold.",
+    "scoring": "Structure score/100 * 2^cappedFan without base beans.",
+    "declaration": "The original configuration has no declaration option; no declare action is exposed.",
+    "payments": "Exact per-payer 12-place rounding and no duplicate settlement."
+  }
+}

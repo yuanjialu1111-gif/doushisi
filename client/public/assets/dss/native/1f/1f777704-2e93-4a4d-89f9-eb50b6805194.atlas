@@ -1,0 +1,89 @@
+
+tianhu.png
+size: 2016,1867
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+fo
+  rotate: true
+  xy: 754, 2
+  size: 359, 421
+  orig: 359, 421
+  offset: 0, 0
+  index: -1
+guang
+  rotate: false
+  xy: 2, 1618
+  size: 1336, 247
+  orig: 1336, 359
+  offset: 0, 46
+  index: -1
+hei
+  rotate: true
+  xy: 2, 282
+  size: 1334, 750
+  orig: 1336, 752
+  offset: 1, 1
+  index: -1
+you
+  rotate: false
+  xy: 754, 363
+  size: 1044, 750
+  orig: 1044, 750
+  offset: 0, 0
+  index: -1
+yun1
+  rotate: false
+  xy: 754, 1439
+  size: 556, 177
+  orig: 558, 186
+  offset: 1, 8
+  index: -1
+yun2
+  rotate: false
+  xy: 995, 1357
+  size: 250, 80
+  orig: 252, 85
+  offset: 1, 4
+  index: -1
+zi
+  rotate: false
+  xy: 754, 1313
+  size: 239, 124
+  orig: 244, 128
+  offset: 3, 2
+  index: -1
+zuo
+  rotate: false
+  xy: 1340, 1115
+  size: 674, 750
+  orig: 676, 750
+  offset: 0, 0
+  index: -1
+
+tianhu2.png
+size: 1302,1024
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+beiguang
+  rotate: false
+  xy: 635, 317
+  size: 665, 705
+  orig: 680, 727
+  offset: 5, 19
+  index: -1
+lianhua
+  rotate: true
+  xy: 2, 276
+  size: 746, 631
+  orig: 746, 642
+  offset: 0, 11
+  index: -1
+yun3
+  rotate: false
+  xy: 2, 2
+  size: 923, 272
+  orig: 923, 349
+  offset: 0, 31
+  index: -1

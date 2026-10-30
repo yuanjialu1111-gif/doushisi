@@ -1,0 +1,27 @@
+
+mj_game_bigwin.png
+size: 256,104
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+mj_big_01
+  rotate: false
+  xy: 104, 54
+  size: 150, 48
+  orig: 150, 48
+  offset: 0, 0
+  index: -1
+mj_big_02
+  rotate: false
+  xy: 104, 22
+  size: 80, 30
+  orig: 80, 30
+  offset: 0, 0
+  index: -1
+mj_big_xing
+  rotate: false
+  xy: 2, 2
+  size: 100, 100
+  orig: 100, 100
+  offset: 0, 0
+  index: -1

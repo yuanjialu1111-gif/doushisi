@@ -1,0 +1,48 @@
+
+res_dss_chat_11.png
+size: 85,134
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+res_dss_chat_0-001
+  rotate: false
+  xy: 2, 62
+  size: 67, 70
+  orig: 67, 71
+  offset: 0, 1
+  index: -1
+res_dss_chat_0-002
+  rotate: true
+  xy: 58, 2
+  size: 30, 25
+  orig: 30, 25
+  offset: 0, 0
+  index: -1
+res_dss_chat_0-003
+  rotate: false
+  xy: 71, 112
+  size: 10, 20
+  orig: 10, 20
+  offset: 0, 0
+  index: -1
+res_dss_chat_0-004
+  rotate: false
+  xy: 71, 90
+  size: 10, 20
+  orig: 10, 20
+  offset: 0, 0
+  index: -1
+res_dss_chat_0-006
+  rotate: false
+  xy: 2, 3
+  size: 54, 29
+  orig: 54, 77
+  offset: 0, 48
+  index: -1
+res_dss_chat_0-007
+  rotate: true
+  xy: 2, 34
+  size: 26, 69
+  orig: 26, 69
+  offset: 0, 0
+  index: -1

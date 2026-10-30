@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "status": "approved",
+  "basis": "user-approved",
+  "variantKey": "14:0",
+  "ruleVersion": "wenchuan-independent-v1",
+  "title": "14:0 斗十四独立规则",
+  "approval": {
+    "path": "docs/rules/release/14-0/approval.json",
+    "sha256": "00ff5be093b187b800ed416aa8c47a583061337f2193096ad60849c0235c86e2"
+  },
+  "requiredCoverage": [
+    "declared-wait-lock",
+    "concealed-four-pairs",
+    "payments"
+  ],
+  "sources": [
+    "docs/rules/variants/14-0.md",
+    "docs/rules/ORDINARY-STRUCTURES.md",
+    "apps/server/src/game/regional-profile.ts",
+    "apps/server/src/game/score-region-win.ts",
+    "apps/server/src/game/score-region-round.ts"
+  ],
+  "summary": {
+    "deck": "52 ordinary cards plus the regional special-card configuration.",
+    "win": "Four groups: sum-14 pairs, exposed same-rank triples, or quads; structure score gates the win threshold.",
+    "scoring": "Structure score/100 * 2^cappedFan * base beans; 15:0 applies its frozen 0.8 factor.",
+    "declaration": "Declaration locks the server-computed waits.",
+    "payments": "Exact per-payer 12-place rounding and no duplicate settlement."
+  }
+}

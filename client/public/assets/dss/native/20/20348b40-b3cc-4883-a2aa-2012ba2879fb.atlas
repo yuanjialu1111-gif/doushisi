@@ -1,0 +1,124 @@
+
+zhuomian-bg.png
+size: 1761,1345
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+hei
+  rotate: false
+  xy: 2, 2
+  size: 1750, 1000
+  orig: 1750, 1000
+  offset: 0, 0
+  index: -1
+shanhu1
+  rotate: false
+  xy: 219, 1295
+  size: 60, 48
+  orig: 66, 49
+  offset: 0, 1
+  index: -1
+shanhu2
+  rotate: false
+  xy: 904, 1180
+  size: 218, 163
+  orig: 218, 169
+  offset: 0, 3
+  index: -1
+shanhu3
+  rotate: true
+  xy: 1124, 1111
+  size: 232, 238
+  orig: 235, 238
+  offset: 3, 0
+  index: -1
+shanhu4
+  rotate: false
+  xy: 790, 1260
+  size: 112, 83
+  orig: 114, 94
+  offset: 0, 11
+  index: -1
+shanhu5
+  rotate: true
+  xy: 2, 1004
+  size: 286, 409
+  orig: 321, 409
+  offset: 35, 0
+  index: -1
+shanhu6
+  rotate: false
+  xy: 1364, 1102
+  size: 395, 241
+  orig: 395, 241
+  offset: 0, 0
+  index: -1
+xiao
+  rotate: false
+  xy: 2, 1314
+  size: 58, 29
+  orig: 58, 29
+  offset: 0, 0
+  index: -1
+yu1
+  rotate: false
+  xy: 388, 1292
+  size: 86, 51
+  orig: 88, 51
+  offset: 2, 0
+  index: -1
+yu2
+  rotate: false
+  xy: 281, 1293
+  size: 105, 50
+  orig: 105, 51
+  offset: 0, 0
+  index: -1
+yu3
+  rotate: false
+  xy: 580, 1274
+  size: 104, 69
+  orig: 104, 69
+  offset: 0, 0
+  index: -1
+yu4
+  rotate: false
+  xy: 111, 1296
+  size: 106, 47
+  orig: 107, 48
+  offset: 1, 1
+  index: -1
+yu5
+  rotate: false
+  xy: 476, 1279
+  size: 102, 64
+  orig: 115, 64
+  offset: 13, 0
+  index: -1
+yu6
+  rotate: true
+  xy: 62, 1298
+  size: 45, 47
+  orig: 46, 47
+  offset: 0, 0
+  index: -1
+yu8
+  rotate: false
+  xy: 686, 1261
+  size: 102, 82
+  orig: 103, 82
+  offset: 0, 0
+  index: -1
+
+zhuomian-bg2.png
+size: 1754,1004
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+bg
+  rotate: false
+  xy: 2, 2
+  size: 1750, 1000
+  orig: 1750, 1000
+  offset: 0, 0
+  index: -1

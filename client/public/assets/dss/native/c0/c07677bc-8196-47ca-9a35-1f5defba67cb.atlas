@@ -1,0 +1,20 @@
+
+fapai.png
+size: 294,198
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+images/guang
+  rotate: false
+  xy: 254, 146
+  size: 38, 50
+  orig: 38, 50
+  offset: 0, 0
+  index: -1
+images/pai
+  rotate: true
+  xy: 2, 2
+  size: 194, 250
+  orig: 194, 250
+  offset: 0, 0
+  index: -1

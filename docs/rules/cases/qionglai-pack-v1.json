@@ -1,0 +1,22 @@
+{
+  "version": "qionglai-approved-pack-v1",
+  "variantKey": "8:0",
+  "approval": "user-confirmed:2026-09-16:QL-D03-1",
+  "scope": "Physical pack quantities only; not dealing, special-card roles, winning or scoring.",
+  "ordinaryCodes": [
+    101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113,
+    201, 202, 203, 204, 205, 206, 207, 208, 209, 210, 211, 212, 213,
+    301, 302, 303, 304, 305, 306, 307, 308, 309, 310, 311, 312, 313,
+    401, 402, 403, 404, 405, 406, 407, 408, 409, 410, 411, 412, 413
+  ],
+  "ordinaryCopiesPerCode": 1,
+  "cases": [
+    { "wangNum": 3, "total": 55, "specialCounts": { "1001": 1, "1002": 1, "1003": 1 } },
+    { "wangNum": 6, "total": 58, "specialCounts": { "1001": 2, "1002": 2, "1003": 2 } },
+    { "wangNum": 9, "total": 61, "specialCounts": { "1001": 3, "1002": 3, "1003": 3 } },
+    { "wangNum": 12, "total": 64, "specialCounts": { "1001": 4, "1002": 4, "1003": 4 } },
+    { "wangNum": 15, "total": 67, "specialCounts": { "1001": 5, "1002": 5, "1003": 5 } },
+    { "wangNum": 18, "total": 70, "specialCounts": { "1001": 6, "1002": 6, "1003": 6 } }
+  ],
+  "invalidWangCounts": [-3, 0, 1, 2, 4, 5, 7, 8, 10, 16, 17, 19, 21, 3.5]
+}

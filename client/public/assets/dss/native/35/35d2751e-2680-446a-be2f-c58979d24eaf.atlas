@@ -1,0 +1,34 @@
+
+piao.png
+size: 1023,147
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+images/di
+  rotate: false
+  xy: 626, 2
+  size: 264, 143
+  orig: 266, 145
+  offset: 0, 2
+  index: -1
+images/guang
+  rotate: false
+  xy: 2, 2
+  size: 622, 143
+  orig: 622, 206
+  offset: 0, 26
+  index: -1
+images/yezi
+  rotate: true
+  xy: 892, 2
+  size: 37, 25
+  orig: 37, 25
+  offset: 0, 0
+  index: -1
+images/zi
+  rotate: true
+  xy: 892, 41
+  size: 104, 129
+  orig: 109, 132
+  offset: 2, 3
+  index: -1

@@ -1,0 +1,83 @@
+
+36wandou.png
+size: 443,125
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+dou
+  rotate: false
+  xy: 382, 71
+  size: 59, 52
+  orig: 66, 52
+  offset: 0, 0
+  index: -1
+dou2
+  rotate: false
+  xy: 383, 10
+  size: 33, 33
+  orig: 33, 35
+  offset: 0, 1
+  index: -1
+dou3
+  rotate: false
+  xy: 382, 45
+  size: 29, 24
+  orig: 30, 24
+  offset: 1, 0
+  index: -1
+dou4
+  rotate: false
+  xy: 341, 9
+  size: 40, 31
+  orig: 51, 31
+  offset: 0, 0
+  index: -1
+dou5
+  rotate: false
+  xy: 413, 49
+  size: 27, 20
+  orig: 34, 20
+  offset: 7, 0
+  index: -1
+guang
+  rotate: true
+  xy: 2, 11
+  size: 112, 130
+  orig: 119, 130
+  offset: 4, 0
+  index: -1
+longdan
+  rotate: true
+  xy: 134, 8
+  size: 115, 97
+  orig: 115, 101
+  offset: 0, 0
+  index: -1
+shanguang
+  rotate: true
+  xy: 418, 36
+  size: 11, 12
+  orig: 12, 12
+  offset: 0, 0
+  index: -1
+shouchong
+  rotate: true
+  xy: 233, 38
+  size: 85, 71
+  orig: 85, 71
+  offset: 0, 0
+  index: -1
+wenzi
+  rotate: false
+  xy: 233, 2
+  size: 106, 34
+  orig: 112, 35
+  offset: 1, 1
+  index: -1
+xing
+  rotate: false
+  xy: 306, 42
+  size: 74, 81
+  orig: 77, 85
+  offset: 0, 4
+  index: -1

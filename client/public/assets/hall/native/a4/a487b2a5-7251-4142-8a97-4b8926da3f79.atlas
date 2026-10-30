@@ -1,0 +1,34 @@
+
+haoyou.png
+size: 420,473
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+dou14-rukou-title1
+  rotate: false
+  xy: 2, 10
+  size: 183, 51
+  orig: 183, 52
+  offset: 0, 1
+  index: -1
+guang
+  rotate: true
+  xy: 227, 197
+  size: 274, 189
+  orig: 274, 189
+  offset: 0, 0
+  index: -1
+shandian
+  rotate: true
+  xy: 227, 2
+  size: 193, 191
+  orig: 193, 196
+  offset: 0, 2
+  index: -1
+xinjin-dikuang
+  rotate: false
+  xy: 2, 63
+  size: 223, 408
+  orig: 231, 412
+  offset: 4, 4
+  index: -1

@@ -1,0 +1,186 @@
+{
+  "schemaVersion": 1,
+  "researchedAt": "2026-09-08T04:10:28.402Z",
+  "originalApkSha256": "a9e8e06e2ce5a70b125d6d166df7de16e655e6affd793d8a8f923d7d70549d5f",
+  "status": "research-only-unapproved",
+  "originals": [
+    {
+      "name": "HallHelpUIController",
+      "file": "outputs/apk-deep-analysis/modules/hall/HallHelpUIController.js",
+      "bytes": 1499,
+      "sha256": "966a7f73a0939c56f889f08caa2b50da0113ae55124074d8a586e660d2859560"
+    },
+    {
+      "name": "CommonPlayUIController",
+      "file": "outputs/apk-deep-analysis/modules/main/CommonPlayUIController.js",
+      "bytes": 24601,
+      "sha256": "afabb7f5e0cda800897978e44b3cb9d189ef4bcad1ec1ba8cd339e7457a2b67f"
+    },
+    {
+      "name": "dss_gameController",
+      "file": "outputs/apk-deep-analysis/modules/dss/dss_gameController.js",
+      "bytes": 77163,
+      "sha256": "1d98d08eb879dbe3e4c85fb19843d75c3d0519c47cc910aa7364e7c4575a9c47"
+    },
+    {
+      "name": "dss config",
+      "file": "work/apk/assets/assets/dss/config.json",
+      "bytes": 72455,
+      "sha256": "25f64acb7fd4ed3c13fee0c827945e041005fa2c7ebf29513601fb5f3927f102"
+    },
+    {
+      "name": "gy_help2",
+      "file": "work/apk/assets/assets/dss/native/75/7591849e-bbfc-4e7a-82ba-2bb03051a6a3.png",
+      "bytes": 2772,
+      "sha256": "aaf735bdd6a62b864d8c9ca7c0d51ebaf6babbf08f447d2a535a17120668a0e2"
+    },
+    {
+      "name": "gy_help1",
+      "file": "work/apk/assets/assets/dss/native/a1/a1a50a48-5cab-4dbe-ac06-5001bf885903.png",
+      "bytes": 50044,
+      "sha256": "8f0b84ec3b10d66f1a9718c5bea6dfdb72b1cacd154b671482a3e45f15e26c3d"
+    },
+    {
+      "name": "helpother",
+      "file": "work/apk/assets/assets/dss/native/88/887ee9c7-0a1d-4a70-b5d5-44350a2bf5f1.png",
+      "bytes": 4058,
+      "sha256": "bf38f8971b51e546810fd79a0b57ec8fcc439faf0a8203b58ca4dc60994b89a7"
+    }
+  ],
+  "pages": [
+    {
+      "key": "book118",
+      "url": "https://max.book118.com/html/2017/0820/129016668.shtm",
+      "retrievedAt": "2026-09-08T04:05:55.635Z",
+      "file": "work/research-next/book118.html",
+      "sha256": "da2f767de0904065f09d761c23ebd060fc882470c0d69d7e67fabd96790cf22c",
+      "title": "斗十四游戏规则.doc",
+      "canonical": null,
+      "refresh": null,
+      "textSha256": "efb6e2e0893c9a8b3a6217c1d097cc965d685047673adecf0a12156879b40a46"
+    },
+    {
+      "key": "doc88",
+      "url": "https://www.so.com/link?m=zDviP%2FrYdvej05FcMKVdjjVxIsFtcunsyNng%2BqP%2BFgLcm5ZGD9un1X%2FjQ0lynzmFM85lWivGR6YUqixMl7Faq6tM%2F5EF7NEn9b5%2BzUg2aA22041g2fKw63TlGHYtibVW%2BxK9p0ZeZLM%2FHpUVtvJQWau6%2Bx3GopYqmeMZkIFXjrH%2FRryGP%2BpRGThWcOc4%3D",
+      "retrievedAt": "2026-09-08T04:05:57.127Z",
+      "file": "work/research-next/doc88.html",
+      "sha256": "60932f2463905f92d11ec6e9cce285c7435ed7d19841906fca5f08473b36fd34",
+      "title": "",
+      "canonical": null,
+      "refresh": null,
+      "textSha256": "94bc78760a671b4a16f07bf47b6ced829da583be13321aacf97865102002764c"
+    },
+    {
+      "key": "docin",
+      "url": "https://www.so.com/link?m=up%2FlBYksn8BpPltUrg31Try9KHii7ciCXZvz1rOxWvErzyA49ukblazUTZUjqkhdMOfL8bn7IzAeWY%2Bqf%2BD4rpDAwUcWD4a50eDUQ%2Ff5nRHkfN%2Fnx5vp3YPKMMatuUCcwLpz3uWlsMfFpkJE%2FqLSzPV2pnw4xhDyLHlycYGEDP8BtloewknCs2CziBSpm8bo4z%2BkRbA%3D%3D",
+      "retrievedAt": "2026-09-08T04:05:58.298Z",
+      "file": "work/research-next/docin.html",
+      "sha256": "e907e30e65f79c0e36876f65793cfad0d483d4f99bc96c4933866e043e1add07",
+      "title": "",
+      "canonical": null,
+      "refresh": null,
+      "textSha256": "94bc78760a671b4a16f07bf47b6ced829da583be13321aacf97865102002764c"
+    },
+    {
+      "key": "sohu",
+      "url": "https://www.so.com/link?m=zUoyXLORxsfY%2BmG1uKwVrYhUV0aKEn%2F9kAulGT9ZIFdCt1MNK5Q3%2BgIOtTjayf5VAQnqlLdU9OG1yGvnPezj9PJ0Cr17486FAXJwTdTFUL6E%2BPSDzWFg24xmfbAxf8VTOcpcclq8zxTueiG0x2ZIUH7IUr6OrL7wJs0Av67sB8j8piFrSG1QJgf5hvp6izPompBwcLsHRmaU%3D",
+      "retrievedAt": "2026-09-08T04:05:59.482Z",
+      "file": "work/research-next/sohu.html",
+      "sha256": "b0ab266b692c43623b1ccbc69b08ee5a2d840bca2ca388be8ac67cb2f5ba1b08",
+      "title": "",
+      "canonical": null,
+      "refresh": null,
+      "textSha256": "94bc78760a671b4a16f07bf47b6ced829da583be13321aacf97865102002764c"
+    },
+    {
+      "key": "itmop",
+      "url": "https://www.so.com/link?m=uwYqEjb11MttH2Jg5zg5DGNZGP2oYkYJLelU%2Fk23ayPL2fro8ov1UjVVwrkJUOMFxovwhOI5RRR0BJUaOtAYVRFtoUr2mI5PxzWfbzdnywwCyaiMtPIpG%2BG76iACnQP%2F4SHwbl5WXJ174MlE%2FktirSpIXx9eD7pmtC0cZphj1LzTR70glMjA1qFn0aFLBt76ACJQ4BA%3D%3D",
+      "retrievedAt": "2026-09-08T04:06:00.682Z",
+      "file": "work/research-next/itmop.html",
+      "sha256": "5016067d63a32097e4cb9fbd399787949da68603e0f5e3da72d53353c128fd7c",
+      "title": "",
+      "canonical": null,
+      "refresh": null,
+      "textSha256": "94bc78760a671b4a16f07bf47b6ced829da583be13321aacf97865102002764c"
+    },
+    {
+      "key": "docin-direct",
+      "url": "https://www.docin.com/p-2022560248.html",
+      "retrievedAt": "2026-09-08T04:06:43.847Z",
+      "file": "work/research-next/docin-direct.html",
+      "sha256": "6796a666dd12fe4c6df2740d0895771ea5ebb5cfeb3ca0c2bf51e5c103429991",
+      "title": "斗十四的游戏规则 - 豆丁网Docin",
+      "canonical": "https://www.docin.com/p-2022560248.html",
+      "refresh": null,
+      "textSha256": "560af7f13140f2df6f284866c6460cd937a234074d4e1831ef491b067c4f5915"
+    },
+    {
+      "key": "doc88-direct",
+      "url": "https://www.doc88.com/p-7435437424691.html",
+      "retrievedAt": "2026-09-08T04:06:45.242Z",
+      "file": "work/research-next/doc88-direct.html",
+      "sha256": "49fa27a7032e88dab7b7ebce86a0ead6864b0ea02aef8077a9b2a9b283c834cc",
+      "title": "斗十四 - 道客巴巴",
+      "canonical": null,
+      "refresh": null,
+      "textSha256": "949d22c988dc2360d0b6b016170bf4c6ee695c07eabfe5daafc124f7ed4d8f79"
+    },
+    {
+      "key": "sohu-direct",
+      "url": "https://m.sohu.com/a/426564220_120894070/",
+      "retrievedAt": "2026-09-08T04:06:47.443Z",
+      "file": "work/research-next/sohu-direct.html",
+      "sha256": "bd38f2d71931b481f83e99ccb9d8467388e8122e96ea6b990a251532d7c26aa5",
+      "title": "斗十四规则技巧，学会秒变高手_截图",
+      "canonical": "https://www.sohu.com/a/426564220_120894070",
+      "refresh": null,
+      "textSha256": "18533d00485756a2eca2864c7edd8853bb1c11f82eb38f334cd2b6787e3ac13b"
+    },
+    {
+      "key": "wenda",
+      "url": "https://wenda.so.com/q/1488378970203390",
+      "retrievedAt": "2026-09-08T04:08:15.181Z",
+      "file": "work/research-next/wenda.html",
+      "sha256": "80fc80c4869d1836236c03589050298b496b7c1aa8a85e060b2607b80a075835",
+      "title": "四川长牌_360问答",
+      "canonical": null,
+      "refresh": null,
+      "textSha256": "18df4f6f390a85616f5393bd2ea55363d05be53ff6d64f4ec1bdd09f854b2b73"
+    },
+    {
+      "key": "teaching-redirect",
+      "url": "https://www.so.com/link?m=w6wdOtvGT38fvrwWz8lWB8zSmaL6hk%2F9NIAco7uHXr7qfTrhf4ebeWVkW5hCcWzNtj7TmG3qiV5%2BXXxJfsUzaN4Qa2eZq2pcPyMOe3ukCOUwvx5afNX8u9qt59YU4A4JgUZodQM3ktzDo3E3hbLY5ggaOfF4RHtJjUMWffCEcBSzCnWKnKFyHfbPYBEhaBiVHRjRrNbUGFYC0vhojBbZ%2BHM0dsM562t8iwtdVRlGFwxOLFdz6AQHW680dszWd6cPyuOPcE05tUclLYpVXdy8PjUQMCNedCH98",
+      "retrievedAt": "2026-09-08T04:08:16.981Z",
+      "file": "work/research-next/teaching-redirect.html",
+      "sha256": "b754499f04b29c15a790149dc0e076dba1ce0b2017d6ea43264e8c9448e7b2e9",
+      "title": "",
+      "canonical": null,
+      "refresh": null,
+      "textSha256": "94bc78760a671b4a16f07bf47b6ced829da583be13321aacf97865102002764c"
+    }
+  ],
+  "searches": [
+    {
+      "file": "work/research-next/search-results.json",
+      "sha256": "35a953b2702e6b3ba9a3b79f849e615e073756380a741a129a57d84578f7e437",
+      "searches": 6
+    },
+    {
+      "file": "work/research-next/so-search-results.json",
+      "sha256": "0c23a9585f3955aa9a720f7238b2f007fdd2af2861857060a72d71621388fabc",
+      "searches": 6
+    },
+    {
+      "file": "work/research-next/so-targeted-search-results.json",
+      "sha256": "477a4fa529d308cd78f8b320ae3fafbcc48e31750c9dc302b4204e064388ce04",
+      "searches": 6
+    }
+  ],
+  "limitations": [
+    "External pages are public descriptions of other variants, not original server code.",
+    "No downloaded third-party scripts or executables were run; HTML was parsed with scripts and outgoing browser requests disabled.",
+    "Raw HTML snapshots and parsed text remain in work/research-next; this index verifies their recorded SHA-256 hashes.",
+    "AI-generated search answers were excluded as rule evidence.",
+    "D03, D04 and D05 remain unapproved; no runtime engine is registered by this research."
+  ]
+}

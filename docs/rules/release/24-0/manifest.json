@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "variantKey": "24:0",
+  "ruleVersion": "leibo-independent-v1",
+  "rulebook": {
+    "path": "docs/rules/release/24-0/rulebook.json",
+    "sha256": "4a0fca6d331deaa3d5849e1bbc9a2d700e12f6705993f8f85d7007dba61efbf9"
+  },
+  "cases": {
+    "path": "docs/rules/release/24-0/cases.json",
+    "sha256": "94c9a59b44bb35517bd4c2df29b197e56219fa37318b5cd9fbd45d12dc2e060e"
+  },
+  "generatedAt": "2026-10-03T06:05:27.076Z"
+}

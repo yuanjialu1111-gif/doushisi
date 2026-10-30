@@ -1,0 +1,69 @@
+
+hong20.png
+size: 788,514
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+diwen
+  rotate: false
+  xy: 327, 298
+  size: 375, 214
+  orig: 375, 214
+  offset: 0, 0
+  index: -1
+dou14-rukou-title1
+  rotate: false
+  xy: 2, 19
+  size: 248, 85
+  orig: 249, 86
+  offset: 0, 1
+  index: -1
+guang
+  rotate: true
+  xy: 597, 22
+  size: 274, 189
+  orig: 274, 189
+  offset: 0, 0
+  index: -1
+jinbi1
+  rotate: true
+  xy: 252, 22
+  size: 38, 32
+  orig: 38, 32
+  offset: 0, 0
+  index: -1
+jinbi2
+  rotate: false
+  xy: 286, 29
+  size: 28, 31
+  orig: 28, 31
+  offset: 0, 0
+  index: -1
+jinbi3
+  rotate: false
+  xy: 2, 2
+  size: 14, 15
+  orig: 14, 15
+  offset: 0, 0
+  index: -1
+ka
+  rotate: true
+  xy: 327, 13
+  size: 283, 268
+  orig: 283, 269
+  offset: 0, 1
+  index: -1
+xing
+  rotate: false
+  xy: 252, 62
+  size: 41, 42
+  orig: 71, 72
+  offset: 15, 25
+  index: -1
+xinjin-dikuang
+  rotate: false
+  xy: 2, 106
+  size: 323, 406
+  orig: 323, 406
+  offset: 0, 0
+  index: -1

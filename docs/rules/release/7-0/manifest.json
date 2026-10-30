@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "variantKey": "7:0",
+  "ruleVersion": "pujiang-independent-v1",
+  "rulebook": {
+    "path": "docs/rules/release/7-0/rulebook.json",
+    "sha256": "9bcf3a7e4eaeb218a3a3b96881a35a524f8844e8e6fa9200234830ad9fae5694"
+  },
+  "cases": {
+    "path": "docs/rules/release/7-0/cases.json",
+    "sha256": "39f2924429452917ca952b757606f87c4d94fddb1aeb74c21db9a8f5f1dea540"
+  },
+  "generatedAt": "2026-10-03T06:11:32.472Z"
+}

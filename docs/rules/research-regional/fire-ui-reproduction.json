@@ -1,0 +1,171 @@
+{
+  "generatedAt": "2026-09-08T04:59:18.225Z",
+  "status": "original-client-function-reproduction-only",
+  "scope": "Runs original extracted controller and config factories with local Cocos node/storage stubs; no server, rendering, asset scripts or network. Full onLoad uses original loadGames. Submitted rules are captured at requestCreateRoom.",
+  "limitations": "Node stubs do not reproduce native Cocos lifecycle/events/rendering. Does not establish server validation or deck composition. No changes to original or recovered client.",
+  "sources": [
+    {
+      "file": "outputs/apk-deep-analysis/modules/hall/CreateRoomUIController.js",
+      "sha256": "4e325b9fdf19a8fb014553f52b7c0ad4ef54fc5af30d4b2fe8ea87f2687302d4"
+    },
+    {
+      "file": "outputs/apk-deep-analysis/modules/main/FrameGameConfig.js",
+      "sha256": "d3bd17bf6ad48f75c7f82c0de158d597f5d1b5346b7991eedcebf850f20c66b4"
+    }
+  ],
+  "assertionsPassed": 9,
+  "snapshots": [
+    {
+      "scenario": "Direct selection, default one deck",
+      "yifupai": true,
+      "bage10tianhu": false,
+      "pointerPresent": true,
+      "eightOptionActive": false,
+      "eightCheckboxChecked": true,
+      "submittedRules": {
+        "useCardType": 2,
+        "gameNum": 4,
+        "playerNum": 4,
+        "basicTimes": 1,
+        "yifupai": true,
+        "baoJiao": 1,
+        "baipi": 1,
+        "jiaqiang": 1,
+        "qia20": 1,
+        "bage10tianhu": false,
+        "openGps": 0
+      }
+    },
+    {
+      "scenario": "Direct selection, switched to two decks",
+      "yifupai": false,
+      "bage10tianhu": true,
+      "pointerPresent": true,
+      "eightOptionActive": true,
+      "eightCheckboxChecked": true,
+      "submittedRules": {
+        "useCardType": 2,
+        "gameNum": 4,
+        "playerNum": 4,
+        "basicTimes": 1,
+        "yifupai": false,
+        "baoJiao": 1,
+        "baipi": 1,
+        "jiaqiang": 1,
+        "qia20": 1,
+        "bage10tianhu": true,
+        "openGps": 0,
+        "gameid": 3
+      }
+    },
+    {
+      "scenario": "Direct selection, two decks, unchecked eight-tens",
+      "yifupai": false,
+      "bage10tianhu": true,
+      "pointerPresent": true,
+      "eightOptionActive": true,
+      "eightCheckboxChecked": false,
+      "submittedRules": {
+        "useCardType": 2,
+        "gameNum": 4,
+        "playerNum": 4,
+        "basicTimes": 1,
+        "yifupai": false,
+        "baoJiao": 1,
+        "baipi": 1,
+        "jiaqiang": 1,
+        "qia20": 1,
+        "bage10tianhu": true,
+        "openGps": 0,
+        "gameid": 3
+      }
+    },
+    {
+      "scenario": "Direct selection, switched back to one deck",
+      "yifupai": true,
+      "bage10tianhu": false,
+      "pointerPresent": true,
+      "eightOptionActive": false,
+      "eightCheckboxChecked": false,
+      "submittedRules": {
+        "useCardType": 2,
+        "gameNum": 4,
+        "playerNum": 4,
+        "basicTimes": 1,
+        "yifupai": true,
+        "baoJiao": 1,
+        "baipi": 1,
+        "jiaqiang": 1,
+        "qia20": 1,
+        "bage10tianhu": false,
+        "openGps": 0,
+        "gameid": 3
+      }
+    },
+    {
+      "scenario": "Direct selection after saved two-deck rules",
+      "yifupai": true,
+      "bage10tianhu": true,
+      "pointerPresent": true,
+      "eightOptionActive": true,
+      "eightCheckboxChecked": true,
+      "submittedRules": {
+        "useCardType": 2,
+        "gameNum": 4,
+        "playerNum": 4,
+        "basicTimes": 1,
+        "yifupai": true,
+        "baoJiao": 1,
+        "baipi": 1,
+        "jiaqiang": 1,
+        "qia20": 1,
+        "bage10tianhu": true,
+        "openGps": 0,
+        "gameid": 3
+      }
+    },
+    {
+      "scenario": "Full original onLoad, default one deck",
+      "yifupai": true,
+      "bage10tianhu": false,
+      "pointerPresent": false,
+      "eightOptionActive": false,
+      "eightCheckboxChecked": true,
+      "submittedRules": {
+        "useCardType": 2,
+        "gameNum": 4,
+        "playerNum": 4,
+        "basicTimes": 1,
+        "yifupai": true,
+        "baoJiao": 1,
+        "baipi": 1,
+        "jiaqiang": 1,
+        "qia20": 1,
+        "bage10tianhu": false,
+        "openGps": 0
+      }
+    },
+    {
+      "scenario": "Full original onLoad, switched to two decks",
+      "yifupai": false,
+      "bage10tianhu": false,
+      "pointerPresent": false,
+      "eightOptionActive": false,
+      "eightCheckboxChecked": true,
+      "submittedRules": {
+        "useCardType": 2,
+        "gameNum": 4,
+        "playerNum": 4,
+        "basicTimes": 1,
+        "yifupai": false,
+        "baoJiao": 1,
+        "baipi": 1,
+        "jiaqiang": 1,
+        "qia20": 1,
+        "bage10tianhu": false,
+        "openGps": 0,
+        "gameid": 3
+      }
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "variantKey": "16:0",
+  "ruleVersion": "suining-independent-v1",
+  "rulebook": {
+    "path": "docs/rules/release/16-0/rulebook.json",
+    "sha256": "6050996b4cf7dd4e40190b8e10d941a698fb7ea9020303c720879a2e9aeb177d"
+  },
+  "cases": {
+    "path": "docs/rules/release/16-0/cases.json",
+    "sha256": "fd0c03e36bd8c8c403c6d19b7dde4cc5ee4dcc5ca51f5bd4f8affdbabedb8adf"
+  },
+  "generatedAt": "2026-10-03T06:01:11.480Z"
+}

@@ -1,0 +1,710 @@
+{
+  "at": "2026-09-09T18:33:56.944Z",
+  "endpoint": "ws://d14api.handka.com:8002",
+  "originalVersionName": "4.0",
+  "accountLength": 9,
+  "passwordLength": 12,
+  "scope": "Original service connection and dedicated test account only; no completed game",
+  "messages": [
+    {
+      "command": 2,
+      "fields": [
+        "hwResponseGameLogin"
+      ],
+      "bytes": 378,
+      "declaredLength": 378,
+      "magic": "HNFR",
+      "sha256": "5b888e4642eba0f9f8994188a08841507e43d4b47f4711a1d4140d9fbd10c517"
+    },
+    {
+      "command": 50,
+      "fields": [
+        "hwResponseRegion"
+      ],
+      "bytes": 1486,
+      "declaredLength": 1486,
+      "magic": "HNFR",
+      "sha256": "7c5fca3e3b553f3c1242c6213f7fdb204188d26446d59214c6dbecfe7bd4486d"
+    },
+    {
+      "command": 52,
+      "fields": [
+        "hwResponseRegionChoice"
+      ],
+      "bytes": 114,
+      "declaredLength": 114,
+      "magic": "HNFR",
+      "sha256": "fe2c61631a9f1cbb9470f413a37f9b9294ac5224adb1e20f202ac22510403067"
+    },
+    {
+      "command": 4,
+      "fields": [
+        "hwResponseCreateTable"
+      ],
+      "bytes": 113,
+      "declaredLength": 113,
+      "magic": "HNFR",
+      "sha256": "06b64449078a2afc89a426b29f454b1f991b18c2accacf3afa6b581d129b5d98"
+    }
+  ],
+  "connected": true,
+  "registered": true,
+  "loggedIn": true,
+  "login": {
+    "state": true,
+    "hasUserId": true,
+    "roomCardNum": 0,
+    "goldNum": "0",
+    "availableGameIds": [],
+    "requiresUpdate": false,
+    "identityPrompt": false,
+    "freeCreateRoomTimes": 0,
+    "freeVideoHallTimes": 0,
+    "currentRoomId": 0
+  },
+  "regions": {
+    "result": 1,
+    "choices": [
+      {
+        "name": "眉山",
+        "counties": [
+          {
+            "name": "彭山",
+            "gameIds": [
+              4,
+              101,
+              502,
+              601
+            ]
+          },
+          {
+            "name": "其他区域",
+            "gameIds": [
+              4,
+              101,
+              502,
+              601
+            ]
+          }
+        ]
+      },
+      {
+        "name": "凉山",
+        "counties": [
+          {
+            "name": "越西",
+            "gameIds": [
+              21,
+              101,
+              502,
+              601
+            ]
+          },
+          {
+            "name": "雷波",
+            "gameIds": [
+              24,
+              101,
+              502,
+              601
+            ]
+          },
+          {
+            "name": "甘洛",
+            "gameIds": [
+              26,
+              101,
+              502,
+              601
+            ]
+          },
+          {
+            "name": "其他区域",
+            "gameIds": [
+              21,
+              101,
+              502,
+              601
+            ]
+          }
+        ]
+      },
+      {
+        "name": "宜宾",
+        "counties": [
+          {
+            "name": "叙州",
+            "gameIds": [
+              23,
+              101,
+              502,
+              601
+            ]
+          },
+          {
+            "name": "筠连",
+            "gameIds": [
+              27,
+              101,
+              502,
+              601
+            ]
+          },
+          {
+            "name": "其他区域",
+            "gameIds": [
+              23,
+              101,
+              502,
+              601
+            ]
+          }
+        ]
+      },
+      {
+        "name": "昭通",
+        "counties": [
+          {
+            "name": "盐津",
+            "gameIds": [
+              22,
+              101,
+              502,
+              601
+            ]
+          },
+          {
+            "name": "其他区域",
+            "gameIds": [
+              22,
+              101,
+              502,
+              601
+            ]
+          }
+        ]
+      },
+      {
+        "name": "自贡",
+        "counties": [
+          {
+            "name": "荣县",
+            "gameIds": [
+              20,
+              101,
+              502,
+              601
+            ]
+          },
+          {
+            "name": "其他区域",
+            "gameIds": [
+              20,
+              101,
+              502,
+              601
+            ]
+          }
+        ]
+      },
+      {
+        "name": "巴中市",
+        "counties": [
+          {
+            "name": "平昌",
+            "gameIds": [
+              13,
+              101,
+              502,
+              601
+            ]
+          },
+          {
+            "name": "通江",
+            "gameIds": [
+              19,
+              101,
+              502,
+              601
+            ]
+          },
+          {
+            "name": "其他区域",
+            "gameIds": [
+              19,
+              101,
+              502,
+              601
+            ]
+          }
+        ]
+      },
+      {
+        "name": "雅安市",
+        "counties": [
+          {
+            "name": "雨城",
+            "gameIds": [
+              6,
+              101,
+              501,
+              601
+            ]
+          },
+          {
+            "name": "名山",
+            "gameIds": [
+              6,
+              101,
+              501,
+              601
+            ]
+          },
+          {
+            "name": "荥经",
+            "gameIds": [
+              6,
+              101,
+              501,
+              601
+            ]
+          },
+          {
+            "name": "汉源",
+            "gameIds": [
+              6,
+              101,
+              501,
+              601
+            ]
+          },
+          {
+            "name": "石棉",
+            "gameIds": [
+              6,
+              101,
+              501,
+              601
+            ]
+          },
+          {
+            "name": "天全",
+            "gameIds": [
+              6,
+              101,
+              501,
+              601
+            ]
+          },
+          {
+            "name": "芦山",
+            "gameIds": [
+              6,
+              101,
+              501,
+              601
+            ]
+          },
+          {
+            "name": "宝兴",
+            "gameIds": [
+              6,
+              101,
+              501,
+              601
+            ]
+          }
+        ]
+      },
+      {
+        "name": "成都市",
+        "counties": [
+          {
+            "name": "新津",
+            "gameIds": [
+              4,
+              101,
+              502,
+              601
+            ]
+          },
+          {
+            "name": "蒲江",
+            "gameIds": [
+              7,
+              101,
+              502,
+              601
+            ]
+          },
+          {
+            "name": "邛崃",
+            "gameIds": [
+              8,
+              101,
+              502,
+              601
+            ]
+          },
+          {
+            "name": "其他区域",
+            "gameIds": [
+              4,
+              101,
+              502,
+              601
+            ]
+          }
+        ]
+      },
+      {
+        "name": "阿坝",
+        "counties": [
+          {
+            "name": "马尔康",
+            "gameIds": [
+              11,
+              101,
+              502,
+              601
+            ]
+          },
+          {
+            "name": "金川",
+            "gameIds": [
+              10,
+              101,
+              502,
+              601
+            ]
+          },
+          {
+            "name": "小金",
+            "gameIds": [
+              12,
+              101,
+              502,
+              601
+            ]
+          },
+          {
+            "name": "汶川/九寨沟",
+            "gameIds": [
+              14,
+              101,
+              502,
+              601
+            ]
+          },
+          {
+            "name": "理县",
+            "gameIds": [
+              10,
+              101,
+              502,
+              601
+            ]
+          },
+          {
+            "name": "茂县",
+            "gameIds": [
+              10,
+              101,
+              502,
+              601
+            ]
+          },
+          {
+            "name": "松潘",
+            "gameIds": [
+              10,
+              101,
+              502,
+              601
+            ]
+          },
+          {
+            "name": "黑水",
+            "gameIds": [
+              10,
+              101,
+              502,
+              601
+            ]
+          },
+          {
+            "name": "壤塘",
+            "gameIds": [
+              10,
+              101,
+              502,
+              601
+            ]
+          },
+          {
+            "name": "阿坝",
+            "gameIds": [
+              10,
+              101,
+              502,
+              601
+            ]
+          },
+          {
+            "name": "若尔盖",
+            "gameIds": [
+              10,
+              101,
+              502,
+              601
+            ]
+          },
+          {
+            "name": "红原",
+            "gameIds": [
+              10,
+              101,
+              502,
+              601
+            ]
+          }
+        ]
+      },
+      {
+        "name": "遂宁市",
+        "counties": [
+          {
+            "name": "射洪",
+            "gameIds": [
+              16,
+              101,
+              502,
+              601
+            ]
+          },
+          {
+            "name": "其他区域",
+            "gameIds": [
+              16,
+              101,
+              502,
+              601
+            ]
+          }
+        ]
+      },
+      {
+        "name": "甘孜",
+        "counties": [
+          {
+            "name": "理塘",
+            "gameIds": [
+              17,
+              101,
+              502,
+              601
+            ]
+          },
+          {
+            "name": "其他区域",
+            "gameIds": [
+              17,
+              101,
+              502,
+              601
+            ]
+          }
+        ]
+      },
+      {
+        "name": "广元",
+        "counties": [
+          {
+            "name": "旺苍",
+            "gameIds": [
+              18,
+              101,
+              502,
+              601
+            ]
+          },
+          {
+            "name": "其他区域",
+            "gameIds": [
+              18,
+              101,
+              502,
+              601
+            ]
+          }
+        ]
+      },
+      {
+        "name": "资阳市",
+        "counties": [
+          {
+            "name": "安岳",
+            "gameIds": [
+              5,
+              101,
+              502,
+              601
+            ]
+          }
+        ]
+      },
+      {
+        "name": "铜仁市",
+        "counties": [
+          {
+            "name": "沿河",
+            "gameIds": [
+              2,
+              3,
+              101,
+              502
+            ]
+          }
+        ]
+      },
+      {
+        "name": "重庆市",
+        "counties": [
+          {
+            "name": "彭水",
+            "gameIds": [
+              3,
+              101,
+              502
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "regionChoice": {
+    "result": 1,
+    "gameIds": [
+      8,
+      101,
+      502,
+      601
+    ]
+  },
+  "room": {
+    "result": 1,
+    "tableInfo": {
+      "againUsers": [],
+      "roomId": 327831,
+      "roomType": 100,
+      "areaType": 8,
+      "gameNum": 0,
+      "roomCardNum": 0,
+      "useCardType": 0,
+      "basicTimes": 0,
+      "playerNum": 0,
+      "creatorUid": "",
+      "notChu_10": false,
+      "maxFan": 0,
+      "openGps": false,
+      "lon": 0,
+      "lat": 0,
+      "yiPaoDuoXiang": false,
+      "processType": 0,
+      "scoreChangeTimely": false,
+      "baoJiao": false,
+      "tianHu": false,
+      "diHu": false,
+      "chengFan": false,
+      "quanHongHei": false,
+      "baoJiaoYingbao": false,
+      "diHuChuDiyizhang": false,
+      "yifupai": false,
+      "qia20": false,
+      "qige7": false,
+      "jiaqiang": false,
+      "baipi": false,
+      "bage10tianhu": false,
+      "kouPai": false,
+      "jiaDxh": false,
+      "qiToWang": false,
+      "zuoPiao": false,
+      "dianpaoBaopei": false,
+      "zhuangJiadi": false,
+      "anDui": false,
+      "cheLong": false,
+      "piaoType": 0,
+      "wangNum": 0,
+      "hongHei_50": 0,
+      "jinGouDiao": false,
+      "chaJiao": false,
+      "ziChi": false,
+      "keSuHu": false,
+      "gangHua": false,
+      "gangPao": false,
+      "qiWangNum": 0,
+      "siGuiYi": false,
+      "hpToTingyong": false,
+      "huRedScore": 0,
+      "doubleInOut": false,
+      "jiaFan_258": false,
+      "haiDiLao": false,
+      "quanXing": false,
+      "baojiaoCondition": 0,
+      "baipiType": 0,
+      "shunZi": false,
+      "zimoJiafan": false,
+      "zha": false,
+      "guoZhuang": false,
+      "zhuang8Xian7": false,
+      "duiziShunzi": false,
+      "qianfenJiafan": false,
+      "qia50": false,
+      "quanDaXiaoLan": false,
+      "wangToTingyong": false,
+      "chaoFanJiaDi": 0,
+      "daXiaoJia": false,
+      "qia25": false,
+      "quanHeiSuanDian": false,
+      "siCaiErJing": false,
+      "tingyongHuDaFan": false,
+      "daQuanHong": false,
+      "keBaWang": false,
+      "baNoGuo": false,
+      "guoZhangNoCaozuo": false,
+      "gangDuoZhang": false,
+      "tianHuKeTou": false,
+      "ownBaKeQiang": false,
+      "anDuiFanNum": 0,
+      "yiDianZhu": false,
+      "quanQiuRen": false,
+      "menQing": false,
+      "siZhangLuoDi": false,
+      "luanHu": false,
+      "qiFanDianNum": 0,
+      "banMingTang": false,
+      "qiang_7Hu": false,
+      "daShaQiangHu": false,
+      "da_7hong_7hei": false,
+      "ziQiangHu": false,
+      "xiaoHu": false,
+      "longDui": false,
+      "qia40": false,
+      "meiLunZuidaZhaJiafen": false,
+      "yaoJiu": false,
+      "jiangDui": false,
+      "hou_4BiHu": false,
+      "zhongFaBai": false,
+      "baiJiao": false,
+      "baiJiaoBiHu": false,
+      "baiJiaoNoChu": false,
+      "fangXiaoHuDa": false,
+      "dianGangHuaDp": false,
+      "holdCardNum": 0,
+      "zimoType": 0,
+      "changeThreeCard": false,
+      "seatRandom": false,
+      "kaXinWu": false
+    }
+  }
+}

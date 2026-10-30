@@ -1,0 +1,1 @@
+window._CCSettings={platform:"web-mobile",groupList:["default"],collisionMatrix:[[true]],hasResourcesBundle:true,hasStartSceneBundle:false,remoteBundles:[],subpackages:[],launchScene:"db://assets/Scene/UpdateUI.fire",orientation:"",server:"",jsList:["assets/Frame/src/buff/protobuf.js","assets/Frame/src/sdk/Base64.js","assets/Frame/src/sdk/Md5.js"]};

@@ -1,0 +1,41 @@
+
+bsp_lost.png
+size: 586,349
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+lostdi1
+  rotate: true
+  xy: 345, 31
+  size: 316, 98
+  orig: 316, 98
+  offset: 0, 0
+  index: -1
+lostdi2
+  rotate: true
+  xy: 445, 70
+  size: 277, 98
+  orig: 277, 98
+  offset: 0, 0
+  index: -1
+mj_lost_08
+  rotate: false
+  xy: 445, 2
+  size: 139, 66
+  orig: 139, 66
+  offset: 0, 0
+  index: -1
+mj_lost_11
+  rotate: false
+  xy: 345, 7
+  size: 79, 22
+  orig: 79, 22
+  offset: 0, 0
+  index: -1
+mj_lostdi_03
+  rotate: false
+  xy: 2, 7
+  size: 341, 340
+  orig: 342, 340
+  offset: 1, 0
+  index: -1

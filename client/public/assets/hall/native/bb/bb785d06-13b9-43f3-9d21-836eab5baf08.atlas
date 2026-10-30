@@ -1,0 +1,62 @@
+
+anyue-doushisi.png
+size: 468,503
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+guang
+  rotate: true
+  xy: 277, 227
+  size: 274, 189
+  orig: 274, 189
+  offset: 0, 0
+  index: -1
+jinbi1
+  rotate: true
+  xy: 174, 70
+  size: 38, 32
+  orig: 38, 32
+  offset: 0, 0
+  index: -1
+jinbi2
+  rotate: true
+  xy: 174, 40
+  size: 28, 31
+  orig: 28, 31
+  offset: 0, 0
+  index: -1
+jinbi3
+  rotate: false
+  xy: 207, 53
+  size: 14, 15
+  orig: 14, 15
+  offset: 0, 0
+  index: -1
+ka
+  rotate: true
+  xy: 277, 9
+  size: 216, 181
+  orig: 216, 181
+  offset: 0, 0
+  index: -1
+pai
+  rotate: true
+  xy: 2, 2
+  size: 150, 170
+  orig: 150, 170
+  offset: 0, 0
+  index: -1
+xing
+  rotate: false
+  xy: 174, 110
+  size: 41, 42
+  orig: 71, 72
+  offset: 15, 25
+  index: -1
+xinjin-dikuang
+  rotate: true
+  xy: 2, 154
+  size: 347, 273
+  orig: 349, 274
+  offset: 1, 1
+  index: -1

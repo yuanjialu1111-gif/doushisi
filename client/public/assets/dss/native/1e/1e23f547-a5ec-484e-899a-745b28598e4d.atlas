@@ -1,0 +1,118 @@
+
+chi-peng.png
+size: 495,528
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+bao
+  rotate: true
+  xy: 419, 391
+  size: 66, 70
+  orig: 66, 70
+  offset: 0, 0
+  index: -1
+dian
+  rotate: true
+  xy: 127, 97
+  size: 21, 23
+  orig: 25, 25
+  offset: 2, 1
+  index: -1
+guang1
+  rotate: true
+  xy: 2, 292
+  size: 234, 254
+  orig: 240, 257
+  offset: 2, 2
+  index: -1
+guang2
+  rotate: true
+  xy: 258, 245
+  size: 281, 159
+  orig: 293, 167
+  offset: 6, 3
+  index: -1
+guang3
+  rotate: true
+  xy: 2, 120
+  size: 170, 176
+  orig: 179, 178
+  offset: 4, 0
+  index: -1
+hu
+  rotate: true
+  xy: 423, 122
+  size: 62, 70
+  orig: 62, 70
+  offset: 0, 0
+  index: -1
+huan
+  rotate: false
+  xy: 251, 73
+  size: 170, 170
+  orig: 170, 170
+  offset: 0, 0
+  index: -1
+piao
+  rotate: false
+  xy: 419, 252
+  size: 66, 69
+  orig: 66, 69
+  offset: 0, 0
+  index: -1
+sanbudai
+  rotate: false
+  xy: 251, 2
+  size: 122, 69
+  orig: 122, 69
+  offset: 0, 0
+  index: -1
+sandaier
+  rotate: true
+  xy: 423, 186
+  size: 64, 68
+  orig: 64, 68
+  offset: 0, 0
+  index: -1
+sandaiyi
+  rotate: true
+  xy: 419, 459
+  size: 67, 69
+  orig: 67, 69
+  offset: 0, 0
+  index: -1
+shabao
+  rotate: false
+  xy: 2, 48
+  size: 123, 70
+  orig: 123, 70
+  offset: 0, 0
+  index: -1
+shunzi
+  rotate: true
+  xy: 419, 323
+  size: 66, 70
+  orig: 66, 70
+  offset: 0, 0
+  index: -1
+tianhu
+  rotate: false
+  xy: 127, 25
+  size: 122, 70
+  orig: 122, 70
+  offset: 0, 0
+  index: -1
+tou
+  rotate: true
+  xy: 375, 4
+  size: 67, 70
+  orig: 67, 70
+  offset: 0, 0
+  index: -1
+zimeidui
+  rotate: true
+  xy: 180, 109
+  size: 181, 69
+  orig: 181, 69
+  offset: 0, 0
+  index: -1

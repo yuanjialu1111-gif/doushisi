@@ -1,0 +1,9 @@
+{
+  "kind": "user-rule-approval",
+  "ruleVersion": "rongxian-independent-v1",
+  "variantKey": "20:0",
+  "recordedAt": "2026-09-16T00:00:00.000Z",
+  "statement": "用户全部自动批准，允许在21项范围内补齐20:0独立规则定义。",
+  "evidenceReference": "docs/rules/INDEPENDENT-APPROVAL.md",
+  "rulebookSha256": "1e83385e6cb3d641880fea4f5ed9eebb6d7949f96e55f7c07fef78339882f459"
+}

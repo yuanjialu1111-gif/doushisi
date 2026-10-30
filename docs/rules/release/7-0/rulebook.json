@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "status": "approved",
+  "basis": "user-approved",
+  "variantKey": "7:0",
+  "ruleVersion": "pujiang-independent-v1",
+  "title": "蒲江斗十四独立规则 v1",
+  "approval": {
+    "path": "docs/rules/release/7-0/approval.json",
+    "sha256": "21322f3a4150f92e0e250fbd15c31a34ae57b5a4a6f304284fb0c24d34f6e639"
+  },
+  "requiredCoverage": [
+    "gold-hook",
+    "declared-wait-lock",
+    "concealed-four-pairs",
+    "payments"
+  ],
+  "sources": [
+    "docs/rules/PUJIANG-INDEPENDENT.md",
+    "apps/server/src/game/pujiang-pack.ts",
+    "apps/server/src/game/pujiang-win.ts",
+    "apps/server/src/game/pujiang-round.ts"
+  ],
+  "summary": {
+    "deck": "52 ordinary cards plus equal 6/9/12/15 special cards; sevens remain ordinary.",
+    "win": "Four groups: sum-14 pairs, exposed same-rank triples, or quads; concealed four-pairs is independent.",
+    "scoring": "Package-backed qia20, jinGouDiao, anDui/dragon, siGuiYi and optional keSuHu only on own flip/replacement.",
+    "declaration": "Declaration locks the server-computed wait faces.",
+    "payments": "Exact per-payer 12-place rounding and no duplicate settlement."
+  }
+}

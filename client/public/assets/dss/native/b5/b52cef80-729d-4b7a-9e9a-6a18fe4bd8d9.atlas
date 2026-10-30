@@ -1,0 +1,55 @@
+
+caiyuangungun.png
+size: 695,462
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+guang3
+  rotate: false
+  xy: 599, 203
+  size: 94, 105
+  orig: 111, 116
+  offset: 5, 3
+  index: -1
+qian2
+  rotate: false
+  xy: 599, 27
+  size: 59, 47
+  orig: 61, 49
+  offset: 1, 1
+  index: -1
+qian3
+  rotate: false
+  xy: 599, 135
+  size: 74, 66
+  orig: 76, 68
+  offset: 1, 1
+  index: -1
+qin1
+  rotate: false
+  xy: 599, 76
+  size: 62, 57
+  orig: 64, 59
+  offset: 1, 1
+  index: -1
+shenti
+  rotate: true
+  xy: 2, 2
+  size: 458, 483
+  orig: 458, 483
+  offset: 0, 0
+  index: -1
+shou
+  rotate: false
+  xy: 599, 310
+  size: 74, 150
+  orig: 75, 163
+  offset: 1, 13
+  index: -1
+zi
+  rotate: true
+  xy: 487, 43
+  size: 417, 110
+  orig: 419, 112
+  offset: 1, 1
+  index: -1

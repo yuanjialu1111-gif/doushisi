@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "variantKey": "15:0",
+  "ruleVersion": "maoxian-independent-v1",
+  "rulebook": {
+    "path": "docs/rules/release/15-0/rulebook.json",
+    "sha256": "21852af544f3e7dd7d8ebfd08057b62f85ff9b99cf428ffc2bf2ba6ae1dcb474"
+  },
+  "cases": {
+    "path": "docs/rules/release/15-0/cases.json",
+    "sha256": "0058e9622b27326a61a1d428d26948a8ba184188396a7d522fe7eeb1e71a495a"
+  },
+  "generatedAt": "2026-10-03T06:01:11.179Z"
+}

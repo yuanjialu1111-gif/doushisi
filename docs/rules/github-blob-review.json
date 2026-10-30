@@ -1,0 +1,1443 @@
+{
+  "retrievedAt": "2026-09-08T03:09:16.9626631Z",
+  "executedThirdPartyCode": false,
+  "scope": "Both app.zip files were read in memory; no target engine absence is inferred from keyword counts alone.",
+  "records": [
+    {
+      "repository": "qmcloud/chess",
+      "commit": "5f2d792775ca40e6d86c85b5c29f431e133cdb79",
+      "path": "98k房卡/web/cs/file/src/app.zip",
+      "retrievedVia": "https://api.github.com/repos/qmcloud/chess/git/blobs/125c5c05791d77ebf1928b2e31498053f9fec6fd",
+      "gitBlobSha": "125c5c05791d77ebf1928b2e31498053f9fec6fd",
+      "bytes": 884127,
+      "sha256": "717fd73295b18bd1a5bc02683b4cba59d704e93b40fb8e1f52d6cb57aa7a521f",
+      "entries": [
+        {
+          "path": "app/",
+          "bytes": 0,
+          "sha256": null,
+          "format": null,
+          "matches": []
+        },
+        {
+          "path": "app/AInit.luac",
+          "bytes": 3678,
+          "sha256": "d63ad59df72da5f877ce0b8aff6e7803a8ddf241b989b9dcfb59a2aa94737bff",
+          "format": "595847414D45F56E",
+          "matches": []
+        },
+        {
+          "path": "app/b2018Callb/",
+          "bytes": 0,
+          "sha256": null,
+          "format": null,
+          "matches": []
+        },
+        {
+          "path": "app/b2018Callb/ANDROCallb.luac",
+          "bytes": 5190,
+          "sha256": "47dde58cdd30e8898e9afc7600d5b4913cf9e4f04972ff22579d6070dd5687b4",
+          "format": "595847414D455FC3",
+          "matches": []
+        },
+        {
+          "path": "app/b2018Callb/APPLECallb.luac",
+          "bytes": 3298,
+          "sha256": "1191bf32a9a7ac5a9e4cda63ea0203816db405a814af9a78948f5ee0d5674112",
+          "format": "595847414D45B070",
+          "matches": []
+        },
+        {
+          "path": "app/bcallb0518/",
+          "bytes": 0,
+          "sha256": null,
+          "format": null,
+          "matches": []
+        },
+        {
+          "path": "app/bcallb0518/ANDROCallb.luac",
+          "bytes": 5190,
+          "sha256": "47dde58cdd30e8898e9afc7600d5b4913cf9e4f04972ff22579d6070dd5687b4",
+          "format": "595847414D455FC3",
+          "matches": []
+        },
+        {
+          "path": "app/bcallb0518/APPLECallb.luac",
+          "bytes": 4458,
+          "sha256": "8342abf0e53a1fa7a8b8ace9123a09298c98bbefa8dd1824706a8250e6eb9b08",
+          "format": "595847414D457A90",
+          "matches": []
+        },
+        {
+          "path": "app/c2018Cache/",
+          "bytes": 0,
+          "sha256": null,
+          "format": null,
+          "matches": []
+        },
+        {
+          "path": "app/c2018Cache/C0408News.luac",
+          "bytes": 1142,
+          "sha256": "b6c5def3ee504f926ded6f45130f07b5a78a93ea076f610917a4ea68de66ce7f",
+          "format": "595847414D45C8DF",
+          "matches": []
+        },
+        {
+          "path": "app/c2018Cache/E0408Info.luac",
+          "bytes": 778,
+          "sha256": "01c0a4022c3f1b424b51dd327ecb3809c867bb49b58086323c90f0dbc05dda88",
+          "format": "595847414D45F3BF",
+          "matches": []
+        },
+        {
+          "path": "app/c2018Cache/G0408Sound.luac",
+          "bytes": 4078,
+          "sha256": "d70269697e00135a0247b545c055ca0d946c156c81dc8fac931ed2dec4f695f7",
+          "format": "595847414D45E462",
+          "matches": []
+        },
+        {
+          "path": "app/c2018Cache/L0408Texts.luac",
+          "bytes": 8590,
+          "sha256": "947f9618e9dc3914d7d025816836400e9c76f0d7b5a03689b3584d647dc97904",
+          "format": "595847414D454AD8",
+          "matches": []
+        },
+        {
+          "path": "app/c2018Cache/S0408List.luac",
+          "bytes": 774,
+          "sha256": "dc6504c739837b763ceb93c3ea6447ee0a4f0ed96efbe620a0c073a6fd5da361",
+          "format": "595847414D457440",
+          "matches": []
+        },
+        {
+          "path": "app/c2018Cache/U0408Data.luac",
+          "bytes": 1826,
+          "sha256": "ac62a9709d4dc1ea2108d312280f6670e8734e2f2448e0b7cedfae02db225031",
+          "format": "595847414D45DB30",
+          "matches": []
+        },
+        {
+          "path": "app/c2018Cache/X0501Cao.luac",
+          "bytes": 2106,
+          "sha256": "3b5ed5c78320ad8a8baf6e8827145307abf00d05e43999a0ed9e38808a45a566",
+          "format": "595847414D45C4A6",
+          "matches": []
+        },
+        {
+          "path": "app/c2018Cache/Z0408GData.luac",
+          "bytes": 7310,
+          "sha256": "c965a2b573b564f633be89d88649ceb7bf2f35173611b3591d0d1e2e0d8b31a5",
+          "format": "595847414D451C05",
+          "matches": []
+        },
+        {
+          "path": "app/ccache0518/",
+          "bytes": 0,
+          "sha256": null,
+          "format": null,
+          "matches": []
+        },
+        {
+          "path": "app/ccache0518/CacheGASound.luac",
+          "bytes": 4078,
+          "sha256": "d70269697e00135a0247b545c055ca0d946c156c81dc8fac931ed2dec4f695f7",
+          "format": "595847414D45E462",
+          "matches": []
+        },
+        {
+          "path": "app/ccache0518/CacheLATexts.luac",
+          "bytes": 8590,
+          "sha256": "947f9618e9dc3914d7d025816836400e9c76f0d7b5a03689b3584d647dc97904",
+          "format": "595847414D454AD8",
+          "matches": []
+        },
+        {
+          "path": "app/ccache0518/CachePUNews.luac",
+          "bytes": 1142,
+          "sha256": "b6c5def3ee504f926ded6f45130f07b5a78a93ea076f610917a4ea68de66ce7f",
+          "format": "595847414D45C8DF",
+          "matches": []
+        },
+        {
+          "path": "app/ccache0518/CacheSACao.luac",
+          "bytes": 2102,
+          "sha256": "1a1eaaf7dd69a19891f79c58706bd19768bdb4175102e56f3d2c1851413b8a1b",
+          "format": "595847414D457F47",
+          "matches": []
+        },
+        {
+          "path": "app/ccache0518/CacheSEList.luac",
+          "bytes": 774,
+          "sha256": "dc6504c739837b763ceb93c3ea6447ee0a4f0ed96efbe620a0c073a6fd5da361",
+          "format": "595847414D457440",
+          "matches": []
+        },
+        {
+          "path": "app/ccache0518/CacheUSData.luac",
+          "bytes": 1826,
+          "sha256": "ac62a9709d4dc1ea2108d312280f6670e8734e2f2448e0b7cedfae02db225031",
+          "format": "595847414D45DB30",
+          "matches": []
+        },
+        {
+          "path": "app/ccache0518/CacheWCInfo.luac",
+          "bytes": 778,
+          "sha256": "01c0a4022c3f1b424b51dd327ecb3809c867bb49b58086323c90f0dbc05dda88",
+          "format": "595847414D45F3BF",
+          "matches": []
+        },
+        {
+          "path": "app/ccache0518/GGameData.luac",
+          "bytes": 7310,
+          "sha256": "c965a2b573b564f633be89d88649ceb7bf2f35173611b3591d0d1e2e0d8b31a5",
+          "format": "595847414D451C05",
+          "matches": []
+        },
+        {
+          "path": "app/CGameAPI.luac",
+          "bytes": 12730,
+          "sha256": "4d598f619bc13eda6f318704ff2eb5c564d2dac644c28450941acd49bdd646f9",
+          "format": "595847414D453C0E",
+          "matches": []
+        },
+        {
+          "path": "app/DLoginScene.luac",
+          "bytes": 11522,
+          "sha256": "9cfe2de483b05a975fc22ec3d15d403a2e734275ceb219ba56c3451c173b19fa",
+          "format": "595847414D455DA0",
+          "matches": []
+        },
+        {
+          "path": "app/e2018file/",
+          "bytes": 0,
+          "sha256": null,
+          "format": null,
+          "matches": []
+        },
+        {
+          "path": "app/e2018file/A0202Init.luac",
+          "bytes": 206,
+          "sha256": "9c0c18dc3a9fbb02f5313be58d39b38646a6bc0209cf4077596c1ac0fdc6c97a",
+          "format": "595847414D4503BC",
+          "matches": []
+        },
+        {
+          "path": "app/e2018file/B0202Buffer.luac",
+          "bytes": 3166,
+          "sha256": "3fe2390bde884d356918501590228fa26b49982c61060ee59a213b6b84d48a90",
+          "format": "595847414D456485",
+          "matches": []
+        },
+        {
+          "path": "app/e2018file/C0202Comm.luac",
+          "bytes": 11950,
+          "sha256": "de12cfd2d12eb25bcc46e85b7e2fcf7a2558e497c732c64838460a99abe3b343",
+          "format": "595847414D45B5AB",
+          "matches": []
+        },
+        {
+          "path": "app/e2018file/D0202Define.luac",
+          "bytes": 3306,
+          "sha256": "4e56b4cf689836fdf1379f62b08093708cd432760640ded0ade87ed4fed517f9",
+          "format": "595847414D454E92",
+          "matches": []
+        },
+        {
+          "path": "app/e2018file/E0202RoomDeal.luac",
+          "bytes": 1126,
+          "sha256": "ffe0988e86c280bdf0335d5c8d22b2dd6072b0c357ababf2e15addda98751f3c",
+          "format": "595847414D45EF9E",
+          "matches": []
+        },
+        {
+          "path": "app/e2018file/F0202RecordDeal.luac",
+          "bytes": 13490,
+          "sha256": "ff9d183cc080c6c40b3a38b73bb113d9c9d64e86cff398519b98a34a885847f4",
+          "format": "595847414D459F9F",
+          "matches": []
+        },
+        {
+          "path": "app/e2018file/G0202RuleValue.luac",
+          "bytes": 13986,
+          "sha256": "52983121ba2200a0a0adf8565c3e3c04fe3300d31c59014e4bfcdb95ea946868",
+          "format": "595847414D457E19",
+          "matches": []
+        },
+        {
+          "path": "app/e2018file/U0202BaseInfo.luac",
+          "bytes": 2310,
+          "sha256": "136e5ef403c05b7507f5d637b3c1c3e9820a22571d392ec082ae27d6b43547a6",
+          "format": "595847414D45B171",
+          "matches": []
+        },
+        {
+          "path": "app/efile0518/",
+          "bytes": 0,
+          "sha256": null,
+          "format": null,
+          "matches": []
+        },
+        {
+          "path": "app/efile0518/AAInit.luac",
+          "bytes": 198,
+          "sha256": "3612588fc84afa6d998fce9eae73ccdd753cd01eaf6087cc5b4294fc7e74200d",
+          "format": "595847414D45ECF0",
+          "matches": []
+        },
+        {
+          "path": "app/efile0518/BBBuffer.luac",
+          "bytes": 3166,
+          "sha256": "3fe2390bde884d356918501590228fa26b49982c61060ee59a213b6b84d48a90",
+          "format": "595847414D456485",
+          "matches": []
+        },
+        {
+          "path": "app/efile0518/CCComm.luac",
+          "bytes": 11950,
+          "sha256": "de12cfd2d12eb25bcc46e85b7e2fcf7a2558e497c732c64838460a99abe3b343",
+          "format": "595847414D45B5AB",
+          "matches": []
+        },
+        {
+          "path": "app/efile0518/DDDefine.luac",
+          "bytes": 3346,
+          "sha256": "852364d7db31334a38bdd5840abb1da4a3eebc8682865298becfc34362a88f7f",
+          "format": "595847414D456F45",
+          "matches": []
+        },
+        {
+          "path": "app/efile0518/EERoomDeal.luac",
+          "bytes": 1126,
+          "sha256": "ffe0988e86c280bdf0335d5c8d22b2dd6072b0c357ababf2e15addda98751f3c",
+          "format": "595847414D45EF9E",
+          "matches": []
+        },
+        {
+          "path": "app/efile0518/FFRecordDeal.luac",
+          "bytes": 13490,
+          "sha256": "ff9d183cc080c6c40b3a38b73bb113d9c9d64e86cff398519b98a34a885847f4",
+          "format": "595847414D459F9F",
+          "matches": []
+        },
+        {
+          "path": "app/efile0518/GGRuleValue.luac",
+          "bytes": 13986,
+          "sha256": "52983121ba2200a0a0adf8565c3e3c04fe3300d31c59014e4bfcdb95ea946868",
+          "format": "595847414D457E19",
+          "matches": []
+        },
+        {
+          "path": "app/efile0518/UUBaseInfo.luac",
+          "bytes": 2310,
+          "sha256": "136e5ef403c05b7507f5d637b3c1c3e9820a22571d392ec082ae27d6b43547a6",
+          "format": "595847414D45B171",
+          "matches": []
+        },
+        {
+          "path": "app/EMainScene.luac",
+          "bytes": 53878,
+          "sha256": "2c42383e8a99508da0a225d407937a07b4b78b3eae0a0fd7f8796e12e87871d9",
+          "format": "595847414D45E3FE",
+          "matches": []
+        },
+        {
+          "path": "app/f2018tool/",
+          "bytes": 0,
+          "sha256": null,
+          "format": null,
+          "matches": []
+        },
+        {
+          "path": "app/f2018tool/A0400Factory.luac",
+          "bytes": 5590,
+          "sha256": "d9f9de139a149c390968ba36a67a3d77ef95d6b94712ab318c6f5ecc90f215fa",
+          "format": "595847414D45C662",
+          "matches": []
+        },
+        {
+          "path": "app/f2018tool/B0400HeadIcon.luac",
+          "bytes": 3966,
+          "sha256": "eb77d95420d497e16bcf946d7b90756b7a71c76df801fba482b12906c7981114",
+          "format": "595847414D455369",
+          "matches": []
+        },
+        {
+          "path": "app/f2018tool/C0400NiuLib.luac",
+          "bytes": 7054,
+          "sha256": "38b086c85c7a5cd68e363ff4792730f1af2fb086e8487670fc431029cc6b91ae",
+          "format": "595847414D45F2FE",
+          "matches": []
+        },
+        {
+          "path": "app/f2018tool/D0400tools.luac",
+          "bytes": 3786,
+          "sha256": "106651dd301fe6b3be415eebc698a7bc2b9b9b279d675429368a80dcf1278a76",
+          "format": "595847414D45A658",
+          "matches": []
+        },
+        {
+          "path": "app/ftool0518/",
+          "bytes": 0,
+          "sha256": null,
+          "format": null,
+          "matches": []
+        },
+        {
+          "path": "app/ftool0518/AAFactory.luac",
+          "bytes": 5590,
+          "sha256": "d9f9de139a149c390968ba36a67a3d77ef95d6b94712ab318c6f5ecc90f215fa",
+          "format": "595847414D45C662",
+          "matches": []
+        },
+        {
+          "path": "app/ftool0518/BBHeadIcon.luac",
+          "bytes": 3966,
+          "sha256": "eb77d95420d497e16bcf946d7b90756b7a71c76df801fba482b12906c7981114",
+          "format": "595847414D455369",
+          "matches": []
+        },
+        {
+          "path": "app/ftool0518/CCNiuLib.luac",
+          "bytes": 7054,
+          "sha256": "38b086c85c7a5cd68e363ff4792730f1af2fb086e8487670fc431029cc6b91ae",
+          "format": "595847414D45F2FE",
+          "matches": []
+        },
+        {
+          "path": "app/ftool0518/DDtools.luac",
+          "bytes": 3786,
+          "sha256": "84154fffd8e3770bea90ab21d02dd938222457ff4f14632f87468c33e272a6f6",
+          "format": "595847414D45E261",
+          "matches": []
+        },
+        {
+          "path": "app/GameID.luac",
+          "bytes": 314,
+          "sha256": "a433bcc2ea7b3b6d1158e11e3dde453d85494a3205ee065031187b366003e76c",
+          "format": "595847414D45D0C0",
+          "matches": []
+        },
+        {
+          "path": "app/GGameScene.luac",
+          "bytes": 84526,
+          "sha256": "a257b5966a111b27cbec8b7d411f979a5b0a004ab52cd94777cec4a66afdb502",
+          "format": "595847414D454D37",
+          "matches": []
+        },
+        {
+          "path": "app/h2018Views/",
+          "bytes": 0,
+          "sha256": null,
+          "format": null,
+          "matches": []
+        },
+        {
+          "path": "app/h2018Views/A0401AlertFile.luac",
+          "bytes": 3478,
+          "sha256": "56815c3e2cf02f877d2c5fadc665c9182830d9747321ef9a53ca4a1452ee9dfe",
+          "format": "595847414D45EEA3",
+          "matches": []
+        },
+        {
+          "path": "app/h2018Views/B0401Activity.luac",
+          "bytes": 990,
+          "sha256": "c0a6c0832c263547c73573303e83d014ace862e26385d9990d18c58735af31e2",
+          "format": "595847414D4504FB",
+          "matches": []
+        },
+        {
+          "path": "app/h2018Views/C0401Cards.luac",
+          "bytes": 2722,
+          "sha256": "42964a7b8845156b1eec81f8d2a8ebee13b0dc4f9d3f7e95000a0adb7693f647",
+          "format": "595847414D4586B8",
+          "matches": []
+        },
+        {
+          "path": "app/h2018Views/CAlertFile.luac",
+          "bytes": 3478,
+          "sha256": "56815c3e2cf02f877d2c5fadc665c9182830d9747321ef9a53ca4a1452ee9dfe",
+          "format": "595847414D45EEA3",
+          "matches": []
+        },
+        {
+          "path": "app/h2018Views/D0401Clubs.luac",
+          "bytes": 27330,
+          "sha256": "f6e233ad7455257971e7fed4c478e5cccb0e0d167aa58bfb4d77402a08264e7d",
+          "format": "595847414D45CB52",
+          "matches": []
+        },
+        {
+          "path": "app/h2018Views/DActivity.luac",
+          "bytes": 990,
+          "sha256": "c0a6c0832c263547c73573303e83d014ace862e26385d9990d18c58735af31e2",
+          "format": "595847414D4504FB",
+          "matches": []
+        },
+        {
+          "path": "app/h2018Views/E0401Enable.luac",
+          "bytes": 770,
+          "sha256": "856536226ba3e564724d865bd26113fb7a5f3520f4cb614118e675699e1ac037",
+          "format": "595847414D452302",
+          "matches": []
+        },
+        {
+          "path": "app/h2018Views/F0401ICode.luac",
+          "bytes": 2026,
+          "sha256": "702b0f425648cd2410e698da0af2b2bb3d0a76f06e22c532905b61ebf245a649",
+          "format": "595847414D45034F",
+          "matches": []
+        },
+        {
+          "path": "app/h2018Views/G0401Kefu.luac",
+          "bytes": 2134,
+          "sha256": "430a3a3e8c7356c848f3f77b2c45c784dab7963f97930ca770d1171d5a29d4dd",
+          "format": "595847414D45AB70",
+          "matches": []
+        },
+        {
+          "path": "app/h2018Views/H0401Market.luac",
+          "bytes": 6750,
+          "sha256": "c048c4ed0ebb71c19d4064b7992164c090ad899e7bc9fab768df1e74157c2c75",
+          "format": "595847414D45C77E",
+          "matches": []
+        },
+        {
+          "path": "app/h2018Views/I0401News.luac",
+          "bytes": 1054,
+          "sha256": "c6cb3514e698bb6b9b5b1b0e44f59802fdfd4199d5aada4739a2e00d978c901b",
+          "format": "595847414D45D29E",
+          "matches": []
+        },
+        {
+          "path": "app/h2018Views/J0401RecordDetail.luac",
+          "bytes": 7134,
+          "sha256": "218cfec3f588421afb0a65a1ca353fb88ace50df45e4a4e7c1745a02ead12f7a",
+          "format": "595847414D45AD97",
+          "matches": []
+        },
+        {
+          "path": "app/h2018Views/K0401RecordInfo.luac",
+          "bytes": 8790,
+          "sha256": "e4b561c3f0a73d478bf4599e7023f7dd5fd037aa5b842d5ac40d620904bc1c3f",
+          "format": "595847414D458223",
+          "matches": []
+        },
+        {
+          "path": "app/h2018Views/L0401RoomCreate.luac",
+          "bytes": 40230,
+          "sha256": "e965e6eb63c6ef3976ed51f510275f34269bf5e13bec32084e45951dcaceb08b",
+          "format": "595847414D45D10D",
+          "matches": []
+        },
+        {
+          "path": "app/h2018Views/L0701RoomJoinr.luac",
+          "bytes": 3378,
+          "sha256": "f2939da237f47ad92671c248f738a5b685ce85e535e511314d19845f653e03be",
+          "format": "595847414D45E729",
+          "matches": []
+        },
+        {
+          "path": "app/h2018Views/LRoomCreate.luac",
+          "bytes": 40282,
+          "sha256": "7f9728c494781d1b19b2629e8c6db38d7281d74e547443b94244761bad47311a",
+          "format": "595847414D4534CA",
+          "matches": []
+        },
+        {
+          "path": "app/h2018Views/LRoomJoinr.luac",
+          "bytes": 3378,
+          "sha256": "f2939da237f47ad92671c248f738a5b685ce85e535e511314d19845f653e03be",
+          "format": "595847414D45E729",
+          "matches": []
+        },
+        {
+          "path": "app/h2018Views/NodeClubs.luac",
+          "bytes": 27210,
+          "sha256": "c843f5f438ea3654a54043001d7e3aea028a50fe0b9af2bcd2d3236129b2cabe",
+          "format": "595847414D4571FF",
+          "matches": []
+        },
+        {
+          "path": "app/h2018Views/NodeICode.luac",
+          "bytes": 2026,
+          "sha256": "702b0f425648cd2410e698da0af2b2bb3d0a76f06e22c532905b61ebf245a649",
+          "format": "595847414D45034F",
+          "matches": []
+        },
+        {
+          "path": "app/h2018Views/NodeKefu.luac",
+          "bytes": 2134,
+          "sha256": "430a3a3e8c7356c848f3f77b2c45c784dab7963f97930ca770d1171d5a29d4dd",
+          "format": "595847414D45AB70",
+          "matches": []
+        },
+        {
+          "path": "app/h2018Views/NodeMarket.luac",
+          "bytes": 6750,
+          "sha256": "c048c4ed0ebb71c19d4064b7992164c090ad899e7bc9fab768df1e74157c2c75",
+          "format": "595847414D45C77E",
+          "matches": []
+        },
+        {
+          "path": "app/h2018Views/NodeNews.luac",
+          "bytes": 1054,
+          "sha256": "c6cb3514e698bb6b9b5b1b0e44f59802fdfd4199d5aada4739a2e00d978c901b",
+          "format": "595847414D45D29E",
+          "matches": []
+        },
+        {
+          "path": "app/h2018Views/NodeRules.luac",
+          "bytes": 922,
+          "sha256": "a3fe36a2f86f661d5f54d1b362b7e88ff7dfa0d85a9d5902408f5b34b0430e7d",
+          "format": "595847414D45F139",
+          "matches": []
+        },
+        {
+          "path": "app/h2018Views/NodeSetted.luac",
+          "bytes": 4198,
+          "sha256": "0cb4c543a9ceaa49948378c235ca42ee9caabe864f7a4dcd30d9cad2fda87849",
+          "format": "595847414D45F0D1",
+          "matches": []
+        },
+        {
+          "path": "app/h2018Views/NodeShare.luac",
+          "bytes": 2234,
+          "sha256": "75d3ebd4e6ed07b27df21a4fb9a6ccf0561ff0434423b3fe0417f1bcfe9bd065",
+          "format": "595847414D45DEB7",
+          "matches": []
+        },
+        {
+          "path": "app/h2018Views/NodeSmrzr.luac",
+          "bytes": 3578,
+          "sha256": "9252d41d9730cc9afc4f2e7abb5b3eaa95ebb81e8492bc734866b42198bd69a3",
+          "format": "595847414D45FBCC",
+          "matches": []
+        },
+        {
+          "path": "app/h2018Views/NodeUinfo.luac",
+          "bytes": 2226,
+          "sha256": "b4e69929127e95867e5eb2c177e550b0f7aa3d1137ec31b86da5c5e1c942e989",
+          "format": "595847414D4597D2",
+          "matches": []
+        },
+        {
+          "path": "app/h2018Views/O0701RoomList.luac",
+          "bytes": 3918,
+          "sha256": "2dc0bbe8fae299aae404b5ffe7bf177f21f359d0f4cade42cadf37552b1d3cb3",
+          "format": "595847414D45D412",
+          "matches": []
+        },
+        {
+          "path": "app/h2018Views/P0701Rules.luac",
+          "bytes": 922,
+          "sha256": "a3fe36a2f86f661d5f54d1b362b7e88ff7dfa0d85a9d5902408f5b34b0430e7d",
+          "format": "595847414D45F139",
+          "matches": []
+        },
+        {
+          "path": "app/h2018Views/Q0701Setted.luac",
+          "bytes": 4198,
+          "sha256": "0cb4c543a9ceaa49948378c235ca42ee9caabe864f7a4dcd30d9cad2fda87849",
+          "format": "595847414D45F0D1",
+          "matches": []
+        },
+        {
+          "path": "app/h2018Views/R0701Share.luac",
+          "bytes": 2234,
+          "sha256": "75d3ebd4e6ed07b27df21a4fb9a6ccf0561ff0434423b3fe0417f1bcfe9bd065",
+          "format": "595847414D45DEB7",
+          "matches": []
+        },
+        {
+          "path": "app/h2018Views/S0701Smrzr.luac",
+          "bytes": 3578,
+          "sha256": "9252d41d9730cc9afc4f2e7abb5b3eaa95ebb81e8492bc734866b42198bd69a3",
+          "format": "595847414D45FBCC",
+          "matches": []
+        },
+        {
+          "path": "app/h2018Views/T0701Uinfo.luac",
+          "bytes": 2134,
+          "sha256": "48c08ad9b347135c6773b2c2d03e7ddd973f5fb879ad298ee2be9ca47b366521",
+          "format": "595847414D45C701",
+          "matches": []
+        },
+        {
+          "path": "app/h2018Views/XRecordDetail.luac",
+          "bytes": 7134,
+          "sha256": "218cfec3f588421afb0a65a1ca353fb88ace50df45e4a4e7c1745a02ead12f7a",
+          "format": "595847414D45AD97",
+          "matches": []
+        },
+        {
+          "path": "app/h2018Views/XRecordInfo.luac",
+          "bytes": 8786,
+          "sha256": "837725802f3a3c0e9d4103da1cec6cc48dc25ebd11f407e08042dec30d8f6967",
+          "format": "595847414D45CB5D",
+          "matches": []
+        },
+        {
+          "path": "app/h2018Views/XRoomList.luac",
+          "bytes": 3914,
+          "sha256": "8f4c0daeb38965753b203dcc02da90d922bbd6a5c2b6bfc5a7afaa5a26c647b1",
+          "format": "595847414D4544B7",
+          "matches": []
+        },
+        {
+          "path": "app/h2018Views/Z0401Main.luac",
+          "bytes": 9258,
+          "sha256": "fd6cb7350c8b345bc4a797de4941254713309c2c3aa4e74f11d7877483bddaa6",
+          "format": "595847414D45C517",
+          "matches": []
+        },
+        {
+          "path": "app/h2018Views/Z0501Main.luac",
+          "bytes": 12038,
+          "sha256": "bbd21c7c0b3bc637a74a5672bfd973432dd9f68aab5253b36f813318efe84fd3",
+          "format": "595847414D45075A",
+          "matches": []
+        },
+        {
+          "path": "app/k2018Game/",
+          "bytes": 0,
+          "sha256": null,
+          "format": null,
+          "matches": []
+        },
+        {
+          "path": "app/k2018Game/A0501Animate.luac",
+          "bytes": 11178,
+          "sha256": "ae5236fdd17848d5b3a0cd5c4900a790044edf12ca87d2393c853871a5565aa7",
+          "format": "595847414D45CDE9",
+          "matches": []
+        },
+        {
+          "path": "app/k2018Game/A1616Animate.luac",
+          "bytes": 11178,
+          "sha256": "680059a6cc6f53360ef856ec73ac10304a9b4cc6505c46a7abf491522ee9eac3",
+          "format": "595847414D452C85",
+          "matches": []
+        },
+        {
+          "path": "app/k2018Game/B0501Cheat.luac",
+          "bytes": 3534,
+          "sha256": "6659b6c4ed56c28d6d25344d3d5f512b3b6b3aa03644527d76af5c885b98ba9f",
+          "format": "595847414D45B344",
+          "matches": []
+        },
+        {
+          "path": "app/k2018Game/B0501Cuouo.luac",
+          "bytes": 2890,
+          "sha256": "f374a50d366447dc85bda7d383c317fc9fef3727823912800314f9fa0044068a",
+          "format": "595847414D454500",
+          "matches": []
+        },
+        {
+          "path": "app/k2018Game/B0501Jeesan.luac",
+          "bytes": 5406,
+          "sha256": "1c076e84b12c1b3861d4090fcac729e1adfe76e937732d74e7f18aff53e56967",
+          "format": "595847414D451985",
+          "matches": []
+        },
+        {
+          "path": "app/k2018Game/B0501Result.luac",
+          "bytes": 5510,
+          "sha256": "eca42fac60ac7503174eac84de236bc639879892b31658a973845c84e7b71ee0",
+          "format": "595847414D45E22F",
+          "matches": []
+        },
+        {
+          "path": "app/k2018Game/B0501Rules.luac",
+          "bytes": 1650,
+          "sha256": "33d39b3fcaf6c8ed826fb30a41bddf5d322aa388c5dae0bf4ba934e2c9b641ba",
+          "format": "595847414D45EE7F",
+          "matches": []
+        },
+        {
+          "path": "app/k2018Game/B0501Setted.luac",
+          "bytes": 8274,
+          "sha256": "997934098ca7197274ec36086792f991849391c5910a3f9d10a22ff39d61458d",
+          "format": "595847414D45B7D4",
+          "matches": []
+        },
+        {
+          "path": "app/k2018Game/B0501TGuan.luac",
+          "bytes": 11042,
+          "sha256": "21992d8a9cb5263f24f580888798acf95e1a80a3443ceed6cd479922779a7f60",
+          "format": "595847414D456A2B",
+          "matches": []
+        },
+        {
+          "path": "app/k2018Game/B0501TTalk.luac",
+          "bytes": 15106,
+          "sha256": "e056780dd5c63379568ab2a11370b1504c7a3504f65df443a1bdccb652e824f7",
+          "format": "595847414D4521C6",
+          "matches": []
+        },
+        {
+          "path": "app/k2018Game/B0501Uinfo.luac",
+          "bytes": 4002,
+          "sha256": "2f7fd30aa2c12e2642fc14fd6b6591256ba625bc63234dea80f5827b8affb016",
+          "format": "595847414D45CF94",
+          "matches": []
+        },
+        {
+          "path": "app/k2018Game/B0501Xiako.luac",
+          "bytes": 3406,
+          "sha256": "ef007f2c6179364f0f7670967584e4675260789913128535b37a5b6bf7431019",
+          "format": "595847414D45A092",
+          "matches": []
+        },
+        {
+          "path": "app/k2018Game/B0916Setted.luac",
+          "bytes": 8274,
+          "sha256": "4bcec43c5f954085334083e27f6179cce73b9f00a39b876e90107623ff3c7709",
+          "format": "595847414D456EAB",
+          "matches": []
+        },
+        {
+          "path": "app/k2018Game/B1016Cuouo.luac",
+          "bytes": 2894,
+          "sha256": "2ccce95d8eb4965e98bcc5535a303ace9058871b91a981f9159f8591b1ca6791",
+          "format": "595847414D457326",
+          "matches": []
+        },
+        {
+          "path": "app/k2018Game/B1116Jeesan.luac",
+          "bytes": 5410,
+          "sha256": "debb335774b2dff2b48aba4b84ac5e0c71dcade1d83d7285e991f74209277a86",
+          "format": "595847414D457482",
+          "matches": []
+        },
+        {
+          "path": "app/k2018Game/B1216Result.luac",
+          "bytes": 5394,
+          "sha256": "e6fe9cbabaa2a69dc8a76e7d3b052238f11843f5438887d2bea6a4e1571d830f",
+          "format": "595847414D452BC7",
+          "matches": []
+        },
+        {
+          "path": "app/k2018Game/B1316Rules.luac",
+          "bytes": 1654,
+          "sha256": "b5ee7d7714e35e52a7b4dd97f1e01226cacbd753e0ddbc4be5c8fcab9ccd71b1",
+          "format": "595847414D45B044",
+          "matches": []
+        },
+        {
+          "path": "app/k2018Game/B1416Xiako.luac",
+          "bytes": 3278,
+          "sha256": "e4959f8ea167a7fb0dce6ce2ae1046cf93b83daea641f2179bab022f3934078d",
+          "format": "595847414D45FC52",
+          "matches": []
+        },
+        {
+          "path": "app/k2018Game/B1516TGuan.luac",
+          "bytes": 11042,
+          "sha256": "72b33f3b5a3c4405ac67298c8033a69af975f8e4a0cbab835cb32b9c8c5ea5b1",
+          "format": "595847414D45B830",
+          "matches": []
+        },
+        {
+          "path": "app/k2018Game/B1616Cheat.luac",
+          "bytes": 3534,
+          "sha256": "40d289165f245493321ca35183fcea74020fa906c6c7c3f914c2a5ac09b1d27c",
+          "format": "595847414D4584E2",
+          "matches": []
+        },
+        {
+          "path": "app/k2018Game/B1716TTalk.luac",
+          "bytes": 15106,
+          "sha256": "8ee69c2db1c7e814ee4b67ba0a1f40738abd3176396153d9506fc311fa1aad48",
+          "format": "595847414D45D4F1",
+          "matches": []
+        },
+        {
+          "path": "app/k2018Game/B1816Uinfo.luac",
+          "bytes": 3906,
+          "sha256": "08aa8439d41309ea15c6f2bb86478941bd9bb993159b3f24c0d281cd87211935",
+          "format": "595847414D458186",
+          "matches": []
+        },
+        {
+          "path": "app/k2018Game/G2000CardInfo.luac",
+          "bytes": 18062,
+          "sha256": "e6a9e65e9d012affd3f9322b716a585fb7af3f439ec22e8fc4ae0945ab659bc4",
+          "format": "595847414D456334",
+          "matches": []
+        },
+        {
+          "path": "app/k2018Game/G2000DeskInfo.luac",
+          "bytes": 7766,
+          "sha256": "12316a56ca77516b9e82acbd2d02a9f38707147256abe573bfe365d0a426f12e",
+          "format": "595847414D45FE67",
+          "matches": []
+        },
+        {
+          "path": "app/k2018Game/G2000MenuInfo.luac",
+          "bytes": 24498,
+          "sha256": "1dd980b0f116d4349b311a8eef35bad6e8d964d74b102cbb298e0c7010bd96c0",
+          "format": "595847414D45DC6C",
+          "matches": []
+        },
+        {
+          "path": "app/k2018Game/G2000ScrollBetBar.luac",
+          "bytes": 4318,
+          "sha256": "3312e2a5c814ed85acf76638eea76ba7d7d3020b4976785d40a4754d7095d4a1",
+          "format": "595847414D45F074",
+          "matches": []
+        },
+        {
+          "path": "app/k2018Game/G2000UserPanel.luac",
+          "bytes": 19054,
+          "sha256": "182a7a6e5e2d85dfdc029833f3f8dc484296e416ffc82393288a4fa894579e3c",
+          "format": "595847414D4544F2",
+          "matches": []
+        },
+        {
+          "path": "app/SocketInfoCallb.luac",
+          "bytes": 1546,
+          "sha256": "75dccfdce67efca9a04a77c766c2434a47894fc2d4694ef1c2278676a9836cea",
+          "format": "595847414D453B9A",
+          "matches": []
+        }
+      ]
+    },
+    {
+      "repository": "qmcloud/chess",
+      "commit": "5f2d792775ca40e6d86c85b5c29f431e133cdb79",
+      "path": "98k房卡/web/qqq/file/src/app.zip",
+      "retrievedVia": "https://api.github.com/repos/qmcloud/chess/git/blobs/93bf3851c97d6ef4346361dcbc9490f251e7e35f",
+      "gitBlobSha": "93bf3851c97d6ef4346361dcbc9490f251e7e35f",
+      "bytes": 667827,
+      "sha256": "628145a2d31e36dbb43d6384d9c94b9b8e235e0ed8580430b7a724a5b9cb5788",
+      "entries": [
+        {
+          "path": "app/",
+          "bytes": 0,
+          "sha256": null,
+          "format": null,
+          "matches": []
+        },
+        {
+          "path": "app/AInit.luac",
+          "bytes": 3722,
+          "sha256": "7aa660ec018769301df38f3e1e78a5a518b3018e9286b97b94408190b0c99611",
+          "format": "595847414D458EF3",
+          "matches": []
+        },
+        {
+          "path": "app/b2018Callb/",
+          "bytes": 0,
+          "sha256": null,
+          "format": null,
+          "matches": []
+        },
+        {
+          "path": "app/b2018Callb/ANDROCallb.luac",
+          "bytes": 5190,
+          "sha256": "31b8fa89fcbf2798a36f6bbfce9802ee9554e94f035d0f219a1e22d92b908c22",
+          "format": "595847414D455320",
+          "matches": []
+        },
+        {
+          "path": "app/b2018Callb/APPLECallb.luac",
+          "bytes": 3334,
+          "sha256": "c139fcd53844ed1547a1dfdbbd1663f0400220b6c38282c11afd3e135bd358ea",
+          "format": "595847414D45A705",
+          "matches": []
+        },
+        {
+          "path": "app/c2018Cache/",
+          "bytes": 0,
+          "sha256": null,
+          "format": null,
+          "matches": []
+        },
+        {
+          "path": "app/c2018Cache/C0408News.luac",
+          "bytes": 1142,
+          "sha256": "b6c5def3ee504f926ded6f45130f07b5a78a93ea076f610917a4ea68de66ce7f",
+          "format": "595847414D45C8DF",
+          "matches": []
+        },
+        {
+          "path": "app/c2018Cache/E0408Info.luac",
+          "bytes": 778,
+          "sha256": "01c0a4022c3f1b424b51dd327ecb3809c867bb49b58086323c90f0dbc05dda88",
+          "format": "595847414D45F3BF",
+          "matches": []
+        },
+        {
+          "path": "app/c2018Cache/G0408Sound.luac",
+          "bytes": 4078,
+          "sha256": "d70269697e00135a0247b545c055ca0d946c156c81dc8fac931ed2dec4f695f7",
+          "format": "595847414D45E462",
+          "matches": []
+        },
+        {
+          "path": "app/c2018Cache/L0408Texts.luac",
+          "bytes": 10174,
+          "sha256": "0d984f71797af1f11fc3357a5106995587fe99af048959fea4ae863d0e22b327",
+          "format": "595847414D4505FF",
+          "matches": []
+        },
+        {
+          "path": "app/c2018Cache/S0408List.luac",
+          "bytes": 774,
+          "sha256": "dc6504c739837b763ceb93c3ea6447ee0a4f0ed96efbe620a0c073a6fd5da361",
+          "format": "595847414D457440",
+          "matches": []
+        },
+        {
+          "path": "app/c2018Cache/U0408Data.luac",
+          "bytes": 1842,
+          "sha256": "e37d7b8216b1b302108eb6351271f0aa0c698439c6e90442cd88c5e9a9dbbaea",
+          "format": "595847414D455D48",
+          "matches": []
+        },
+        {
+          "path": "app/c2018Cache/X0501Cao.luac",
+          "bytes": 2190,
+          "sha256": "29cfc61bdd1a7826dcb07228d9c5f335f936774f4ee47816931fd752f9bd90c2",
+          "format": "595847414D450A14",
+          "matches": []
+        },
+        {
+          "path": "app/c2018Cache/Y0718Func.luac",
+          "bytes": 1294,
+          "sha256": "050d1fcb61f781944f1caa81c00fd967b5ee9a6b12f325b80d656c1fdd423ccc",
+          "format": "595847414D454D6E",
+          "matches": []
+        },
+        {
+          "path": "app/c2018Cache/Z0408GData.luac",
+          "bytes": 7834,
+          "sha256": "3033530da161e37bcaef6168492e9fe3df81de391efa4bb1cb50988153683990",
+          "format": "595847414D45F016",
+          "matches": []
+        },
+        {
+          "path": "app/CGameAPI.luac",
+          "bytes": 13694,
+          "sha256": "49b0516fb5983bfaae1eb28f6ca35e7225f2b7106a1a84e43aeefacfcf7d4d94",
+          "format": "595847414D450D51",
+          "matches": []
+        },
+        {
+          "path": "app/DLoginScene.luac",
+          "bytes": 11562,
+          "sha256": "f159414f9ed23377bc7503f7a7a549b289b267a990e729f8d1711dcefb7e9c02",
+          "format": "595847414D4520D2",
+          "matches": []
+        },
+        {
+          "path": "app/e2018file/",
+          "bytes": 0,
+          "sha256": null,
+          "format": null,
+          "matches": []
+        },
+        {
+          "path": "app/e2018file/A0202Init.luac",
+          "bytes": 206,
+          "sha256": "9c0c18dc3a9fbb02f5313be58d39b38646a6bc0209cf4077596c1ac0fdc6c97a",
+          "format": "595847414D4503BC",
+          "matches": []
+        },
+        {
+          "path": "app/e2018file/B0202Buffer.luac",
+          "bytes": 3282,
+          "sha256": "2acdcacff438507786751c38a9d51a6e84ccd8e7c7d16d5f8696713d1e4cb72a",
+          "format": "595847414D452C63",
+          "matches": []
+        },
+        {
+          "path": "app/e2018file/C0202Comm.luac",
+          "bytes": 12094,
+          "sha256": "af23e07f61352fa156cd09b82959241e220403626d7c393ce82b0728e033a83b",
+          "format": "595847414D4597A0",
+          "matches": []
+        },
+        {
+          "path": "app/e2018file/D0202Define.luac",
+          "bytes": 3386,
+          "sha256": "e388147dd61776c3afe099c27c3fe7a5c1adddb50eb491f3d33ccb974e09f1c6",
+          "format": "595847414D45DA8D",
+          "matches": []
+        },
+        {
+          "path": "app/e2018file/E0202RoomDeal.luac",
+          "bytes": 1126,
+          "sha256": "ffe0988e86c280bdf0335d5c8d22b2dd6072b0c357ababf2e15addda98751f3c",
+          "format": "595847414D45EF9E",
+          "matches": []
+        },
+        {
+          "path": "app/e2018file/F0202RecordDeal.luac",
+          "bytes": 13754,
+          "sha256": "897357a92e5b7b588a11d11f3a0924240281cf76d1738b006b10d548375936ac",
+          "format": "595847414D45EC05",
+          "matches": []
+        },
+        {
+          "path": "app/e2018file/G0202RuleValue.luac",
+          "bytes": 15014,
+          "sha256": "2a472f87d7c98a8536fbdf0dd0cab9a14668a9be650e89f96c5217020c7d889c",
+          "format": "595847414D45D5DA",
+          "matches": []
+        },
+        {
+          "path": "app/e2018file/U0202BaseInfo.luac",
+          "bytes": 2310,
+          "sha256": "136e5ef403c05b7507f5d637b3c1c3e9820a22571d392ec082ae27d6b43547a6",
+          "format": "595847414D45B171",
+          "matches": []
+        },
+        {
+          "path": "app/EMainScene.luac",
+          "bytes": 58858,
+          "sha256": "d4a97ce42ea54b0269e9c195eab57c15e0693d991f46223375b23fab9974dc6e",
+          "format": "595847414D45F6C4",
+          "matches": []
+        },
+        {
+          "path": "app/f2018tool/",
+          "bytes": 0,
+          "sha256": null,
+          "format": null,
+          "matches": []
+        },
+        {
+          "path": "app/f2018tool/A0400Factory.luac",
+          "bytes": 8558,
+          "sha256": "2f76f692d326deeb76109b22cfeaeae8b80ecb99a9e4e058b706ed302a12e0fc",
+          "format": "595847414D45FA94",
+          "matches": []
+        },
+        {
+          "path": "app/f2018tool/B0400HeadIcon.luac",
+          "bytes": 4826,
+          "sha256": "7dfd7b00ba5b780ee84c910475256210b8f1287c7da2db5022ddc512aae4f659",
+          "format": "595847414D459B2C",
+          "matches": []
+        },
+        {
+          "path": "app/f2018tool/C0400NiuLib.luac",
+          "bytes": 8462,
+          "sha256": "f6d7564d700d01a40f8241866c9658e19b13640cb0a1fe64174a1df2e894106a",
+          "format": "595847414D45E095",
+          "matches": []
+        },
+        {
+          "path": "app/f2018tool/D0400tools.luac",
+          "bytes": 4446,
+          "sha256": "c7be95d0f97d4ca910a3926ba735020404174c225f4b7b9f9e38f3043724ea05",
+          "format": "595847414D453D0A",
+          "matches": []
+        },
+        {
+          "path": "app/GameID.luac",
+          "bytes": 314,
+          "sha256": "a433bcc2ea7b3b6d1158e11e3dde453d85494a3205ee065031187b366003e76c",
+          "format": "595847414D45D0C0",
+          "matches": []
+        },
+        {
+          "path": "app/GGameScene.luac",
+          "bytes": 95910,
+          "sha256": "53ee97268f29088164f35270f64a5a12de7f6158ef00adffda7248d145ed87f9",
+          "format": "595847414D4592AD",
+          "matches": []
+        },
+        {
+          "path": "app/h2018Views/",
+          "bytes": 0,
+          "sha256": null,
+          "format": null,
+          "matches": []
+        },
+        {
+          "path": "app/h2018Views/A0401AlertFile.luac",
+          "bytes": 3482,
+          "sha256": "7230bf667739f549a9f1f7847b959aa9a9a8451c4dcbfc363768901996bd489b",
+          "format": "595847414D450DF6",
+          "matches": []
+        },
+        {
+          "path": "app/h2018Views/B0401Activity.luac",
+          "bytes": 990,
+          "sha256": "c0a6c0832c263547c73573303e83d014ace862e26385d9990d18c58735af31e2",
+          "format": "595847414D4504FB",
+          "matches": []
+        },
+        {
+          "path": "app/h2018Views/C0401Cards.luac",
+          "bytes": 2722,
+          "sha256": "42964a7b8845156b1eec81f8d2a8ebee13b0dc4f9d3f7e95000a0adb7693f647",
+          "format": "595847414D4586B8",
+          "matches": []
+        },
+        {
+          "path": "app/h2018Views/D0401Clubs.luac",
+          "bytes": 28138,
+          "sha256": "5ffc14b23dc5111cb8bfa3d658c88480ae969a99156cc339da50733ae59c88e7",
+          "format": "595847414D45EBE4",
+          "matches": []
+        },
+        {
+          "path": "app/h2018Views/E0401Enable.luac",
+          "bytes": 770,
+          "sha256": "856536226ba3e564724d865bd26113fb7a5f3520f4cb614118e675699e1ac037",
+          "format": "595847414D452302",
+          "matches": []
+        },
+        {
+          "path": "app/h2018Views/F0401ICode.luac",
+          "bytes": 2030,
+          "sha256": "69343689b2a532b229d3e7112633f28bd48b20a42273b02a2d66051bf9f95b90",
+          "format": "595847414D456078",
+          "matches": []
+        },
+        {
+          "path": "app/h2018Views/G0401Kefu.luac",
+          "bytes": 2142,
+          "sha256": "8dd7320bdee05330dc40b2c919f1a1a627353d2fa720aa42504bbb471ad03db9",
+          "format": "595847414D452BC1",
+          "matches": []
+        },
+        {
+          "path": "app/h2018Views/H0401Market.luac",
+          "bytes": 6766,
+          "sha256": "ef942ad4f823efa67b456c591519591b4fd2ae6ad77da634f7236ea4c081540e",
+          "format": "595847414D455F51",
+          "matches": []
+        },
+        {
+          "path": "app/h2018Views/I0401News.luac",
+          "bytes": 1054,
+          "sha256": "c6cb3514e698bb6b9b5b1b0e44f59802fdfd4199d5aada4739a2e00d978c901b",
+          "format": "595847414D45D29E",
+          "matches": []
+        },
+        {
+          "path": "app/h2018Views/J0401RecordDetail.luac",
+          "bytes": 7670,
+          "sha256": "38fa283eb67b15d2e034fc4aef433949a22248ab1c3f8289014ecace2c14e677",
+          "format": "595847414D45DC7E",
+          "matches": []
+        },
+        {
+          "path": "app/h2018Views/K0401RecordInfo.luac",
+          "bytes": 15486,
+          "sha256": "691a4dab87208aabe75c364850182d97b0a923002477a453cc6c8da7f3a1d83b",
+          "format": "595847414D458EFC",
+          "matches": []
+        },
+        {
+          "path": "app/h2018Views/L0401RoomCreate.luac",
+          "bytes": 65086,
+          "sha256": "bcd75535aca666676869a5dc98598970257fe1120aecfa78e350e2820db3cf36",
+          "format": "595847414D45EB97",
+          "matches": []
+        },
+        {
+          "path": "app/h2018Views/L0701RoomJoinr.luac",
+          "bytes": 3434,
+          "sha256": "92ee7fea9b3ffc3e855135a3df419a621b63920ad64745f130c8ada328dadd30",
+          "format": "595847414D4513E5",
+          "matches": []
+        },
+        {
+          "path": "app/h2018Views/O0701RoomList.luac",
+          "bytes": 3938,
+          "sha256": "a0b0b9456ea700998d47736a4bcfb402e6e177e20f74e4388acf6c6223c97abb",
+          "format": "595847414D45A820",
+          "matches": []
+        },
+        {
+          "path": "app/h2018Views/P0701Rules.luac",
+          "bytes": 922,
+          "sha256": "a3fe36a2f86f661d5f54d1b362b7e88ff7dfa0d85a9d5902408f5b34b0430e7d",
+          "format": "595847414D45F139",
+          "matches": []
+        },
+        {
+          "path": "app/h2018Views/Q0701Setted.luac",
+          "bytes": 4198,
+          "sha256": "0e1160b768e51bf6c34779eb368928d7e08aa5b9873409d17b79a42202415f01",
+          "format": "595847414D459612",
+          "matches": []
+        },
+        {
+          "path": "app/h2018Views/R0701Share.luac",
+          "bytes": 2234,
+          "sha256": "75d3ebd4e6ed07b27df21a4fb9a6ccf0561ff0434423b3fe0417f1bcfe9bd065",
+          "format": "595847414D45DEB7",
+          "matches": []
+        },
+        {
+          "path": "app/h2018Views/S0701Smrzr.luac",
+          "bytes": 3646,
+          "sha256": "0641b99a37bd9ae07c4ad568fbbb299de21001ce435288c5a77175821a6799eb",
+          "format": "595847414D45A8AD",
+          "matches": []
+        },
+        {
+          "path": "app/h2018Views/T0701Uinfo.luac",
+          "bytes": 2282,
+          "sha256": "54554099b030468f34913dbfc0db92f88f99c316dc5cef72cdd2bfa8f4c4a54c",
+          "format": "595847414D45AA3A",
+          "matches": []
+        },
+        {
+          "path": "app/h2018Views/U0801Rotarytable.luac",
+          "bytes": 4922,
+          "sha256": "4b3373141372217ec364cc3b7c94147358a39b91c5b8e68a980ae6a9316ffe0b",
+          "format": "595847414D45B908",
+          "matches": []
+        },
+        {
+          "path": "app/h2018Views/Z0401Main.luac",
+          "bytes": 14482,
+          "sha256": "b5bead14708827999d271f913840b41d66dc75696a0f77759dbe7d102ef088f2",
+          "format": "595847414D456C0F",
+          "matches": []
+        },
+        {
+          "path": "app/k2018Game/",
+          "bytes": 0,
+          "sha256": null,
+          "format": null,
+          "matches": []
+        },
+        {
+          "path": "app/k2018Game/A1616Animate.luac",
+          "bytes": 11170,
+          "sha256": "01cbffe83e13705576eb310826618c65c70e80b86d52a5308e47ddf8e75be783",
+          "format": "595847414D45A509",
+          "matches": []
+        },
+        {
+          "path": "app/k2018Game/B0916Setted.luac",
+          "bytes": 8270,
+          "sha256": "af3d4eb4501d337e4d4ef9fcd08f4107aa05098eab8f9903e4b7f3922b076997",
+          "format": "595847414D45024C",
+          "matches": []
+        },
+        {
+          "path": "app/k2018Game/B1016Cuouo.luac",
+          "bytes": 2894,
+          "sha256": "2ccce95d8eb4965e98bcc5535a303ace9058871b91a981f9159f8591b1ca6791",
+          "format": "595847414D457326",
+          "matches": []
+        },
+        {
+          "path": "app/k2018Game/B1116Jeesan.luac",
+          "bytes": 5442,
+          "sha256": "67208216784a0e7a602ad0a6018e4353944f5596ba100d6244646d018bb3942d",
+          "format": "595847414D45D597",
+          "matches": []
+        },
+        {
+          "path": "app/k2018Game/B1216Result.luac",
+          "bytes": 6074,
+          "sha256": "f05dd77e7009f3b74743af7b4aaa841138c45eda52ccd2385a00cd27e4f64ed0",
+          "format": "595847414D450C74",
+          "matches": []
+        },
+        {
+          "path": "app/k2018Game/B1316Rules.luac",
+          "bytes": 1742,
+          "sha256": "1e2afef89e8366cb5c1d0317e2ee85783433d53a1ec667740aa982c8b5a9921d",
+          "format": "595847414D45D96E",
+          "matches": []
+        },
+        {
+          "path": "app/k2018Game/B1416Xiako.luac",
+          "bytes": 3810,
+          "sha256": "a91662a5eac11b0a20120ff57d74d7c94df20e5d53812eb6069aeb9a625e3cf7",
+          "format": "595847414D45C16A",
+          "matches": []
+        },
+        {
+          "path": "app/k2018Game/B1516TGuan.luac",
+          "bytes": 11042,
+          "sha256": "72b33f3b5a3c4405ac67298c8033a69af975f8e4a0cbab835cb32b9c8c5ea5b1",
+          "format": "595847414D45B830",
+          "matches": []
+        },
+        {
+          "path": "app/k2018Game/B1616Cheat.luac",
+          "bytes": 3538,
+          "sha256": "76c321a2bab8f72d446b696901c78f3ba81675184d41620cfb60f4c43a83a498",
+          "format": "595847414D456C82",
+          "matches": []
+        },
+        {
+          "path": "app/k2018Game/B1716TTalk.luac",
+          "bytes": 18938,
+          "sha256": "74e23dad3de6b9dc05dcb5ea78a6e305ba578f450ca3eb96a0892286b198c39d",
+          "format": "595847414D451BF7",
+          "matches": []
+        },
+        {
+          "path": "app/k2018Game/B1816Uinfo.luac",
+          "bytes": 4422,
+          "sha256": "313f751f112d06ed62bd661103841d07e69351219429bdacacb5a0ee34abfde5",
+          "format": "595847414D459294",
+          "matches": []
+        },
+        {
+          "path": "app/k2018Game/B1818BuyCode.luac",
+          "bytes": 7106,
+          "sha256": "29374e57f4eef5d3253167fea3f584b08d285a1a0c9f33f74a4c837856538ae0",
+          "format": "595847414D453AEA",
+          "matches": []
+        },
+        {
+          "path": "app/k2018Game/G2000CardInfo.luac",
+          "bytes": 21082,
+          "sha256": "83f1772903f15c3a42b6faa5c4fc638c1ec1d0bc77b3608a51b5b93324283a61",
+          "format": "595847414D45C113",
+          "matches": []
+        },
+        {
+          "path": "app/k2018Game/G2000DeskInfo.luac",
+          "bytes": 7846,
+          "sha256": "dbe160c4f5f9a27c548d75f0e111fc6429af104d8a1cef199ce5b2da7282afe9",
+          "format": "595847414D4583BB",
+          "matches": []
+        },
+        {
+          "path": "app/k2018Game/G2000MenuInfo.luac",
+          "bytes": 34990,
+          "sha256": "19c8ef580ab951f77e42f7f7ce8b04a97f50f4b7e19d30e8df9c4dc979e3cad7",
+          "format": "595847414D458F62",
+          "matches": []
+        },
+        {
+          "path": "app/k2018Game/G2000ScrollBetBar.luac",
+          "bytes": 4406,
+          "sha256": "512dceba4ad1c8ce04d3f244272736ba0afa641c0d023af7ad60fd1f23a5c4b8",
+          "format": "595847414D4572A3",
+          "matches": []
+        },
+        {
+          "path": "app/k2018Game/G2000UserPanel.luac",
+          "bytes": 23978,
+          "sha256": "f063e6a043929828f9f9f98c45e8bffc3442583c07ba766df35f4dc343f6a3fb",
+          "format": "595847414D45870D",
+          "matches": []
+        },
+        {
+          "path": "app/SocketInfoCallb.luac",
+          "bytes": 1546,
+          "sha256": "75dccfdce67efca9a04a77c766c2434a47894fc2d4694ef1c2278676a9836cea",
+          "format": "595847414D453B9A",
+          "matches": []
+        }
+      ]
+    }
+  ]
+}

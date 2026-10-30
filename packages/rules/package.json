@@ -1,0 +1,9 @@
+{
+  "name": "@dss/rules",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": { ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" } },
+  "scripts": { "build": "tsc -p tsconfig.json", "test": "tsx --test test/*.test.ts", "typecheck": "tsc --noEmit" },
+  "devDependencies": { "typescript": "^5.9.3", "tsx": "^4.20.0", "@types/node": "^24.10.0" }
+}

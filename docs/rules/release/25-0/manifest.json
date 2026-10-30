@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "variantKey": "25:0",
+  "ruleVersion": "junlian25-independent-v1",
+  "rulebook": {
+    "path": "docs/rules/release/25-0/rulebook.json",
+    "sha256": "5e5e5e43e5ff8f7070125224baa5200d844588a580cdd5c6aa7ef8d861e7d2ee"
+  },
+  "cases": {
+    "path": "docs/rules/release/25-0/cases.json",
+    "sha256": "1f986926e2720e8f89dc33a729801457b391f36d353e0b338961637e6a11b6c6"
+  },
+  "generatedAt": "2026-10-03T06:05:27.762Z"
+}

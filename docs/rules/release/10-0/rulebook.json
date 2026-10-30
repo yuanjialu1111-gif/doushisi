@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "status": "approved",
+  "basis": "user-approved",
+  "variantKey": "10:0",
+  "ruleVersion": "aba10-independent-v1",
+  "title": "10:0 阿坝斗十四独立规则",
+  "approval": {
+    "path": "docs/rules/release/10-0/approval.json",
+    "sha256": "1ba7d47457dbfb42d74a18b13cbaabdb26acaed53033dcb4e036c57d1e3dba5e"
+  },
+  "requiredCoverage": [
+    "declared-wait-lock",
+    "concealed-four-pairs",
+    "payments"
+  ],
+  "sources": [
+    "docs/rules/variants/10-0.md",
+    "docs/rules/ABA-INDEPENDENT.md",
+    "apps/server/src/game/aba-pack.ts",
+    "apps/server/src/game/aba-win.ts",
+    "apps/server/src/game/aba-round.ts"
+  ],
+  "summary": {
+    "deck": "52 ordinary cards plus one small king, one big king and two white faces; no king-count selector.",
+    "win": "必须形成合法四组结构，且结构分 >= huRedScore 才可胡牌。起胡线仅由 huRedScore 决定，playerNum 不缩放；同一手牌在 2、3、4 人配置下给出相同胡牌结果。",
+    "threshold": "起胡线仅由 huRedScore 决定，playerNum 不缩放；playerNum 只影响入座、发牌和结算人数。",
+    "scoring": "Structure score/100 * 2^cappedFan * 0.8, with explicit 258, double-in/out, haidilao and baijiao facts.",
+    "declaration": "Declaration uses the configured threshold condition and locks the server-computed waits.",
+    "payments": "Exact per-payer 12-place rounding and no duplicate settlement."
+  }
+}

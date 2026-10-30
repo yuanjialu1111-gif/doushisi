@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="net.doushisi.acceptance"
+    android:versionCode="1"
+    android:versionName="1.0">
+  <uses-sdk android:minSdkVersion="26" android:targetSdkVersion="35" />
+  <application android:allowBackup="false" android:label="Doushisi Acceptance Driver" />
+  <instrumentation
+      android:name="net.doushisi.acceptance.AcceptanceInstrumentation"
+      android:targetPackage="net.doushisi.standalone"
+      android:functionalTest="true"
+      android:handleProfiling="false" />
+</manifest>

@@ -1,0 +1,165 @@
+
+jinershi.png
+size: 1931,1784
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+caidai1
+  rotate: false
+  xy: 925, 1148
+  size: 843, 304
+  orig: 843, 304
+  offset: 0, 0
+  index: -1
+caidai2
+  rotate: false
+  xy: 1259, 1454
+  size: 607, 328
+  orig: 607, 328
+  offset: 0, 0
+  index: -1
+cion1
+  rotate: false
+  xy: 2, 1729
+  size: 80, 53
+  orig: 80, 54
+  offset: 0, 1
+  index: -1
+cion2
+  rotate: true
+  xy: 158, 1710
+  size: 72, 82
+  orig: 72, 82
+  offset: 0, 0
+  index: -1
+cion3
+  rotate: true
+  xy: 84, 1726
+  size: 56, 72
+  orig: 56, 72
+  offset: 0, 0
+  index: -1
+cion4
+  rotate: false
+  xy: 242, 1706
+  size: 100, 76
+  orig: 100, 76
+  offset: 0, 0
+  index: -1
+dizuo1
+  rotate: true
+  xy: 2, 59
+  size: 581, 589
+  orig: 581, 589
+  offset: 0, 0
+  index: -1
+dizuo3
+  rotate: true
+  xy: 505, 642
+  size: 504, 507
+  orig: 504, 507
+  offset: 0, 0
+  index: -1
+faguang-ding
+  rotate: false
+  xy: 1014, 585
+  size: 794, 561
+  orig: 1004, 658
+  offset: 117, 94
+  index: -1
+guang2
+  rotate: false
+  xy: 2, 1390
+  size: 921, 213
+  orig: 995, 216
+  offset: 38, 1
+  index: -1
+tiao-huang
+  rotate: false
+  xy: 593, 2
+  size: 1336, 581
+  orig: 1336, 581
+  offset: 0, 0
+  index: -1
+wa
+  rotate: true
+  xy: 2, 1010
+  size: 378, 501
+  orig: 500, 501
+  offset: 62, 0
+  index: -1
+yanzi1
+  rotate: true
+  xy: 865, 1605
+  size: 177, 392
+  orig: 182, 398
+  offset: 0, 5
+  index: -1
+yanzi2
+  rotate: false
+  xy: 344, 1652
+  size: 133, 130
+  orig: 163, 140
+  offset: 0, 10
+  index: -1
+zi
+  rotate: false
+  xy: 479, 1645
+  size: 384, 137
+  orig: 388, 139
+  offset: 2, 2
+  index: -1
+
+jinershi2.png
+size: 1828,1408
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+dizuo2
+  rotate: false
+  xy: 2, 787
+  size: 624, 619
+  orig: 624, 619
+  offset: 0, 0
+  index: -1
+dizuo4
+  rotate: false
+  xy: 782, 2
+  size: 751, 751
+  orig: 751, 751
+  offset: 0, 0
+  index: -1
+faguang
+  rotate: false
+  xy: 628, 755
+  size: 1198, 651
+  orig: 1218, 662
+  offset: 20, 0
+  index: -1
+huan-beihou
+  rotate: false
+  xy: 2, 71
+  size: 778, 682
+  orig: 778, 682
+  offset: 0, 0
+  index: -1
+
+jinershi3.png
+size: 1476,1338
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+hei
+  rotate: true
+  xy: 2, 2
+  size: 1334, 750
+  orig: 1334, 750
+  offset: 0, 0
+  index: -1
+jinbi
+  rotate: true
+  xy: 754, 62
+  size: 1274, 720
+  orig: 1277, 722
+  offset: 2, 1
+  index: -1

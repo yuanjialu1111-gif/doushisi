@@ -1,0 +1,69 @@
+
+hongyundangtou.png
+size: 1843,495
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+dipan
+  rotate: true
+  xy: 495, 27
+  size: 466, 457
+  orig: 468, 459
+  offset: 1, 1
+  index: -1
+duilian-you
+  rotate: true
+  xy: 1065, 6
+  size: 82, 387
+  orig: 82, 387
+  offset: 0, 0
+  index: -1
+duilian-zuo
+  rotate: true
+  xy: 1454, 411
+  size: 82, 387
+  orig: 82, 387
+  offset: 0, 0
+  index: -1
+fuwen
+  rotate: false
+  xy: 2, 2
+  size: 491, 491
+  orig: 494, 495
+  offset: 1, 2
+  index: -1
+fuwen-di
+  rotate: true
+  xy: 1065, 90
+  size: 403, 384
+  orig: 430, 396
+  offset: 20, 7
+  index: -1
+guang3
+  rotate: false
+  xy: 1454, 4
+  size: 94, 105
+  orig: 111, 116
+  offset: 5, 3
+  index: -1
+heye
+  rotate: true
+  xy: 1710, 65
+  size: 344, 113
+  orig: 344, 120
+  offset: 0, 6
+  index: -1
+yu1
+  rotate: true
+  xy: 1451, 111
+  size: 298, 257
+  orig: 298, 257
+  offset: 0, 0
+  index: -1
+zi
+  rotate: true
+  xy: 954, 77
+  size: 416, 109
+  orig: 418, 111
+  offset: 1, 1
+  index: -1

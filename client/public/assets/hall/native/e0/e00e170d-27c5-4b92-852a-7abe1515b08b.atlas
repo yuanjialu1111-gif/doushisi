@@ -1,0 +1,83 @@
+
+wangye.png
+size: 425,122
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+di
+  rotate: false
+  xy: 134, 8
+  size: 96, 112
+  orig: 96, 112
+  offset: 0, 0
+  index: -1
+dou
+  rotate: false
+  xy: 336, 2
+  size: 52, 38
+  orig: 52, 38
+  offset: 0, 0
+  index: -1
+dou2
+  rotate: false
+  xy: 390, 29
+  size: 33, 33
+  orig: 33, 35
+  offset: 0, 1
+  index: -1
+dou3
+  rotate: true
+  xy: 390, 64
+  size: 56, 33
+  orig: 56, 35
+  offset: 0, 1
+  index: -1
+dou4
+  rotate: true
+  xy: 348, 68
+  size: 52, 38
+  orig: 52, 38
+  offset: 0, 0
+  index: -1
+dou5
+  rotate: false
+  xy: 348, 42
+  size: 27, 20
+  orig: 34, 20
+  offset: 7, 0
+  index: -1
+guang
+  rotate: true
+  xy: 2, 8
+  size: 112, 130
+  orig: 119, 130
+  offset: 4, 0
+  index: -1
+shanguang
+  rotate: false
+  xy: 377, 54
+  size: 11, 12
+  orig: 12, 12
+  offset: 0, 0
+  index: -1
+shouchong
+  rotate: true
+  xy: 308, 42
+  size: 78, 38
+  orig: 78, 38
+  offset: 0, 0
+  index: -1
+wenzi
+  rotate: false
+  xy: 232, 3
+  size: 102, 34
+  orig: 109, 35
+  offset: 2, 1
+  index: -1
+xing
+  rotate: false
+  xy: 232, 39
+  size: 74, 81
+  orig: 77, 85
+  offset: 0, 4
+  index: -1

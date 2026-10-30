@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "variantKey": "14:0",
+  "ruleVersion": "wenchuan-independent-v1",
+  "rulebook": {
+    "path": "docs/rules/release/14-0/rulebook.json",
+    "sha256": "32858d686f456f8d3f4ccff7e2d926428c306a5659942de18e809cbe5d65e2f4"
+  },
+  "cases": {
+    "path": "docs/rules/release/14-0/cases.json",
+    "sha256": "f7c657b3bec37948a586329d58c75932d76765dd8e4a3761eb8abaedbb323596"
+  },
+  "generatedAt": "2026-10-03T06:01:10.889Z"
+}

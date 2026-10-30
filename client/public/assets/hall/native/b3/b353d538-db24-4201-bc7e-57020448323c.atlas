@@ -1,0 +1,160 @@
+
+shouchongyouli.png
+size: 1871,978
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+12dou
+  rotate: false
+  xy: 1404, 38
+  size: 254, 44
+  orig: 254, 44
+  offset: 0, 0
+  index: -1
+12yuan
+  rotate: true
+  xy: 1780, 156
+  size: 242, 44
+  orig: 244, 46
+  offset: 1, 1
+  index: -1
+6
+  rotate: false
+  xy: 1404, 84
+  size: 262, 44
+  orig: 264, 46
+  offset: 1, 1
+  index: -1
+de
+  rotate: false
+  xy: 1668, 52
+  size: 81, 76
+  orig: 83, 78
+  offset: 1, 1
+  index: -1
+dian2
+  rotate: false
+  xy: 1594, 378
+  size: 31, 32
+  orig: 40, 40
+  offset: 5, 4
+  index: -1
+dise
+  rotate: false
+  xy: 2, 294
+  size: 1062, 682
+  orig: 1120, 682
+  offset: 58, 0
+  index: -1
+dizuo
+  rotate: false
+  xy: 1404, 130
+  size: 374, 232
+  orig: 374, 232
+  offset: 0, 0
+  index: -1
+douzi
+  rotate: false
+  xy: 1689, 400
+  size: 139, 94
+  orig: 143, 98
+  offset: 2, 2
+  index: -1
+guang1
+  rotate: false
+  xy: 1689, 722
+  size: 154, 254
+  orig: 200, 298
+  offset: 26, 0
+  index: -1
+guang2
+  rotate: false
+  xy: 1689, 496
+  size: 174, 224
+  orig: 232, 258
+  offset: 42, 0
+  index: -1
+guang3
+  rotate: false
+  xy: 2, 9
+  size: 748, 283
+  orig: 831, 317
+  offset: 32, 0
+  index: -1
+saoguang1
+  rotate: false
+  xy: 1404, 364
+  size: 131, 612
+  orig: 141, 646
+  offset: 5, 22
+  index: -1
+saoguang2
+  rotate: false
+  xy: 1537, 412
+  size: 150, 564
+  orig: 150, 564
+  offset: 0, 0
+  index: -1
+shouchong
+  rotate: false
+  xy: 1060, 8
+  size: 305, 65
+  orig: 305, 65
+  offset: 0, 0
+  index: -1
+tubiao
+  rotate: false
+  xy: 752, 2
+  size: 306, 290
+  orig: 346, 301
+  offset: 8, 2
+  index: -1
+tuopan
+  rotate: true
+  xy: 1066, 75
+  size: 901, 336
+  orig: 901, 336
+  offset: 0, 0
+  index: -1
+xing
+  rotate: false
+  xy: 1751, 51
+  size: 72, 77
+  orig: 77, 85
+  offset: 0, 7
+  index: -1
+xingxing
+  rotate: false
+  xy: 1845, 736
+  size: 19, 20
+  orig: 24, 24
+  offset: 3, 2
+  index: -1
+yici
+  rotate: true
+  xy: 1845, 758
+  size: 218, 24
+  orig: 220, 26
+  offset: 1, 1
+  index: -1
+yinfu1
+  rotate: true
+  xy: 1830, 458
+  size: 36, 30
+  orig: 36, 30
+  offset: 0, 0
+  index: -1
+yinfu2
+  rotate: false
+  xy: 1367, 13
+  size: 31, 60
+  orig: 33, 62
+  offset: 1, 1
+  index: -1
+yinfu3
+  rotate: true
+  xy: 1537, 374
+  size: 36, 55
+  orig: 36, 55
+  offset: 0, 0
+  index: -1

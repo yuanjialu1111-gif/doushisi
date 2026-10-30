@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "status": "approved",
+  "basis": "user-approved",
+  "variantKey": "5:0",
+  "ruleVersion": "anyue-independent-v1",
+  "title": "安岳斗十四独立规则 v1",
+  "approval": {
+    "path": "docs/rules/release/5-0/approval.json",
+    "sha256": "688e5409ba70b06edd3d40d31c81fc3d50cbff3c4e48feced23157dd0164d86b"
+  },
+  "requiredCoverage": [
+    "concealed-four-pairs",
+    "payments",
+    "piao"
+  ],
+  "sources": [
+    "docs/rules/ANYUE-INDEPENDENT.md",
+    "docs/rules/cases/anyue-pack-v1.json",
+    "apps/server/src/game/anyue-pack.ts",
+    "apps/server/src/game/anyue-win.ts",
+    "apps/server/src/game/anyue-round.ts"
+  ],
+  "summary": {
+    "deck": "52 ordinary cards plus one small king, one big king and one white face; qiToWang changes only the four sevens.",
+    "win": "Four groups: sum-14 pairs, exposed same-rank triples, or quads; concealed four-pairs is independent.",
+    "piao": "Piao is a payment-formula addend: none, mandatory one, or per-player 0/1 selection with timeout zero.",
+    "scoring": "Piao modifies the base factor before the capped fan formula; it is not a standalone fan item.",
+    "payments": "Self-draw charges every other player; discard charges the source; baopei makes the source pay all shares."
+  }
+}

@@ -1,0 +1,1165 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-09-08T09:19:52.748Z",
+  "status": "client-resource-evidence-only",
+  "sources": [
+    {
+      "file": "work/apk/assets/assets/dss/config.json",
+      "sha256": "25f64acb7fd4ed3c13fee0c827945e041005fa2c7ebf29513601fb5f3927f102",
+      "bytes": 72455
+    },
+    {
+      "file": "outputs/apk-deep-analysis/modules/dss/dss_tools.js",
+      "sha256": "d8a9398b785971520461a36e89d5006d5ea3e28914fcef99a7360610818ac308",
+      "bytes": 3610
+    },
+    {
+      "file": "work/apk/assets/assets/dss/index.js",
+      "sha256": "52680e5a2fb2c2934f4ae0829ad1604c53a7fe066939144e7c0d070c929838be",
+      "bytes": 206628
+    },
+    {
+      "file": "outputs/apk-deep-analysis/modules/main/FrameGameConfig.js",
+      "sha256": "d3bd17bf6ad48f75c7f82c0de158d597f5d1b5346b7991eedcebf850f20c66b4",
+      "bytes": 69499
+    },
+    {
+      "file": "outputs/apk-deep-analysis/modules/dss/dssboot.js",
+      "sha256": "859b1db3ed6b069fdfd00e21c654fa54e904cd81bf0854f98fab683a00bb12b2",
+      "bytes": 1941
+    },
+    {
+      "file": "outputs/apk-deep-analysis/modules/dss/dss_settle_UIController.js",
+      "sha256": "d71c61d96f902a0af38eb94c387d6b970e46721b1f12c6c5137ccf96576d12a7",
+      "bytes": 28365
+    },
+    {
+      "file": "work/research-chat-followup/inspect-card-assets.mjs",
+      "sha256": "f8c803a993b8c97b6f6a9e2821365f91eb23fa321e8a2a2528f333ce81ae79c0",
+      "bytes": 5680
+    }
+  ],
+  "ordinaryFaceCount": 52,
+  "numericResources": 59,
+  "assets": [
+    {
+      "id": 0,
+      "path": "res/cards/0",
+      "frameUuid": "38cb8c55-0175-417d-b54a-c236ced26b3d",
+      "frame": "work/apk/assets/assets/dss/import/38/38cb8c55-0175-417d-b54a-c236ced26b3d.json",
+      "frameSha256": "e6114b55fc994297522deb348168e772b7bc1b1045091cb063ae80f254497ced",
+      "rect": [
+        403,
+        403,
+        194,
+        250
+      ],
+      "rotated": false,
+      "texture": "work/apk/assets/assets/dss/native/11/11f18dc8d.png",
+      "textureSha256": "115309345b9272f82b52518656388df12eac1c6213f51261f0c64eb1d7a882ff"
+    },
+    {
+      "id": 101,
+      "path": "res/cards/101",
+      "frameUuid": "df88d6a4-f467-402b-b90b-fa770a18892b",
+      "frame": "work/apk/assets/assets/dss/import/df/df88d6a4-f467-402b-b90b-fa770a18892b.json",
+      "frameSha256": "1ed749bd09205650efeb261b6e6cbd0f5c9f26a9797a26e8e2bb78a135a22cbc",
+      "rect": [
+        3,
+        603,
+        194,
+        250
+      ],
+      "rotated": true,
+      "texture": "work/apk/assets/assets/dss/native/12/12cd27f4d.png",
+      "textureSha256": "f5add6f0fad8c06984809e80b2c0964bedbd353939f9989c7a1de40351383ee7"
+    },
+    {
+      "id": 102,
+      "path": "res/cards/102",
+      "frameUuid": "f85fef15-fe0d-4e7e-9d71-a19f1f7611a8",
+      "frame": "work/apk/assets/assets/dss/import/f8/f85fef15-fe0d-4e7e-9d71-a19f1f7611a8.json",
+      "frameSha256": "e550a268cab3bb2455d7519c39811917c495e2b96bc02cd5ec3db711e0d375be",
+      "rect": [
+        3,
+        203,
+        194,
+        250
+      ],
+      "rotated": true,
+      "texture": "work/apk/assets/assets/dss/native/1b/1ba876df0.png",
+      "textureSha256": "5b16c0ae62c7af3f08198ca11c4bbf2003042ca2e0731a916dfb6541498f8b86"
+    },
+    {
+      "id": 103,
+      "path": "res/cards/103",
+      "frameUuid": "8b72d5cd-c5d9-4e12-81f7-253431f284c7",
+      "frame": "work/apk/assets/assets/dss/import/8b/8b72d5cd-c5d9-4e12-81f7-253431f284c7.json",
+      "frameSha256": "e63a124357203987eca1e3b952a5bb9e5058f217a1701da181e199fea70bff8b",
+      "rect": [
+        515,
+        603,
+        194,
+        250
+      ],
+      "rotated": true,
+      "texture": "work/apk/assets/assets/dss/native/13/132a9d597.png",
+      "textureSha256": "0c4a2bb3931092e0e8d2ed9e66dc2a3f6adf6c64a8e11b4ca6a865980e5b2a0f"
+    },
+    {
+      "id": 104,
+      "path": "res/cards/104",
+      "frameUuid": "e5b87bf7-bcfc-4e8a-8b5d-32ed2ff780f8",
+      "frame": "work/apk/assets/assets/dss/import/e5/e5b87bf7-bcfc-4e8a-8b5d-32ed2ff780f8.json",
+      "frameSha256": "ef471e2aec1c640d04275f0b1f6d2cd65ee9082da54ff0ac22ff1b60a723a694",
+      "rect": [
+        3,
+        803,
+        194,
+        250
+      ],
+      "rotated": true,
+      "texture": "work/apk/assets/assets/dss/native/12/12cd27f4d.png",
+      "textureSha256": "f5add6f0fad8c06984809e80b2c0964bedbd353939f9989c7a1de40351383ee7"
+    },
+    {
+      "id": 105,
+      "path": "res/cards/105",
+      "frameUuid": "c5117f62-a6f2-4dde-b6a2-eb9c69496af0",
+      "frame": "work/apk/assets/assets/dss/import/c5/c5117f62-a6f2-4dde-b6a2-eb9c69496af0.json",
+      "frameSha256": "994b42505ed75ac4cce31f264bc33995cdd543dcb092507fceee481b7ffa8a3e",
+      "rect": [
+        513,
+        203,
+        194,
+        250
+      ],
+      "rotated": true,
+      "texture": "work/apk/assets/assets/dss/native/12/12cd27f4d.png",
+      "textureSha256": "f5add6f0fad8c06984809e80b2c0964bedbd353939f9989c7a1de40351383ee7"
+    },
+    {
+      "id": 106,
+      "path": "res/cards/106",
+      "frameUuid": "f77d4603-95d6-4373-8d67-16b6cc29308e",
+      "frame": "work/apk/assets/assets/dss/import/f7/f77d4603-95d6-4373-8d67-16b6cc29308e.json",
+      "frameSha256": "0a7aa96248b916887f8fe350cea569e7966089e9846ac50e8031fd9397bc1e4b",
+      "rect": [
+        771,
+        803,
+        194,
+        250
+      ],
+      "rotated": true,
+      "texture": "work/apk/assets/assets/dss/native/12/12cd27f4d.png",
+      "textureSha256": "f5add6f0fad8c06984809e80b2c0964bedbd353939f9989c7a1de40351383ee7"
+    },
+    {
+      "id": 107,
+      "path": "res/cards/107",
+      "frameUuid": "f7979f7c-faea-4d38-bae4-a4f89b944d0e",
+      "frame": "work/apk/assets/assets/dss/import/f7/f7979f7c-faea-4d38-bae4-a4f89b944d0e.json",
+      "frameSha256": "5097ccacb7b81ebb4ac4ca7ec9ed7a793ee30b54f8f1c2c55c340550d823ffa7",
+      "rect": [
+        3,
+        3,
+        194,
+        250
+      ],
+      "rotated": true,
+      "texture": "work/apk/assets/assets/dss/native/1b/1ba876df0.png",
+      "textureSha256": "5b16c0ae62c7af3f08198ca11c4bbf2003042ca2e0731a916dfb6541498f8b86"
+    },
+    {
+      "id": 108,
+      "path": "res/cards/108",
+      "frameUuid": "1287ce95-a799-468a-ac7e-e0ebdac30bdf",
+      "frame": "work/apk/assets/assets/dss/import/12/1287ce95-a799-468a-ac7e-e0ebdac30bdf.json",
+      "frameSha256": "24ee028f070b956d67ccf93fdf5e3fc31c8748d898d578e16b1279709ee720f4",
+      "rect": [
+        203,
+        3,
+        194,
+        250
+      ],
+      "rotated": true,
+      "texture": "work/apk/assets/assets/dss/native/11/11f18dc8d.png",
+      "textureSha256": "115309345b9272f82b52518656388df12eac1c6213f51261f0c64eb1d7a882ff"
+    },
+    {
+      "id": 109,
+      "path": "res/cards/109",
+      "frameUuid": "3c2f194b-1a61-4e9a-bc89-6b53d7a20348",
+      "frame": "work/apk/assets/assets/dss/import/3c/3c2f194b-1a61-4e9a-bc89-6b53d7a20348.json",
+      "frameSha256": "e72ea52798faa7fb08e140afe8e0bfb40f1053a8d8f0a2d2192956dfc1730850",
+      "rect": [
+        403,
+        659,
+        194,
+        250
+      ],
+      "rotated": false,
+      "texture": "work/apk/assets/assets/dss/native/11/11f18dc8d.png",
+      "textureSha256": "115309345b9272f82b52518656388df12eac1c6213f51261f0c64eb1d7a882ff"
+    },
+    {
+      "id": 110,
+      "path": "res/cards/110",
+      "frameUuid": "643240fb-e3ed-4eda-84e5-2849af00f9ef",
+      "frame": "work/apk/assets/assets/dss/import/64/643240fb-e3ed-4eda-84e5-2849af00f9ef.json",
+      "frameSha256": "6cd5de0e47f237083f5c9be9a419ee214404b317a1f28e897a1f8eae2f2721f3",
+      "rect": [
+        257,
+        203,
+        194,
+        250
+      ],
+      "rotated": true,
+      "texture": "work/apk/assets/assets/dss/native/13/132a9d597.png",
+      "textureSha256": "0c4a2bb3931092e0e8d2ed9e66dc2a3f6adf6c64a8e11b4ca6a865980e5b2a0f"
+    },
+    {
+      "id": 111,
+      "path": "res/cards/111",
+      "frameUuid": "08e40766-a47a-4279-acca-a7a8dd55d144",
+      "frame": "work/apk/assets/assets/dss/import/08/08e40766-a47a-4279-acca-a7a8dd55d144.json",
+      "frameSha256": "a664f13d0f77be759d39cbcf22c674c9957d57c0a889039ac933fc47ab06721b",
+      "rect": [
+        3,
+        259,
+        194,
+        250
+      ],
+      "rotated": false,
+      "texture": "work/apk/assets/assets/dss/native/11/11f18dc8d.png",
+      "textureSha256": "115309345b9272f82b52518656388df12eac1c6213f51261f0c64eb1d7a882ff"
+    },
+    {
+      "id": 112,
+      "path": "res/cards/112",
+      "frameUuid": "00412ba8-3657-403c-9ff4-022e3759c969",
+      "frame": "work/apk/assets/assets/dss/import/00/00412ba8-3657-403c-9ff4-022e3759c969.json",
+      "frameSha256": "195dcb2592320879d63b868ade0305b170791e0158605f7821ac50329c71bda7",
+      "rect": [
+        3,
+        3,
+        194,
+        250
+      ],
+      "rotated": false,
+      "texture": "work/apk/assets/assets/dss/native/11/11f18dc8d.png",
+      "textureSha256": "115309345b9272f82b52518656388df12eac1c6213f51261f0c64eb1d7a882ff"
+    },
+    {
+      "id": 113,
+      "path": "res/cards/113",
+      "frameUuid": "de137f7a-3765-45a4-9902-44e5d3c050af",
+      "frame": "work/apk/assets/assets/dss/import/de/de137f7a-3765-45a4-9902-44e5d3c050af.json",
+      "frameSha256": "2d1a65f435ba8985cdc6529975435d559efa18b2ee5ca17dcb6a7efaca0fa909",
+      "rect": [
+        515,
+        403,
+        194,
+        250
+      ],
+      "rotated": true,
+      "texture": "work/apk/assets/assets/dss/native/12/12cd27f4d.png",
+      "textureSha256": "f5add6f0fad8c06984809e80b2c0964bedbd353939f9989c7a1de40351383ee7"
+    },
+    {
+      "id": 201,
+      "path": "res/cards/201",
+      "frameUuid": "188972d2-55f8-476b-9a10-fbafb13e6fb4",
+      "frame": "work/apk/assets/assets/dss/import/18/188972d2-55f8-476b-9a10-fbafb13e6fb4.json",
+      "frameSha256": "e0ccf62bfd9ce8b3cda3a6cd70fd68148da616fd0ebe643fadfe2874f5882b17",
+      "rect": [
+        459,
+        3,
+        194,
+        250
+      ],
+      "rotated": true,
+      "texture": "work/apk/assets/assets/dss/native/11/11f18dc8d.png",
+      "textureSha256": "115309345b9272f82b52518656388df12eac1c6213f51261f0c64eb1d7a882ff"
+    },
+    {
+      "id": 202,
+      "path": "res/cards/202",
+      "frameUuid": "6a93fa67-73bd-4fcd-b44a-c753b84e8ffc",
+      "frame": "work/apk/assets/assets/dss/import/6a/6a93fa67-73bd-4fcd-b44a-c753b84e8ffc.json",
+      "frameSha256": "228b566fd7d400e385d8d12a67bf16663d0b82b50a7bfb4d296df676d5667475",
+      "rect": [
+        513,
+        203,
+        194,
+        250
+      ],
+      "rotated": true,
+      "texture": "work/apk/assets/assets/dss/native/13/132a9d597.png",
+      "textureSha256": "0c4a2bb3931092e0e8d2ed9e66dc2a3f6adf6c64a8e11b4ca6a865980e5b2a0f"
+    },
+    {
+      "id": 203,
+      "path": "res/cards/203",
+      "frameUuid": "878b40c0-0b45-4078-879c-0ebbceb73769",
+      "frame": "work/apk/assets/assets/dss/import/87/878b40c0-0b45-4078-879c-0ebbceb73769.json",
+      "frameSha256": "b5958895dca1d42b304abb2b9597dbc48ca6517e9c4d4a168fb95f07d95d1532",
+      "rect": [
+        3,
+        603,
+        194,
+        250
+      ],
+      "rotated": true,
+      "texture": "work/apk/assets/assets/dss/native/13/132a9d597.png",
+      "textureSha256": "0c4a2bb3931092e0e8d2ed9e66dc2a3f6adf6c64a8e11b4ca6a865980e5b2a0f"
+    },
+    {
+      "id": 204,
+      "path": "res/cards/204",
+      "frameUuid": "abc35e82-3f15-44f3-821a-45f04c2eb1cf",
+      "frame": "work/apk/assets/assets/dss/import/ab/abc35e82-3f15-44f3-821a-45f04c2eb1cf.json",
+      "frameSha256": "8f064aa1f52a3d9e80e367abc59731aa557295575f8c8538cb105efbab8ffb66",
+      "rect": [
+        515,
+        3,
+        194,
+        250
+      ],
+      "rotated": true,
+      "texture": "work/apk/assets/assets/dss/native/12/12cd27f4d.png",
+      "textureSha256": "f5add6f0fad8c06984809e80b2c0964bedbd353939f9989c7a1de40351383ee7"
+    },
+    {
+      "id": 205,
+      "path": "res/cards/205",
+      "frameUuid": "e0426aeb-0cc1-4310-b807-5e8bcd48a699",
+      "frame": "work/apk/assets/assets/dss/import/e0/e0426aeb-0cc1-4310-b807-5e8bcd48a699.json",
+      "frameSha256": "e778b810c1dbac323d78b4e90e6005cdd13d1417beec5b7158e690bea342575e",
+      "rect": [
+        259,
+        603,
+        194,
+        250
+      ],
+      "rotated": true,
+      "texture": "work/apk/assets/assets/dss/native/12/12cd27f4d.png",
+      "textureSha256": "f5add6f0fad8c06984809e80b2c0964bedbd353939f9989c7a1de40351383ee7"
+    },
+    {
+      "id": 206,
+      "path": "res/cards/206",
+      "frameUuid": "da3d5837-479e-458a-9a45-9d036a34d975",
+      "frame": "work/apk/assets/assets/dss/import/da/da3d5837-479e-458a-9a45-9d036a34d975.json",
+      "frameSha256": "09fc7a7e4062495705e30c5e3c74c7c59c6600d58a6108738e90c836e4f9f0f1",
+      "rect": [
+        769,
+        203,
+        194,
+        250
+      ],
+      "rotated": true,
+      "texture": "work/apk/assets/assets/dss/native/12/12cd27f4d.png",
+      "textureSha256": "f5add6f0fad8c06984809e80b2c0964bedbd353939f9989c7a1de40351383ee7"
+    },
+    {
+      "id": 207,
+      "path": "res/cards/207",
+      "frameUuid": "38a8e949-ab27-4256-b128-79bdb1579720",
+      "frame": "work/apk/assets/assets/dss/import/38/38a8e949-ab27-4256-b128-79bdb1579720.json",
+      "frameSha256": "fbbd6c7848fa13f3e8a3473bb673963c914584f6cb63cf7642f79c3c26088081",
+      "rect": [
+        659,
+        203,
+        194,
+        250
+      ],
+      "rotated": true,
+      "texture": "work/apk/assets/assets/dss/native/11/11f18dc8d.png",
+      "textureSha256": "115309345b9272f82b52518656388df12eac1c6213f51261f0c64eb1d7a882ff"
+    },
+    {
+      "id": 208,
+      "path": "res/cards/208",
+      "frameUuid": "8bddac4a-60ca-4275-a299-85553ea0a07b",
+      "frame": "work/apk/assets/assets/dss/import/8b/8bddac4a-60ca-4275-a299-85553ea0a07b.json",
+      "frameSha256": "cb776ed790c8caadc823ea97137958a3096001f7ca6dcc8c85efccdd2851f6d2",
+      "rect": [
+        771,
+        603,
+        194,
+        250
+      ],
+      "rotated": true,
+      "texture": "work/apk/assets/assets/dss/native/13/132a9d597.png",
+      "textureSha256": "0c4a2bb3931092e0e8d2ed9e66dc2a3f6adf6c64a8e11b4ca6a865980e5b2a0f"
+    },
+    {
+      "id": 209,
+      "path": "res/cards/209",
+      "frameUuid": "b359c5c3-d4d7-4ad0-8cbd-f5216ab9d553",
+      "frame": "work/apk/assets/assets/dss/import/b3/b359c5c3-d4d7-4ad0-8cbd-f5216ab9d553.json",
+      "frameSha256": "5267c34ea34955c65039e4faf2a816e199c61a5104d4778cf1363cc0f0907a39",
+      "rect": [
+        771,
+        3,
+        194,
+        250
+      ],
+      "rotated": true,
+      "texture": "work/apk/assets/assets/dss/native/12/12cd27f4d.png",
+      "textureSha256": "f5add6f0fad8c06984809e80b2c0964bedbd353939f9989c7a1de40351383ee7"
+    },
+    {
+      "id": 210,
+      "path": "res/cards/210",
+      "frameUuid": "ed94ebac-361d-411f-bb99-e89f8635bfb4",
+      "frame": "work/apk/assets/assets/dss/import/ed/ed94ebac-361d-411f-bb99-e89f8635bfb4.json",
+      "frameSha256": "0941193883e2eac28862b5ef23fdd96dba186e1916d6c36436159152ef583265",
+      "rect": [
+        259,
+        803,
+        194,
+        250
+      ],
+      "rotated": true,
+      "texture": "work/apk/assets/assets/dss/native/12/12cd27f4d.png",
+      "textureSha256": "f5add6f0fad8c06984809e80b2c0964bedbd353939f9989c7a1de40351383ee7"
+    },
+    {
+      "id": 211,
+      "path": "res/cards/211",
+      "frameUuid": "98a8a4a9-2f0a-49eb-a5a4-a5c48c0cc09c",
+      "frame": "work/apk/assets/assets/dss/import/98/98a8a4a9-2f0a-49eb-a5a4-a5c48c0cc09c.json",
+      "frameSha256": "3c24a6847348f2f2fd16eb99414e338f75d175cd3e0722862af8aede10ef7582",
+      "rect": [
+        515,
+        803,
+        194,
+        250
+      ],
+      "rotated": true,
+      "texture": "work/apk/assets/assets/dss/native/13/132a9d597.png",
+      "textureSha256": "0c4a2bb3931092e0e8d2ed9e66dc2a3f6adf6c64a8e11b4ca6a865980e5b2a0f"
+    },
+    {
+      "id": 212,
+      "path": "res/cards/212",
+      "frameUuid": "db2e769d-c057-4373-9410-f4c92fa4ce31",
+      "frame": "work/apk/assets/assets/dss/import/db/db2e769d-c057-4373-9410-f4c92fa4ce31.json",
+      "frameSha256": "ac86ce1b2ba6152293cb897f8db1d61a990ef1788c918983bcbeab9b6b738e4e",
+      "rect": [
+        3,
+        403,
+        194,
+        250
+      ],
+      "rotated": true,
+      "texture": "work/apk/assets/assets/dss/native/12/12cd27f4d.png",
+      "textureSha256": "f5add6f0fad8c06984809e80b2c0964bedbd353939f9989c7a1de40351383ee7"
+    },
+    {
+      "id": 213,
+      "path": "res/cards/213",
+      "frameUuid": "38448481-8759-42ce-aa5c-e773ac240297",
+      "frame": "work/apk/assets/assets/dss/import/38/38448481-8759-42ce-aa5c-e773ac240297.json",
+      "frameSha256": "4464befdceb19ae3112836d8e0f07f09a7c9100256762e4f08beb99a97d08986",
+      "rect": [
+        403,
+        203,
+        194,
+        250
+      ],
+      "rotated": true,
+      "texture": "work/apk/assets/assets/dss/native/11/11f18dc8d.png",
+      "textureSha256": "115309345b9272f82b52518656388df12eac1c6213f51261f0c64eb1d7a882ff"
+    },
+    {
+      "id": 301,
+      "path": "res/cards/301",
+      "frameUuid": "fe67a3b8-60c2-4102-a96f-150e6ebbf1bf",
+      "frame": "work/apk/assets/assets/dss/import/fe/fe67a3b8-60c2-4102-a96f-150e6ebbf1bf.json",
+      "frameSha256": "58f93206b00ab239e46fd50d54de174942e5f70a58a87714df8df0a22fd54d52",
+      "rect": [
+        3,
+        403,
+        194,
+        250
+      ],
+      "rotated": true,
+      "texture": "work/apk/assets/assets/dss/native/1b/1ba876df0.png",
+      "textureSha256": "5b16c0ae62c7af3f08198ca11c4bbf2003042ca2e0731a916dfb6541498f8b86"
+    },
+    {
+      "id": 302,
+      "path": "res/cards/302",
+      "frameUuid": "e2b7a63e-8f97-4f47-82d2-683f72fa44e6",
+      "frame": "work/apk/assets/assets/dss/import/e2/e2b7a63e-8f97-4f47-82d2-683f72fa44e6.json",
+      "frameSha256": "dfe0c37f18cb6caee3aad902119a5d883b256c2be79c0949c4c261231d0293b7",
+      "rect": [
+        771,
+        603,
+        194,
+        250
+      ],
+      "rotated": true,
+      "texture": "work/apk/assets/assets/dss/native/12/12cd27f4d.png",
+      "textureSha256": "f5add6f0fad8c06984809e80b2c0964bedbd353939f9989c7a1de40351383ee7"
+    },
+    {
+      "id": 303,
+      "path": "res/cards/303",
+      "frameUuid": "97ff1c44-50ed-430a-9e4a-41c25ba6e76d",
+      "frame": "work/apk/assets/assets/dss/import/97/97ff1c44-50ed-430a-9e4a-41c25ba6e76d.json",
+      "frameSha256": "209f97516cf6146349bffff0aac929eed3121c672dc3e34643d99f4368277689",
+      "rect": [
+        259,
+        803,
+        194,
+        250
+      ],
+      "rotated": true,
+      "texture": "work/apk/assets/assets/dss/native/13/132a9d597.png",
+      "textureSha256": "0c4a2bb3931092e0e8d2ed9e66dc2a3f6adf6c64a8e11b4ca6a865980e5b2a0f"
+    },
+    {
+      "id": 304,
+      "path": "res/cards/304",
+      "frameUuid": "a1fa7abc-7365-46f3-abd6-74bacf828a64",
+      "frame": "work/apk/assets/assets/dss/import/a1/a1fa7abc-7365-46f3-abd6-74bacf828a64.json",
+      "frameSha256": "c2035c3616caa30e646eae0394f03074696c85db7ccd71c9a23a02da615cf616",
+      "rect": [
+        3,
+        3,
+        194,
+        250
+      ],
+      "rotated": true,
+      "texture": "work/apk/assets/assets/dss/native/12/12cd27f4d.png",
+      "textureSha256": "f5add6f0fad8c06984809e80b2c0964bedbd353939f9989c7a1de40351383ee7"
+    },
+    {
+      "id": 305,
+      "path": "res/cards/305",
+      "frameUuid": "28ec2f7d-5ade-4244-93cf-9e1371d3235d",
+      "frame": "work/apk/assets/assets/dss/import/28/28ec2f7d-5ade-4244-93cf-9e1371d3235d.json",
+      "frameSha256": "7aa65fccafb61a2ea8b2a22463347567e70e9ad40f03274d4ec5035a956495bb",
+      "rect": [
+        203,
+        203,
+        194,
+        250
+      ],
+      "rotated": false,
+      "texture": "work/apk/assets/assets/dss/native/11/11f18dc8d.png",
+      "textureSha256": "115309345b9272f82b52518656388df12eac1c6213f51261f0c64eb1d7a882ff"
+    },
+    {
+      "id": 306,
+      "path": "res/cards/306",
+      "frameUuid": "f1146319-5c65-4458-982a-44fed7b14d40",
+      "frame": "work/apk/assets/assets/dss/import/f1/f1146319-5c65-4458-982a-44fed7b14d40.json",
+      "frameSha256": "59c299de5de9489e7078ea60d66d400c272fbfb662728b10da96afb84cac0ad6",
+      "rect": [
+        515,
+        803,
+        194,
+        250
+      ],
+      "rotated": true,
+      "texture": "work/apk/assets/assets/dss/native/12/12cd27f4d.png",
+      "textureSha256": "f5add6f0fad8c06984809e80b2c0964bedbd353939f9989c7a1de40351383ee7"
+    },
+    {
+      "id": 307,
+      "path": "res/cards/307",
+      "frameUuid": "32fc0eb2-5a6c-4bfb-9e04-e70c93d9305c",
+      "frame": "work/apk/assets/assets/dss/import/32/32fc0eb2-5a6c-4bfb-9e04-e70c93d9305c.json",
+      "frameSha256": "07e10ecddc15ecdc23704416420afbd69021ffcd4ea92e370b45fbc694763843",
+      "rect": [
+        203,
+        459,
+        194,
+        250
+      ],
+      "rotated": false,
+      "texture": "work/apk/assets/assets/dss/native/11/11f18dc8d.png",
+      "textureSha256": "115309345b9272f82b52518656388df12eac1c6213f51261f0c64eb1d7a882ff"
+    },
+    {
+      "id": 308,
+      "path": "res/cards/308",
+      "frameUuid": "471a2c0c-bdff-4e60-8af7-ce143315fafd",
+      "frame": "work/apk/assets/assets/dss/import/47/471a2c0c-bdff-4e60-8af7-ce143315fafd.json",
+      "frameSha256": "3576959f71ec17e1f758dc828adf94654ef3681c921b75cfd235347ac41f2096",
+      "rect": [
+        603,
+        603,
+        194,
+        250
+      ],
+      "rotated": true,
+      "texture": "work/apk/assets/assets/dss/native/11/11f18dc8d.png",
+      "textureSha256": "115309345b9272f82b52518656388df12eac1c6213f51261f0c64eb1d7a882ff"
+    },
+    {
+      "id": 309,
+      "path": "res/cards/309",
+      "frameUuid": "842ec764-6e02-4b1b-b68a-4601c9136388",
+      "frame": "work/apk/assets/assets/dss/import/84/842ec764-6e02-4b1b-b68a-4601c9136388.json",
+      "frameSha256": "dd1c73c014e622e76f7cc99ec1845cd7d171c9826ec4315218a37679477f3aa4",
+      "rect": [
+        515,
+        403,
+        194,
+        250
+      ],
+      "rotated": true,
+      "texture": "work/apk/assets/assets/dss/native/13/132a9d597.png",
+      "textureSha256": "0c4a2bb3931092e0e8d2ed9e66dc2a3f6adf6c64a8e11b4ca6a865980e5b2a0f"
+    },
+    {
+      "id": 310,
+      "path": "res/cards/310",
+      "frameUuid": "a298a241-6fa2-4916-87b3-f6113709e07f",
+      "frame": "work/apk/assets/assets/dss/import/a2/a298a241-6fa2-4916-87b3-f6113709e07f.json",
+      "frameSha256": "d4527cfe7300c485fb43f220cbadb1d65a4cd3450461a7384d4aa94496db7227",
+      "rect": [
+        259,
+        3,
+        194,
+        250
+      ],
+      "rotated": true,
+      "texture": "work/apk/assets/assets/dss/native/12/12cd27f4d.png",
+      "textureSha256": "f5add6f0fad8c06984809e80b2c0964bedbd353939f9989c7a1de40351383ee7"
+    },
+    {
+      "id": 311,
+      "path": "res/cards/311",
+      "frameUuid": "86927998-6115-461d-b436-9f9cabb29c75",
+      "frame": "work/apk/assets/assets/dss/import/86/86927998-6115-461d-b436-9f9cabb29c75.json",
+      "frameSha256": "095b266f83de1cf6e3b21f5117f764cd3a525c4c28f1ada8c089d3a1589b0d47",
+      "rect": [
+        771,
+        403,
+        194,
+        250
+      ],
+      "rotated": true,
+      "texture": "work/apk/assets/assets/dss/native/13/132a9d597.png",
+      "textureSha256": "0c4a2bb3931092e0e8d2ed9e66dc2a3f6adf6c64a8e11b4ca6a865980e5b2a0f"
+    },
+    {
+      "id": 312,
+      "path": "res/cards/312",
+      "frameUuid": "94c77974-d962-42c6-91eb-50d46f4540ad",
+      "frame": "work/apk/assets/assets/dss/import/94/94c77974-d962-42c6-91eb-50d46f4540ad.json",
+      "frameSha256": "fbb703c0aa66927909e0bab0ee1da490608257ea673bc6db633456b3aa8d3fcf",
+      "rect": [
+        3,
+        803,
+        194,
+        250
+      ],
+      "rotated": true,
+      "texture": "work/apk/assets/assets/dss/native/13/132a9d597.png",
+      "textureSha256": "0c4a2bb3931092e0e8d2ed9e66dc2a3f6adf6c64a8e11b4ca6a865980e5b2a0f"
+    },
+    {
+      "id": 313,
+      "path": "res/cards/313",
+      "frameUuid": "6e5fac39-b542-412c-ae7d-4a5b22d6d570",
+      "frame": "work/apk/assets/assets/dss/import/6e/6e5fac39-b542-412c-ae7d-4a5b22d6d570.json",
+      "frameSha256": "5602395677cc1f988d532824c9ceb48f746eba31a48bba04b1da42e1d6681fca",
+      "rect": [
+        769,
+        203,
+        194,
+        250
+      ],
+      "rotated": true,
+      "texture": "work/apk/assets/assets/dss/native/13/132a9d597.png",
+      "textureSha256": "0c4a2bb3931092e0e8d2ed9e66dc2a3f6adf6c64a8e11b4ca6a865980e5b2a0f"
+    },
+    {
+      "id": 401,
+      "path": "res/cards/401",
+      "frameUuid": "0f85c076-f80d-4e30-8bd5-10541942009a",
+      "frame": "work/apk/assets/assets/dss/import/0f/0f85c076-f80d-4e30-8bd5-10541942009a.json",
+      "frameSha256": "01a29a68fcb0c8cffec28bfc1f78aa5cb1c66d268205dd8198bd98f9c852fe0b",
+      "rect": [
+        3,
+        771,
+        194,
+        250
+      ],
+      "rotated": false,
+      "texture": "work/apk/assets/assets/dss/native/11/11f18dc8d.png",
+      "textureSha256": "115309345b9272f82b52518656388df12eac1c6213f51261f0c64eb1d7a882ff"
+    },
+    {
+      "id": 402,
+      "path": "res/cards/402",
+      "frameUuid": "72903071-cc8b-4744-bc5c-b709ea5fe07f",
+      "frame": "work/apk/assets/assets/dss/import/72/72903071-cc8b-4744-bc5c-b709ea5fe07f.json",
+      "frameSha256": "6c37290cf530194f70c1a7b8c71754e4509bd9b5ff68e9ce8e3e5e33a668b85d",
+      "rect": [
+        259,
+        403,
+        194,
+        250
+      ],
+      "rotated": true,
+      "texture": "work/apk/assets/assets/dss/native/13/132a9d597.png",
+      "textureSha256": "0c4a2bb3931092e0e8d2ed9e66dc2a3f6adf6c64a8e11b4ca6a865980e5b2a0f"
+    },
+    {
+      "id": 403,
+      "path": "res/cards/403",
+      "frameUuid": "24067b44-062d-47b6-b304-cb3de0d3f6fe",
+      "frame": "work/apk/assets/assets/dss/import/24/24067b44-062d-47b6-b304-cb3de0d3f6fe.json",
+      "frameSha256": "6b4031935211ab61bdd381fa38719e1bfd30618a22d580c600095cfb9e74494c",
+      "rect": [
+        715,
+        3,
+        194,
+        250
+      ],
+      "rotated": true,
+      "texture": "work/apk/assets/assets/dss/native/11/11f18dc8d.png",
+      "textureSha256": "115309345b9272f82b52518656388df12eac1c6213f51261f0c64eb1d7a882ff"
+    },
+    {
+      "id": 404,
+      "path": "res/cards/404",
+      "frameUuid": "0c272567-f247-41f0-8a58-3013dc43bfec",
+      "frame": "work/apk/assets/assets/dss/import/0c/0c272567-f247-41f0-8a58-3013dc43bfec.json",
+      "frameSha256": "88b9820531f18dc10c0e164de3e9c45eabae58ceeacacbd9f65105f8f30e7d0d",
+      "rect": [
+        3,
+        515,
+        194,
+        250
+      ],
+      "rotated": false,
+      "texture": "work/apk/assets/assets/dss/native/11/11f18dc8d.png",
+      "textureSha256": "115309345b9272f82b52518656388df12eac1c6213f51261f0c64eb1d7a882ff"
+    },
+    {
+      "id": 405,
+      "path": "res/cards/405",
+      "frameUuid": "be13ab3d-11b2-4b57-8a6f-b1256b94da5f",
+      "frame": "work/apk/assets/assets/dss/import/be/be13ab3d-11b2-4b57-8a6f-b1256b94da5f.json",
+      "frameSha256": "d113e494a855a92ce2ade4df23f227094497a60dca02b0a9d8a3745dc03b3f11",
+      "rect": [
+        3,
+        203,
+        194,
+        250
+      ],
+      "rotated": true,
+      "texture": "work/apk/assets/assets/dss/native/12/12cd27f4d.png",
+      "textureSha256": "f5add6f0fad8c06984809e80b2c0964bedbd353939f9989c7a1de40351383ee7"
+    },
+    {
+      "id": 406,
+      "path": "res/cards/406",
+      "frameUuid": "df3ce024-c282-47e3-965f-8c4e08f5bcbf",
+      "frame": "work/apk/assets/assets/dss/import/df/df3ce024-c282-47e3-965f-8c4e08f5bcbf.json",
+      "frameSha256": "b4ce8d17c9636f24fcf9f47bd4c23ede394ea5b840aaa1ffc35283ff7100f76d",
+      "rect": [
+        771,
+        403,
+        194,
+        250
+      ],
+      "rotated": true,
+      "texture": "work/apk/assets/assets/dss/native/12/12cd27f4d.png",
+      "textureSha256": "f5add6f0fad8c06984809e80b2c0964bedbd353939f9989c7a1de40351383ee7"
+    },
+    {
+      "id": 407,
+      "path": "res/cards/407",
+      "frameUuid": "884ea534-8c79-4c52-9774-b4f08f782de2",
+      "frame": "work/apk/assets/assets/dss/import/88/884ea534-8c79-4c52-9774-b4f08f782de2.json",
+      "frameSha256": "a79d6ff8d68e4911f7cb44f90178c8a66999afd01590bcec1d3ea95df879da89",
+      "rect": [
+        259,
+        603,
+        194,
+        250
+      ],
+      "rotated": true,
+      "texture": "work/apk/assets/assets/dss/native/13/132a9d597.png",
+      "textureSha256": "0c4a2bb3931092e0e8d2ed9e66dc2a3f6adf6c64a8e11b4ca6a865980e5b2a0f"
+    },
+    {
+      "id": 408,
+      "path": "res/cards/408",
+      "frameUuid": "725e5e7a-ec49-4f5b-9ead-6ecce2fecc31",
+      "frame": "work/apk/assets/assets/dss/import/72/725e5e7a-ec49-4f5b-9ead-6ecce2fecc31.json",
+      "frameSha256": "d0a144611cb2a9228257200aa809436279431e622903ca7b2721c4eb699d2bc4",
+      "rect": [
+        3,
+        403,
+        194,
+        250
+      ],
+      "rotated": true,
+      "texture": "work/apk/assets/assets/dss/native/13/132a9d597.png",
+      "textureSha256": "0c4a2bb3931092e0e8d2ed9e66dc2a3f6adf6c64a8e11b4ca6a865980e5b2a0f"
+    },
+    {
+      "id": 409,
+      "path": "res/cards/409",
+      "frameUuid": "e2789f01-abcc-4406-ad8a-eb03a54af91b",
+      "frame": "work/apk/assets/assets/dss/import/e2/e2789f01-abcc-4406-ad8a-eb03a54af91b.json",
+      "frameSha256": "2dff31b62570a9aa2d831f417a23afac891fa79d9910207b16f87a2eb05f6b80",
+      "rect": [
+        515,
+        603,
+        194,
+        250
+      ],
+      "rotated": true,
+      "texture": "work/apk/assets/assets/dss/native/12/12cd27f4d.png",
+      "textureSha256": "f5add6f0fad8c06984809e80b2c0964bedbd353939f9989c7a1de40351383ee7"
+    },
+    {
+      "id": 410,
+      "path": "res/cards/410",
+      "frameUuid": "9de1ee5f-8fb1-46ea-9063-b7c60587ec1b",
+      "frame": "work/apk/assets/assets/dss/import/9d/9de1ee5f-8fb1-46ea-9063-b7c60587ec1b.json",
+      "frameSha256": "dffb441fd5ae48ce8eddebe45c80e854c75a6ff2debf623e1aa84026216451c5",
+      "rect": [
+        771,
+        803,
+        194,
+        250
+      ],
+      "rotated": true,
+      "texture": "work/apk/assets/assets/dss/native/13/132a9d597.png",
+      "textureSha256": "0c4a2bb3931092e0e8d2ed9e66dc2a3f6adf6c64a8e11b4ca6a865980e5b2a0f"
+    },
+    {
+      "id": 411,
+      "path": "res/cards/411",
+      "frameUuid": "56d5d3a0-ee08-4353-9892-26ffa9eccd1b",
+      "frame": "work/apk/assets/assets/dss/import/56/56d5d3a0-ee08-4353-9892-26ffa9eccd1b.json",
+      "frameSha256": "604f53162cb3408d8e4f7c2a529a463146c6564958cd7fbbee766d2196a6c67a",
+      "rect": [
+        511,
+        3,
+        194,
+        250
+      ],
+      "rotated": true,
+      "texture": "work/apk/assets/assets/dss/native/13/132a9d597.png",
+      "textureSha256": "0c4a2bb3931092e0e8d2ed9e66dc2a3f6adf6c64a8e11b4ca6a865980e5b2a0f"
+    },
+    {
+      "id": 412,
+      "path": "res/cards/412",
+      "frameUuid": "508fee04-d27c-4576-a2b5-b64ef46d4fe9",
+      "frame": "work/apk/assets/assets/dss/import/50/508fee04-d27c-4576-a2b5-b64ef46d4fe9.json",
+      "frameSha256": "12c25948857dcc051267a02d259810773d1f0dec48840df9a12edc0344ec9a22",
+      "rect": [
+        603,
+        803,
+        194,
+        250
+      ],
+      "rotated": true,
+      "texture": "work/apk/assets/assets/dss/native/11/11f18dc8d.png",
+      "textureSha256": "115309345b9272f82b52518656388df12eac1c6213f51261f0c64eb1d7a882ff"
+    },
+    {
+      "id": 413,
+      "path": "res/cards/413",
+      "frameUuid": "37de4615-dd64-47b9-8571-c31621a94d4c",
+      "frame": "work/apk/assets/assets/dss/import/37/37de4615-dd64-47b9-8571-c31621a94d4c.json",
+      "frameSha256": "87aaf56f1ab7aa9d42a89ae2cc02e8e962e52e48684ab5906e8124194f5cba13",
+      "rect": [
+        203,
+        715,
+        194,
+        250
+      ],
+      "rotated": false,
+      "texture": "work/apk/assets/assets/dss/native/11/11f18dc8d.png",
+      "textureSha256": "115309345b9272f82b52518656388df12eac1c6213f51261f0c64eb1d7a882ff"
+    },
+    {
+      "id": 1001,
+      "path": "res/cards/1001",
+      "frameUuid": "dc27b573-9f54-4ec6-82ac-d651ec2dc664",
+      "frame": "work/apk/assets/assets/dss/import/dc/dc27b573-9f54-4ec6-82ac-d651ec2dc664.json",
+      "frameSha256": "a21ef873014698ea3f44a722d73dd324e4add274f57e5c2b1b7d6a96dc414028",
+      "rect": [
+        259,
+        403,
+        194,
+        250
+      ],
+      "rotated": true,
+      "texture": "work/apk/assets/assets/dss/native/12/12cd27f4d.png",
+      "textureSha256": "f5add6f0fad8c06984809e80b2c0964bedbd353939f9989c7a1de40351383ee7"
+    },
+    {
+      "id": 1002,
+      "path": "res/cards/1002",
+      "frameUuid": "5b28d55c-1efe-4b79-90ca-95fb4f6a1328",
+      "frame": "work/apk/assets/assets/dss/import/5b/5b28d55c-1efe-4b79-90ca-95fb4f6a1328.json",
+      "frameSha256": "9bef240d55d14ee312031b6b3c43c597974a6c0226663d79f2a0e8111cbe5385",
+      "rect": [
+        767,
+        3,
+        194,
+        250
+      ],
+      "rotated": true,
+      "texture": "work/apk/assets/assets/dss/native/13/132a9d597.png",
+      "textureSha256": "0c4a2bb3931092e0e8d2ed9e66dc2a3f6adf6c64a8e11b4ca6a865980e5b2a0f"
+    },
+    {
+      "id": 1003,
+      "path": "res/cards/1003",
+      "frameUuid": "401a6eff-61db-4e17-9379-7bd2781c48c3",
+      "frame": "work/apk/assets/assets/dss/import/40/401a6eff-61db-4e17-9379-7bd2781c48c3.json",
+      "frameSha256": "7ec16850b5ac5996384b72e3b5e6999af911ec3d8d290c78811aa573b8b34e49",
+      "rect": [
+        603,
+        403,
+        194,
+        250
+      ],
+      "rotated": true,
+      "texture": "work/apk/assets/assets/dss/native/11/11f18dc8d.png",
+      "textureSha256": "115309345b9272f82b52518656388df12eac1c6213f51261f0c64eb1d7a882ff"
+    },
+    {
+      "id": 1004,
+      "path": "res/cards/1004",
+      "frameUuid": "26960bed-ad29-44ed-bf4a-a53cbbff0197",
+      "frame": "work/apk/assets/assets/dss/import/26/26960bed-ad29-44ed-bf4a-a53cbbff0197.json",
+      "frameSha256": "b0a1e3cfc405c1de309e45c2c556b27c19cc01085df65707c14f718e3d83095c",
+      "rect": [
+        3,
+        3,
+        194,
+        248
+      ],
+      "rotated": true,
+      "texture": "work/apk/assets/assets/dss/native/13/132a9d597.png",
+      "textureSha256": "0c4a2bb3931092e0e8d2ed9e66dc2a3f6adf6c64a8e11b4ca6a865980e5b2a0f"
+    },
+    {
+      "id": 1007,
+      "path": "res/cards/1007",
+      "frameUuid": "3f57a816-d108-482a-af71-5ac0e2f000fb",
+      "frame": "work/apk/assets/assets/dss/import/3f/3f57a816-d108-482a-af71-5ac0e2f000fb.json",
+      "frameSha256": "8c1117e649bd9a0eb9a734039d7d5470de763f3b3a7c6cd39c30efdbfd9a44a6",
+      "rect": [
+        257,
+        3,
+        194,
+        248
+      ],
+      "rotated": true,
+      "texture": "work/apk/assets/assets/dss/native/13/132a9d597.png",
+      "textureSha256": "0c4a2bb3931092e0e8d2ed9e66dc2a3f6adf6c64a8e11b4ca6a865980e5b2a0f"
+    },
+    {
+      "id": 1012,
+      "path": "res/cards/1012",
+      "frameUuid": "60302f6e-3f5e-4dde-bc86-d649fd832223",
+      "frame": "work/apk/assets/assets/dss/import/60/60302f6e-3f5e-4dde-bc86-d649fd832223.json",
+      "frameSha256": "23857acf06281b2c5c797f8b97226547b36152166ddd3c44b0137c4497a3757b",
+      "rect": [
+        3,
+        203,
+        194,
+        248
+      ],
+      "rotated": true,
+      "texture": "work/apk/assets/assets/dss/native/13/132a9d597.png",
+      "textureSha256": "0c4a2bb3931092e0e8d2ed9e66dc2a3f6adf6c64a8e11b4ca6a865980e5b2a0f"
+    }
+  ],
+  "displaySubstitutionCases": [
+    {
+      "areaType": 22,
+      "siCaiErJing": 0,
+      "inputCard": 107,
+      "returnedResource": "107"
+    },
+    {
+      "areaType": 22,
+      "siCaiErJing": 0,
+      "inputCard": 207,
+      "returnedResource": "207"
+    },
+    {
+      "areaType": 22,
+      "siCaiErJing": 0,
+      "inputCard": 307,
+      "returnedResource": "307"
+    },
+    {
+      "areaType": 22,
+      "siCaiErJing": 0,
+      "inputCard": 407,
+      "returnedResource": "407"
+    },
+    {
+      "areaType": 22,
+      "siCaiErJing": 0,
+      "inputCard": 101,
+      "returnedResource": "101"
+    },
+    {
+      "areaType": 22,
+      "siCaiErJing": 0,
+      "inputCard": 1003,
+      "returnedResource": "1003"
+    },
+    {
+      "areaType": 22,
+      "siCaiErJing": 0,
+      "inputCard": 1004,
+      "returnedResource": "1004"
+    },
+    {
+      "areaType": 22,
+      "siCaiErJing": 1,
+      "inputCard": 107,
+      "returnedResource": "1004"
+    },
+    {
+      "areaType": 22,
+      "siCaiErJing": 1,
+      "inputCard": 207,
+      "returnedResource": "1004"
+    },
+    {
+      "areaType": 22,
+      "siCaiErJing": 1,
+      "inputCard": 307,
+      "returnedResource": "1004"
+    },
+    {
+      "areaType": 22,
+      "siCaiErJing": 1,
+      "inputCard": 407,
+      "returnedResource": "1004"
+    },
+    {
+      "areaType": 22,
+      "siCaiErJing": 1,
+      "inputCard": 101,
+      "returnedResource": "101"
+    },
+    {
+      "areaType": 22,
+      "siCaiErJing": 1,
+      "inputCard": 1003,
+      "returnedResource": "1003"
+    },
+    {
+      "areaType": 22,
+      "siCaiErJing": 1,
+      "inputCard": 1004,
+      "returnedResource": "1004"
+    },
+    {
+      "areaType": 6,
+      "siCaiErJing": 0,
+      "inputCard": 107,
+      "returnedResource": "107"
+    },
+    {
+      "areaType": 6,
+      "siCaiErJing": 0,
+      "inputCard": 207,
+      "returnedResource": "207"
+    },
+    {
+      "areaType": 6,
+      "siCaiErJing": 0,
+      "inputCard": 307,
+      "returnedResource": "307"
+    },
+    {
+      "areaType": 6,
+      "siCaiErJing": 0,
+      "inputCard": 407,
+      "returnedResource": "407"
+    },
+    {
+      "areaType": 6,
+      "siCaiErJing": 0,
+      "inputCard": 101,
+      "returnedResource": "101"
+    },
+    {
+      "areaType": 6,
+      "siCaiErJing": 0,
+      "inputCard": 1003,
+      "returnedResource": "1003"
+    },
+    {
+      "areaType": 6,
+      "siCaiErJing": 0,
+      "inputCard": 1004,
+      "returnedResource": "1004"
+    },
+    {
+      "areaType": 6,
+      "siCaiErJing": 1,
+      "inputCard": 107,
+      "returnedResource": "107"
+    },
+    {
+      "areaType": 6,
+      "siCaiErJing": 1,
+      "inputCard": 207,
+      "returnedResource": "207"
+    },
+    {
+      "areaType": 6,
+      "siCaiErJing": 1,
+      "inputCard": 307,
+      "returnedResource": "307"
+    },
+    {
+      "areaType": 6,
+      "siCaiErJing": 1,
+      "inputCard": 407,
+      "returnedResource": "407"
+    },
+    {
+      "areaType": 6,
+      "siCaiErJing": 1,
+      "inputCard": 101,
+      "returnedResource": "101"
+    },
+    {
+      "areaType": 6,
+      "siCaiErJing": 1,
+      "inputCard": 1003,
+      "returnedResource": "1003"
+    },
+    {
+      "areaType": 6,
+      "siCaiErJing": 1,
+      "inputCard": 1004,
+      "returnedResource": "1004"
+    }
+  ],
+  "limitations": [
+    "A sprite resource does not establish a physical card count or a legal deck.",
+    "Only original getCard was executed with inert resource and room stubs; no Cocos startup, network or downloaded third-party program ran.",
+    "Display substitution does not establish wild-card legality, Hu, red/black points, or user approval."
+  ]
+}

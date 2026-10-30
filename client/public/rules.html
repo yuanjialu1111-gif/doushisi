@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E">
+  <title>斗十四玩法手册</title>
+  <link rel="stylesheet" href="rules.css">
+</head>
+<body>
+  <a class="skip-link" href="#rule-content">跳到规则内容</a>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">十四</span>
+      <div>
+        <p class="eyebrow">斗十四</p>
+        <h1>玩法手册</h1>
+      </div>
+    </div>
+    <div class="source-state" id="data-state" role="status" aria-live="polite">正在读取发布规则书...</div>
+  </header>
+
+  <main>
+    <section class="notice" aria-labelledby="notice-title">
+      <div class="notice-icon" aria-hidden="true">规</div>
+      <div>
+        <h2 id="notice-title">发布规则摘要</h2>
+        <p>本页只读展示已批准发布规则书的 summary 字段。未在本页写明的具体流程，以开房规则与结算为准。</p>
+      </div>
+    </section>
+
+    <section class="controls" aria-label="手册筛选与对照">
+      <label class="field field-config">
+        <span>当前配置</span>
+        <select id="config-select" disabled></select>
+      </label>
+      <label class="field field-compare">
+        <span>差异对照</span>
+        <select id="compare-select" disabled>
+          <option value="">不比较</option>
+        </select>
+      </label>
+      <label class="field field-search">
+        <span>搜索配置或摘要</span>
+        <input id="search-input" type="search" autocomplete="off" placeholder="地区、配置编号、规则关键词" disabled>
+      </label>
+      <button class="button-secondary" id="reset-button" type="button" disabled>重置</button>
+    </section>
+
+    <div class="layout">
+      <aside class="config-panel" aria-labelledby="config-list-title">
+        <div class="panel-heading">
+          <h2 id="config-list-title">配置目录</h2>
+          <span id="config-count">0 / 21</span>
+        </div>
+        <div class="config-list" id="config-list" role="listbox" aria-label="选择配置"></div>
+      </aside>
+
+      <div class="content" id="rule-content">
+        <section class="loading-panel" id="loading-panel" aria-live="polite">
+          <div class="loading-line"></div>
+          <div class="loading-line short"></div>
+          <div class="loading-grid">
+            <div></div><div></div><div></div><div></div>
+          </div>
+        </section>
+
+        <section class="error-panel" id="error-panel" hidden>
+          <h2>发布数据暂不可用</h2>
+          <p id="error-message">无法读取规则数据。</p>
+        </section>
+
+        <div id="rule-view" hidden>
+          <section class="rule-hero" aria-labelledby="config-title">
+            <div class="rule-hero-copy">
+              <div class="rule-kicker">
+                <span id="config-key"></span>
+                <span id="config-status"></span>
+              </div>
+              <h2 id="config-title"></h2>
+              <p class="rule-version">规则版本 <code id="config-version"></code></p>
+            </div>
+            <div class="coverage-badges" id="coverage-badges" aria-label="批准覆盖项"></div>
+          </section>
+
+          <section class="summary-banner" aria-labelledby="summary-title">
+            <div>
+              <p class="section-label">批准摘要</p>
+              <h2 id="summary-title">本配置可见规则</h2>
+            </div>
+            <p>卡片内容直接引用该配置发布规则书中的原文；空项不表示无规则。</p>
+          </section>
+
+          <section class="topic-grid" id="topic-grid" aria-label="规则主题摘要"></section>
+
+          <section class="other-summary" id="other-summary" hidden>
+            <div class="section-heading">
+              <div>
+                <p class="section-label">其他字段</p>
+                <h2>发布规则书中的其他摘要</h2>
+              </div>
+            </div>
+            <div class="other-summary-list" id="other-summary-list"></div>
+          </section>
+
+          <section class="comparison" id="comparison-section" hidden aria-labelledby="comparison-title">
+            <div class="section-heading">
+              <div>
+                <p class="section-label">差异对照</p>
+                <h2 id="comparison-title">配置摘要差异</h2>
+              </div>
+              <p id="comparison-caption"></p>
+            </div>
+            <div class="comparison-head" id="comparison-head"></div>
+            <div class="comparison-list" id="comparison-list"></div>
+          </section>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <p>数据源：<code>docs/rules/release/&lt;key&gt;/rulebook.json</code></p>
+    <p>只读页面，不修改房间配置，也不替代实际结算。</p>
+  </footer>
+
+  <noscript>
+    <p class="noscript">需要启用 JavaScript 才能读取发布规则摘要。</p>
+  </noscript>
+  <script src="rules.js" defer></script>
+</body>
+</html>

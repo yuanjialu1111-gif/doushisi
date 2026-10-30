@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "variantKey": "5:0",
+  "ruleVersion": "anyue-independent-v1",
+  "rulebook": {
+    "path": "docs/rules/release/5-0/rulebook.json",
+    "sha256": "d7d37a4d95cbf75e5d053f3e35f914e03da2aa17ca42e3dca589c5d72b56b9e8"
+  },
+  "cases": {
+    "path": "docs/rules/release/5-0/cases.json",
+    "sha256": "439618aec9ac83fbd0e72f4fd95e0cea0d37d72f14023d7daa1be5423d67aa09"
+  },
+  "generatedAt": "2026-10-03T06:11:40.625Z"
+}

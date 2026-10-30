@@ -1,0 +1,48 @@
+
+paodekuai.png
+size: 597,188
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+doudizhu-biaoti
+  rotate: false
+  xy: 278, 4
+  size: 121, 44
+  orig: 124, 46
+  offset: 1, 1
+  index: -1
+doudizhu-diban
+  rotate: false
+  xy: 278, 50
+  size: 201, 136
+  orig: 201, 136
+  offset: 0, 0
+  index: -1
+doudizhu-tubiao
+  rotate: false
+  xy: 481, 17
+  size: 105, 76
+  orig: 105, 103
+  offset: 0, 0
+  index: -1
+doudizhu-tubiao3
+  rotate: false
+  xy: 481, 95
+  size: 114, 91
+  orig: 115, 92
+  offset: 1, 0
+  index: -1
+guang
+  rotate: false
+  xy: 2, 2
+  size: 274, 184
+  orig: 274, 189
+  offset: 0, 0
+  index: -1
+xing
+  rotate: true
+  xy: 401, 2
+  size: 46, 47
+  orig: 57, 53
+  offset: 6, 4
+  index: -1

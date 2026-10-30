@@ -1,0 +1,55 @@
+
+dou14.png
+size: 463,523
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+guang
+  rotate: true
+  xy: 272, 18
+  size: 274, 189
+  orig: 274, 189
+  offset: 0, 0
+  index: -1
+jinbi1
+  rotate: false
+  xy: 410, 446
+  size: 38, 32
+  orig: 38, 32
+  offset: 0, 0
+  index: -1
+jinbi2
+  rotate: true
+  xy: 410, 416
+  size: 28, 31
+  orig: 28, 31
+  offset: 0, 0
+  index: -1
+jinbi3
+  rotate: true
+  xy: 272, 2
+  size: 14, 15
+  orig: 14, 15
+  offset: 0, 0
+  index: -1
+ka
+  rotate: true
+  xy: 2, 9
+  size: 283, 268
+  orig: 283, 269
+  offset: 0, 1
+  index: -1
+xing
+  rotate: true
+  xy: 410, 480
+  size: 41, 42
+  orig: 71, 72
+  offset: 15, 25
+  index: -1
+xinjin-dikuang
+  rotate: true
+  xy: 2, 294
+  size: 227, 406
+  orig: 231, 412
+  offset: 0, 4
+  index: -1

@@ -1,0 +1,139 @@
+
+hongwushi.png
+size: 2012,2004
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+di1
+  rotate: true
+  xy: 2, 377
+  size: 873, 741
+  orig: 876, 750
+  offset: 3, 9
+  index: -1
+di2
+  rotate: false
+  xy: 2, 97
+  size: 277, 278
+  orig: 277, 279
+  offset: 0, 0
+  index: -1
+dian-lan1
+  rotate: true
+  xy: 1943, 1100
+  size: 20, 21
+  orig: 25, 31
+  offset: 2, 6
+  index: -1
+dian-lan2
+  rotate: true
+  xy: 1943, 1100
+  size: 20, 21
+  orig: 25, 31
+  offset: 2, 6
+  index: -1
+dian-lan3
+  rotate: true
+  xy: 1917, 1098
+  size: 22, 24
+  orig: 25, 24
+  offset: 1, 0
+  index: -1
+dian2
+  rotate: false
+  xy: 1979, 1089
+  size: 31, 31
+  orig: 33, 33
+  offset: 1, 1
+  index: -1
+guang
+  rotate: true
+  xy: 1872, 428
+  size: 94, 105
+  orig: 111, 116
+  offset: 5, 3
+  index: -1
+guang1
+  rotate: false
+  xy: 1318, 524
+  size: 597, 596
+  orig: 603, 604
+  offset: 3, 4
+  index: -1
+guang2
+  rotate: true
+  xy: 1318, 2
+  size: 520, 552
+  orig: 531, 568
+  offset: 3, 14
+  index: -1
+hei
+  rotate: false
+  xy: 2, 1252
+  size: 1334, 750
+  orig: 1334, 750
+  offset: 0, 0
+  index: -1
+lan1
+  rotate: true
+  xy: 1318, 1162
+  size: 11, 12
+  orig: 11, 12
+  offset: 0, 0
+  index: -1
+lan2
+  rotate: true
+  xy: 1318, 1230
+  size: 20, 17
+  orig: 20, 17
+  offset: 0, 0
+  index: -1
+lan3
+  rotate: false
+  xy: 1318, 1175
+  size: 16, 14
+  orig: 16, 14
+  offset: 0, 0
+  index: -1
+lan4
+  rotate: false
+  xy: 1318, 1209
+  size: 16, 19
+  orig: 16, 19
+  offset: 0, 0
+  index: -1
+lan6
+  rotate: true
+  xy: 1318, 1191
+  size: 16, 18
+  orig: 16, 18
+  offset: 0, 0
+  index: -1
+long
+  rotate: true
+  xy: 745, 26
+  size: 472, 289
+  orig: 569, 425
+  offset: 40, 10
+  index: -1
+ren
+  rotate: false
+  xy: 745, 500
+  size: 571, 750
+  orig: 571, 750
+  offset: 0, 0
+  index: -1
+tiao
+  rotate: true
+  xy: 1338, 1122
+  size: 880, 665
+  orig: 902, 665
+  offset: 0, 0
+  index: -1
+zi
+  rotate: true
+  xy: 1036, 40
+  size: 458, 185
+  orig: 458, 185
+  offset: 0, 0
+  index: -1

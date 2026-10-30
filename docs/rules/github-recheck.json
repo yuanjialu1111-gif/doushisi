@@ -1,0 +1,77 @@
+{
+  "checkedAtUtc": "2026-09-08T02:53:16.3429670Z",
+  "repository": "qmcloud/chess",
+  "commit": "5f2d792775ca40e6d86c85b5c29f431e133cdb79",
+  "cachedTreePaths": 668,
+  "cachedTreeArchivePaths": [
+    "98k房卡/web/cs/file/res/MusicXX.zip",
+    "98k房卡/web/cs/file/res/csb.zip",
+    "98k房卡/web/cs/file/src/app.zip",
+    "98k房卡/web/cs/牛哥哥精减版_01.zip",
+    "98k房卡/web/cs/牛哥哥精减版_02.zip",
+    "98k房卡/web/qqq/file/res/Add.zip",
+    "98k房卡/web/qqq/file/res/AddEx02.zip",
+    "98k房卡/web/qqq/file/res/Alert.zip",
+    "98k房卡/web/qqq/file/res/Face.zip",
+    "98k房卡/web/qqq/file/res/GameMenu.zip",
+    "98k房卡/web/qqq/file/res/GameTable.zip",
+    "98k房卡/web/qqq/file/res/GameTalk.zip",
+    "98k房卡/web/qqq/file/res/GameUser.zip",
+    "98k房卡/web/qqq/file/res/MainReplace.zip",
+    "98k房卡/web/qqq/file/res/MainRoom.zip",
+    "98k房卡/web/qqq/file/res/MusicEx.zip",
+    "98k房卡/web/qqq/file/res/Reload.zip",
+    "98k房卡/web/qqq/file/res/ShareRecord.zip",
+    "98k房卡/web/qqq/file/res/csb.zip",
+    "98k房卡/web/qqq/file/res/res.zip",
+    "98k房卡/web/qqq/file/src/app.zip",
+    "98k房卡/web/wfReplace_Backup_20180516_192018_58c34eab.zip",
+    "98k房卡/web/wfReplace_Backup_20180518_172121_afaaaa2f.zip",
+    "98k房卡/搭建教程.zip"
+  ],
+  "rootLicensePaths": [],
+  "archiveScope": "Two src/app.zip payloads only; other nested archives remain unverified. Inventory does not prove absence of obfuscated game rules.",
+  "executedThirdPartyCode": false,
+  "records": [
+    {
+      "path": "README.md",
+      "url": "https://raw.githubusercontent.com/qmcloud/chess/5f2d792775ca40e6d86c85b5c29f431e133cdb79/README.md",
+      "status": "request-failed-or-bounded",
+      "bytes": 0,
+      "sha256": null,
+      "entries": [],
+      "textExcerpt": null,
+      "error": "Exception calling \"GetResult\" with \"0\" argument(s): \"The request was canceled due to the configured HttpClient.Timeout of 15 seconds elapsing.\""
+    },
+    {
+      "path": "98k房卡/web/GameAdminWeb.csproj",
+      "url": "https://raw.githubusercontent.com/qmcloud/chess/5f2d792775ca40e6d86c85b5c29f431e133cdb79/98k%E6%88%BF%E5%8D%A1/web/GameAdminWeb.csproj",
+      "status": "request-failed-or-bounded",
+      "bytes": 0,
+      "sha256": null,
+      "entries": [],
+      "textExcerpt": null,
+      "error": "Exception calling \"GetResult\" with \"0\" argument(s): \"The request was canceled due to the configured HttpClient.Timeout of 15 seconds elapsing.\""
+    },
+    {
+      "path": "98k房卡/web/cs/file/src/app.zip",
+      "url": "https://raw.githubusercontent.com/qmcloud/chess/5f2d792775ca40e6d86c85b5c29f431e133cdb79/98k%E6%88%BF%E5%8D%A1/web/cs/file/src/app.zip",
+      "status": "request-failed-or-bounded",
+      "bytes": 0,
+      "sha256": null,
+      "entries": [],
+      "textExcerpt": null,
+      "error": "Exception calling \"GetResult\" with \"0\" argument(s): \"The request was canceled due to the configured HttpClient.Timeout of 15 seconds elapsing.\""
+    },
+    {
+      "path": "98k房卡/web/qqq/file/src/app.zip",
+      "url": "https://raw.githubusercontent.com/qmcloud/chess/5f2d792775ca40e6d86c85b5c29f431e133cdb79/98k%E6%88%BF%E5%8D%A1/web/qqq/file/src/app.zip",
+      "status": "request-failed-or-bounded",
+      "bytes": 0,
+      "sha256": null,
+      "entries": [],
+      "textExcerpt": null,
+      "error": "Exception calling \"GetResult\" with \"0\" argument(s): \"The request was canceled due to the configured HttpClient.Timeout of 15 seconds elapsing.\""
+    }
+  ]
+}

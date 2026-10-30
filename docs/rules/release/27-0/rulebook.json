@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "status": "approved",
+  "basis": "user-approved",
+  "variantKey": "27:0",
+  "ruleVersion": "junlian27-independent-v1",
+  "title": "27:0 红色阈值斗十四独立规则",
+  "approval": {
+    "path": "docs/rules/release/27-0/approval.json",
+    "sha256": "2321b12e89f2ab5ef9723cd9860246a9fbcd05a012717c50109ed4008eb4bc05"
+  },
+  "requiredCoverage": [
+    "payments"
+  ],
+  "sources": [
+    "docs/rules/variants/27-0.md",
+    "docs/rules/ORDINARY-STRUCTURES.md",
+    "apps/server/src/game/regional-profile.ts",
+    "apps/server/src/game/red-region-win.ts",
+    "apps/server/src/game/score-region-round.ts"
+  ],
+  "summary": {
+    "deck": "The regional pack is generated from the frozen wang/seven/option configuration.",
+    "win": "The red-point threshold gates a legal four-group structure; wildcards never add red points.",
+    "scoring": "The frozen regional fan schedule converts red points and fan items into exact transfer units.",
+    "declaration": "Declaration locks the server-computed waits when the variant exposes it.",
+    "payments": "Exact per-payer 12-place rounding and no duplicate settlement."
+  }
+}

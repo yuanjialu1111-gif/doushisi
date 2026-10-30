@@ -1,0 +1,102 @@
+{
+  "capturedAt": "2026-09-09T18:31:36.076Z",
+  "source": "work/apk/assets/assets/dss/index.js",
+  "sourceSha256": "52680e5a2fb2c2934f4ae0829ad1604c53a7fe066939144e7c0d070c929838be",
+  "originalLine": 1380,
+  "method": "_ntfOperatorChi",
+  "scope": "Original client method with synthetic server candidates. Does not establish that any candidate is legal or that a round can be played.",
+  "conclusion": "The dedicated chi UI selects one cards[1] value or forwards the full server candidate. getCardNum(CHI)=2 cannot establish that two held cards are required.",
+  "cases": [
+    {
+      "id": "two-server-candidates",
+      "cards": [
+        [
+          105,
+          109
+        ],
+        [
+          105,
+          209
+        ]
+      ],
+      "expected": {
+        "count": 1,
+        "choices": [
+          109,
+          209
+        ],
+        "sent": []
+      },
+      "actual": {
+        "count": 1,
+        "choices": [
+          109,
+          209
+        ],
+        "sent": []
+      },
+      "passed": true
+    },
+    {
+      "id": "single-two-card-server-candidate",
+      "cards": [
+        [
+          105,
+          109
+        ]
+      ],
+      "expected": {
+        "count": 1,
+        "choices": [],
+        "sent": [
+          [
+            105,
+            109
+          ]
+        ]
+      },
+      "actual": {
+        "count": 1,
+        "choices": [],
+        "sent": [
+          [
+            105,
+            109
+          ]
+        ]
+      },
+      "passed": true
+    },
+    {
+      "id": "ui-does-not-validate-complement",
+      "cards": [
+        [
+          105,
+          102
+        ]
+      ],
+      "expected": {
+        "count": 1,
+        "choices": [],
+        "sent": [
+          [
+            105,
+            102
+          ]
+        ]
+      },
+      "actual": {
+        "count": 1,
+        "choices": [],
+        "sent": [
+          [
+            105,
+            102
+          ]
+        ]
+      },
+      "passed": true
+    }
+  ],
+  "passed": true
+}

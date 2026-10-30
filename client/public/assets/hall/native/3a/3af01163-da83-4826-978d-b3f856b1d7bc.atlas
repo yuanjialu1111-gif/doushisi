@@ -1,0 +1,48 @@
+
+gongxihuode.png
+size: 1043,1050
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+biaoti
+  rotate: true
+  xy: 719, 48
+  size: 326, 86
+  orig: 327, 86
+  offset: 0, 0
+  index: -1
+di
+  rotate: true
+  xy: 2, 2
+  size: 1046, 365
+  orig: 1091, 365
+  offset: 21, 0
+  index: -1
+guang1
+  rotate: false
+  xy: 369, 376
+  size: 672, 672
+  orig: 678, 683
+  offset: 3, 1
+  index: -1
+guang2
+  rotate: false
+  xy: 369, 22
+  size: 348, 352
+  orig: 377, 376
+  offset: 9, 11
+  index: -1
+kuang
+  rotate: false
+  xy: 807, 196
+  size: 178, 178
+  orig: 178, 178
+  offset: 0, 0
+  index: -1
+tubiao
+  rotate: false
+  xy: 807, 76
+  size: 132, 118
+  orig: 132, 118
+  offset: 0, 0
+  index: -1

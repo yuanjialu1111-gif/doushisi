@@ -1,0 +1,779 @@
+{
+  "schemaVersion": 1,
+  "generatedFrom": "docs/rules/release/*/rulebook.json",
+  "configurations": [
+    {
+      "key": "4:0",
+      "directory": "4-0",
+      "sourcePath": "docs/rules/release/4-0/rulebook.json",
+      "sha256": "414c826388655a4448134b20fecacd29a7a22410e61b8680c1426cc31b181ddf",
+      "rulebook": {
+        "schemaVersion": 1,
+        "status": "approved",
+        "basis": "user-approved",
+        "variantKey": "4:0",
+        "ruleVersion": "xinjin-independent-v1",
+        "title": "新津斗十四独立规则 v1",
+        "approval": {
+          "path": "docs/rules/release/4-0/approval.json",
+          "sha256": "15cebf25c558a45ec0eb8744ae33ef6298ff2ce8602f8c17b30a7879401ab580"
+        },
+        "requiredCoverage": [
+          "declared-wait-lock",
+          "concealed-four-pairs",
+          "payments"
+        ],
+        "sources": [
+          "docs/rules/XINJIN-INDEPENDENT.md",
+          "docs/rules/cases/xinjin-pack-v1.json",
+          "apps/server/src/game/xinjin-pack.ts",
+          "apps/server/src/game/xinjin-win.ts",
+          "apps/server/src/game/xinjin-round.ts"
+        ],
+        "summary": {
+          "deck": "52 ordinary cards plus configured 3/5/6/9 special cards; qiToWang changes only the four physical sevens.",
+          "win": "Four groups: sum-14 pairs, exposed same-rank triples, or quads; concealed four-pairs is independent.",
+          "scoring": "Package-backed fan table with qia20, longDui, xiaoHu, qia40/qia50 exclusivity and siGuiYi boundaries.",
+          "declaration": "Declaration locks the server-computed wait faces.",
+          "payments": "Exact per-payer 12-place rounding and no duplicate settlement.",
+          "zeroFan": "A legal structure meeting the red-point threshold wins at zero fan for one settlement unit."
+        }
+      }
+    },
+    {
+      "key": "5:0",
+      "directory": "5-0",
+      "sourcePath": "docs/rules/release/5-0/rulebook.json",
+      "sha256": "d7d37a4d95cbf75e5d053f3e35f914e03da2aa17ca42e3dca589c5d72b56b9e8",
+      "rulebook": {
+        "schemaVersion": 1,
+        "status": "approved",
+        "basis": "user-approved",
+        "variantKey": "5:0",
+        "ruleVersion": "anyue-independent-v1",
+        "title": "安岳斗十四独立规则 v1",
+        "approval": {
+          "path": "docs/rules/release/5-0/approval.json",
+          "sha256": "688e5409ba70b06edd3d40d31c81fc3d50cbff3c4e48feced23157dd0164d86b"
+        },
+        "requiredCoverage": [
+          "concealed-four-pairs",
+          "payments",
+          "piao"
+        ],
+        "sources": [
+          "docs/rules/ANYUE-INDEPENDENT.md",
+          "docs/rules/cases/anyue-pack-v1.json",
+          "apps/server/src/game/anyue-pack.ts",
+          "apps/server/src/game/anyue-win.ts",
+          "apps/server/src/game/anyue-round.ts"
+        ],
+        "summary": {
+          "deck": "52 ordinary cards plus one small king, one big king and one white face; qiToWang changes only the four sevens.",
+          "win": "Four groups: sum-14 pairs, exposed same-rank triples, or quads; concealed four-pairs is independent.",
+          "piao": "Piao is a payment-formula addend: none, mandatory one, or per-player 0/1 selection with timeout zero.",
+          "scoring": "Piao modifies the base factor before the capped fan formula; it is not a standalone fan item.",
+          "payments": "Self-draw charges every other player; discard charges the source; baopei makes the source pay all shares."
+        }
+      }
+    },
+    {
+      "key": "6:0",
+      "directory": "6-0",
+      "sourcePath": "docs/rules/release/6-0/rulebook.json",
+      "sha256": "4577a8b12184d50df7833b149309f219223578465be8ea3b7f49c81e8786dd12",
+      "rulebook": {
+        "schemaVersion": 1,
+        "status": "approved",
+        "basis": "user-approved",
+        "variantKey": "6:0",
+        "ruleVersion": "yaan-independent-v1",
+        "title": "雅安红二十独立规则 v1",
+        "approval": {
+          "path": "docs/rules/release/6-0/approval.json",
+          "sha256": "805758a10e3516d6cc1a0ac824e84bf36eff1ce6cb9a063b0cd6523f371b3053"
+        },
+        "requiredCoverage": [
+          "wildcards",
+          "gold-hook",
+          "declared-wait-lock",
+          "concealed-four-pairs",
+          "payments"
+        ],
+        "sources": [
+          "docs/rules/YAAN-INDEPENDENT.md",
+          "docs/rules/IMPLEMENTATION-20260916.md",
+          "packages/rules/src/edition.ts",
+          "apps/server/src/game/yaan-pack.ts",
+          "apps/server/src/game/yaan-win.ts",
+          "apps/server/src/game/yaan-round.ts"
+        ],
+        "summary": {
+          "deck": "52 ordinary cards; configured wang and enabled sevens are in-hand wildcards; qiWangNum=0 keeps ordinary sevens.",
+          "win": "Four groups of sum-14 pairs, same-rank peng/tou triples, or gang/ba quads; concealed four-pairs is an independent structure.",
+          "scoring": "The package-backed scorer uses explicit qia20, baoJiao, anDui/dragon, gang, color, and fifty switches.",
+          "declaration": "A declaration locks the server-computed wait faces; response melds are forbidden after declaration.",
+          "goldHook": "Three exposed peng/gang/ba groups plus two concealed cards that form a legal group after the winning card."
+        }
+      }
+    },
+    {
+      "key": "7:0",
+      "directory": "7-0",
+      "sourcePath": "docs/rules/release/7-0/rulebook.json",
+      "sha256": "9bcf3a7e4eaeb218a3a3b96881a35a524f8844e8e6fa9200234830ad9fae5694",
+      "rulebook": {
+        "schemaVersion": 1,
+        "status": "approved",
+        "basis": "user-approved",
+        "variantKey": "7:0",
+        "ruleVersion": "pujiang-independent-v1",
+        "title": "蒲江斗十四独立规则 v1",
+        "approval": {
+          "path": "docs/rules/release/7-0/approval.json",
+          "sha256": "21322f3a4150f92e0e250fbd15c31a34ae57b5a4a6f304284fb0c24d34f6e639"
+        },
+        "requiredCoverage": [
+          "gold-hook",
+          "declared-wait-lock",
+          "concealed-four-pairs",
+          "payments"
+        ],
+        "sources": [
+          "docs/rules/PUJIANG-INDEPENDENT.md",
+          "apps/server/src/game/pujiang-pack.ts",
+          "apps/server/src/game/pujiang-win.ts",
+          "apps/server/src/game/pujiang-round.ts"
+        ],
+        "summary": {
+          "deck": "52 ordinary cards plus equal 6/9/12/15 special cards; sevens remain ordinary.",
+          "win": "Four groups: sum-14 pairs, exposed same-rank triples, or quads; concealed four-pairs is independent.",
+          "scoring": "Package-backed qia20, jinGouDiao, anDui/dragon, siGuiYi and optional keSuHu only on own flip/replacement.",
+          "declaration": "Declaration locks the server-computed wait faces.",
+          "payments": "Exact per-payer 12-place rounding and no duplicate settlement."
+        }
+      }
+    },
+    {
+      "key": "8:0",
+      "directory": "8-0",
+      "sourcePath": "docs/rules/release/8-0/rulebook.json",
+      "sha256": "636f096fe42b5d5b11a2c8ba9484a840b59d5d6cfe3d2fecb72f8bae0c19fb33",
+      "rulebook": {
+        "schemaVersion": 1,
+        "status": "approved",
+        "basis": "user-approved",
+        "variantKey": "8:0",
+        "ruleVersion": "qionglai-independent-v1",
+        "title": "邛崃斗十四独立规则 v1",
+        "approval": {
+          "path": "docs/rules/release/8-0/approval.json",
+          "sha256": "7cd959735d725915750fdfb01409a69d5971a0350cc1167b29c3850cf8ffa8aa"
+        },
+        "requiredCoverage": [
+          "gold-hook",
+          "declared-wait-lock",
+          "concealed-four-pairs",
+          "payments"
+        ],
+        "sources": [
+          "docs/rules/QIONGLAI-INDEPENDENT.md",
+          "docs/rules/QIONGLAI-PACK.md",
+          "docs/rules/cases/qionglai-pack-v1.json",
+          "docs/rules/cases/qionglai-win-v1.json",
+          "docs/rules/cases/qionglai-score-v1.json",
+          "apps/server/src/game/qionglai-pack.ts",
+          "apps/server/src/game/qionglai-win.ts",
+          "apps/server/src/game/qionglai-round.ts"
+        ],
+        "summary": {
+          "deck": "Approved QL-D03-1 pack: 52 ordinary cards plus equal 3/6/9/12/15/18 special reward cards.",
+          "win": "Four groups: sum-14 pairs, same-rank exposed triples, or quads; concealed four-pairs is independent.",
+          "scoring": "Independent fan table with explicit 4/5/6/99 caps and linear or exponential formulas.",
+          "declaration": "Declaration locks server-computed waits; response melds are not allowed after declaration.",
+          "payments": "Discard pays one share per winner; public flip charges every non-winner; exact 12-place payer rounding."
+        }
+      }
+    },
+    {
+      "key": "9:0",
+      "directory": "9-0",
+      "sourcePath": "docs/rules/release/9-0/rulebook.json",
+      "sha256": "40f2f34da0f242deb165ac4b4d113680ddb966ccdb40bf6fa9c7a0a11e83922f",
+      "rulebook": {
+        "schemaVersion": 1,
+        "status": "approved",
+        "basis": "user-approved",
+        "variantKey": "9:0",
+        "ruleVersion": "aba-independent-v1",
+        "title": "9:0 阿坝斗十四独立规则",
+        "approval": {
+          "path": "docs/rules/release/9-0/approval.json",
+          "sha256": "7c9cdbc0a98ff4e7b7def74ee4673d8e17334bde4fd25e123cfb720c6e01c0d7"
+        },
+        "requiredCoverage": [
+          "declared-wait-lock",
+          "concealed-four-pairs",
+          "payments"
+        ],
+        "sources": [
+          "docs/rules/ABA-INDEPENDENT.md",
+          "apps/server/src/game/aba-pack.ts",
+          "apps/server/src/game/aba-win.ts",
+          "apps/server/src/game/aba-round.ts"
+        ],
+        "summary": {
+          "deck": "52 ordinary cards plus one small king, one big king and two white faces; no king-count selector.",
+          "win": "必须形成合法四组结构，且结构分 >= huRedScore 才可胡牌。起胡线仅由 huRedScore 决定，playerNum 不缩放；同一手牌在 2、3、4 人配置下给出相同胡牌结果。",
+          "threshold": "起胡线仅由 huRedScore 决定，playerNum 不缩放；playerNum 只影响入座、发牌和结算人数。",
+          "scoring": "Structure score/100 * 2^cappedFan * 0.8, with explicit 258, double-in/out, haidilao and baijiao facts.",
+          "declaration": "Declaration uses the configured threshold condition and locks the server-computed waits.",
+          "payments": "Exact per-payer 12-place rounding and no duplicate settlement."
+        }
+      }
+    },
+    {
+      "key": "10:0",
+      "directory": "10-0",
+      "sourcePath": "docs/rules/release/10-0/rulebook.json",
+      "sha256": "eb97fe503e5518f090c0f5362e4bda129ab334ae74d4a60475b9cc8dad307cbb",
+      "rulebook": {
+        "schemaVersion": 1,
+        "status": "approved",
+        "basis": "user-approved",
+        "variantKey": "10:0",
+        "ruleVersion": "aba10-independent-v1",
+        "title": "10:0 阿坝斗十四独立规则",
+        "approval": {
+          "path": "docs/rules/release/10-0/approval.json",
+          "sha256": "1ba7d47457dbfb42d74a18b13cbaabdb26acaed53033dcb4e036c57d1e3dba5e"
+        },
+        "requiredCoverage": [
+          "declared-wait-lock",
+          "concealed-four-pairs",
+          "payments"
+        ],
+        "sources": [
+          "docs/rules/variants/10-0.md",
+          "docs/rules/ABA-INDEPENDENT.md",
+          "apps/server/src/game/aba-pack.ts",
+          "apps/server/src/game/aba-win.ts",
+          "apps/server/src/game/aba-round.ts"
+        ],
+        "summary": {
+          "deck": "52 ordinary cards plus one small king, one big king and two white faces; no king-count selector.",
+          "win": "必须形成合法四组结构，且结构分 >= huRedScore 才可胡牌。起胡线仅由 huRedScore 决定，playerNum 不缩放；同一手牌在 2、3、4 人配置下给出相同胡牌结果。",
+          "threshold": "起胡线仅由 huRedScore 决定，playerNum 不缩放；playerNum 只影响入座、发牌和结算人数。",
+          "scoring": "Structure score/100 * 2^cappedFan * 0.8, with explicit 258, double-in/out, haidilao and baijiao facts.",
+          "declaration": "Declaration uses the configured threshold condition and locks the server-computed waits.",
+          "payments": "Exact per-payer 12-place rounding and no duplicate settlement."
+        }
+      }
+    },
+    {
+      "key": "11:0",
+      "directory": "11-0",
+      "sourcePath": "docs/rules/release/11-0/rulebook.json",
+      "sha256": "aa5543f1b2fe0ba25360f406af1dd7d52c77f3e5b80f78f994326c87a31aa5e2",
+      "rulebook": {
+        "schemaVersion": 1,
+        "status": "approved",
+        "basis": "user-approved",
+        "variantKey": "11:0",
+        "ruleVersion": "aba11-independent-v1",
+        "title": "11:0 阿坝斗十四独立规则",
+        "approval": {
+          "path": "docs/rules/release/11-0/approval.json",
+          "sha256": "b8227b8655a77a6f8c3ae9b775c424373956ed1c0a29625cd12ab22d77171612"
+        },
+        "requiredCoverage": [
+          "declared-wait-lock",
+          "concealed-four-pairs",
+          "payments"
+        ],
+        "sources": [
+          "docs/rules/variants/11-0.md",
+          "docs/rules/ABA-INDEPENDENT.md",
+          "apps/server/src/game/aba-pack.ts",
+          "apps/server/src/game/aba-win.ts",
+          "apps/server/src/game/aba-round.ts"
+        ],
+        "summary": {
+          "deck": "52 ordinary cards plus one small king, one big king and two white faces; no king-count selector.",
+          "win": "必须形成合法四组结构，且结构分 >= huRedScore 才可胡牌。起胡线仅由 huRedScore 决定，playerNum 不缩放；同一手牌在 2、3、4 人配置下给出相同胡牌结果。",
+          "threshold": "起胡线仅由 huRedScore 决定，playerNum 不缩放；playerNum 只影响入座、发牌和结算人数。",
+          "scoring": "Structure score/100 * 2^cappedFan * 0.8, with explicit 258, double-in/out, haidilao and baijiao facts.",
+          "declaration": "Declaration uses the configured threshold condition and locks the server-computed waits.",
+          "payments": "Exact per-payer 12-place rounding and no duplicate settlement."
+        }
+      }
+    },
+    {
+      "key": "12:0",
+      "directory": "12-0",
+      "sourcePath": "docs/rules/release/12-0/rulebook.json",
+      "sha256": "15f94d1c1632fcd5c2d3cd2ec0e421f2653192523dc1390bb8113789fa4a855d",
+      "rulebook": {
+        "schemaVersion": 1,
+        "status": "approved",
+        "basis": "user-approved",
+        "variantKey": "12:0",
+        "ruleVersion": "aba12-independent-v1",
+        "title": "12:0 阿坝斗十四独立规则",
+        "approval": {
+          "path": "docs/rules/release/12-0/approval.json",
+          "sha256": "f2be6d40b7cb7b1e16983c5d8f253ba8400eaf3f5a58aec80788bf9bc46da536"
+        },
+        "requiredCoverage": [
+          "declared-wait-lock",
+          "concealed-four-pairs",
+          "payments"
+        ],
+        "sources": [
+          "docs/rules/variants/12-0.md",
+          "docs/rules/ABA-INDEPENDENT.md",
+          "apps/server/src/game/aba-pack.ts",
+          "apps/server/src/game/aba-win.ts",
+          "apps/server/src/game/aba-round.ts"
+        ],
+        "summary": {
+          "deck": "52 ordinary cards plus one small king, one big king and two white faces; no king-count selector.",
+          "win": "必须形成合法四组结构，且结构分 >= huRedScore 才可胡牌。起胡线仅由 huRedScore 决定，playerNum 不缩放；同一手牌在 2、3、4 人配置下给出相同胡牌结果。",
+          "threshold": "起胡线仅由 huRedScore 决定，playerNum 不缩放；playerNum 只影响入座、发牌和结算人数。",
+          "scoring": "Structure score/100 * 2^cappedFan * 0.8, with explicit 258, double-in/out, haidilao and baijiao facts.",
+          "declaration": "Declaration uses the configured threshold condition and locks the server-computed waits.",
+          "payments": "Exact per-payer 12-place rounding and no duplicate settlement."
+        }
+      }
+    },
+    {
+      "key": "14:0",
+      "directory": "14-0",
+      "sourcePath": "docs/rules/release/14-0/rulebook.json",
+      "sha256": "32858d686f456f8d3f4ccff7e2d926428c306a5659942de18e809cbe5d65e2f4",
+      "rulebook": {
+        "schemaVersion": 1,
+        "status": "approved",
+        "basis": "user-approved",
+        "variantKey": "14:0",
+        "ruleVersion": "wenchuan-independent-v1",
+        "title": "14:0 斗十四独立规则",
+        "approval": {
+          "path": "docs/rules/release/14-0/approval.json",
+          "sha256": "00ff5be093b187b800ed416aa8c47a583061337f2193096ad60849c0235c86e2"
+        },
+        "requiredCoverage": [
+          "declared-wait-lock",
+          "concealed-four-pairs",
+          "payments"
+        ],
+        "sources": [
+          "docs/rules/variants/14-0.md",
+          "docs/rules/ORDINARY-STRUCTURES.md",
+          "apps/server/src/game/regional-profile.ts",
+          "apps/server/src/game/score-region-win.ts",
+          "apps/server/src/game/score-region-round.ts"
+        ],
+        "summary": {
+          "deck": "52 ordinary cards plus the regional special-card configuration.",
+          "win": "Four groups: sum-14 pairs, exposed same-rank triples, or quads; structure score gates the win threshold.",
+          "scoring": "Structure score/100 * 2^cappedFan * base beans; 15:0 applies its frozen 0.8 factor.",
+          "declaration": "Declaration locks the server-computed waits.",
+          "payments": "Exact per-payer 12-place rounding and no duplicate settlement."
+        }
+      }
+    },
+    {
+      "key": "15:0",
+      "directory": "15-0",
+      "sourcePath": "docs/rules/release/15-0/rulebook.json",
+      "sha256": "21852af544f3e7dd7d8ebfd08057b62f85ff9b99cf428ffc2bf2ba6ae1dcb474",
+      "rulebook": {
+        "schemaVersion": 1,
+        "status": "approved",
+        "basis": "user-approved",
+        "variantKey": "15:0",
+        "ruleVersion": "maoxian-independent-v1",
+        "title": "15:0 斗十四独立规则",
+        "approval": {
+          "path": "docs/rules/release/15-0/approval.json",
+          "sha256": "b0087900dafd85bd845a6ae35408bea378dbb403d5e1d6eb496ed95d6a374fd2"
+        },
+        "requiredCoverage": [
+          "declared-wait-lock",
+          "concealed-four-pairs",
+          "payments"
+        ],
+        "sources": [
+          "docs/rules/variants/15-0.md",
+          "docs/rules/ORDINARY-STRUCTURES.md",
+          "apps/server/src/game/regional-profile.ts",
+          "apps/server/src/game/score-region-win.ts",
+          "apps/server/src/game/score-region-round.ts"
+        ],
+        "summary": {
+          "deck": "52 ordinary cards plus the regional special-card configuration.",
+          "win": "Four groups: sum-14 pairs, exposed same-rank triples, or quads; structure score gates the win threshold.",
+          "scoring": "Structure score/100 * 2^cappedFan * base beans; 15:0 applies its frozen 0.8 factor.",
+          "declaration": "Declaration locks the server-computed waits.",
+          "payments": "Exact per-payer 12-place rounding and no duplicate settlement."
+        }
+      }
+    },
+    {
+      "key": "16:0",
+      "directory": "16-0",
+      "sourcePath": "docs/rules/release/16-0/rulebook.json",
+      "sha256": "6050996b4cf7dd4e40190b8e10d941a698fb7ea9020303c720879a2e9aeb177d",
+      "rulebook": {
+        "schemaVersion": 1,
+        "status": "approved",
+        "basis": "user-approved",
+        "variantKey": "16:0",
+        "ruleVersion": "suining-independent-v1",
+        "title": "16:0 斗十四独立规则",
+        "approval": {
+          "path": "docs/rules/release/16-0/approval.json",
+          "sha256": "ef0d8d45c063c7b8ca2e189dbeef6d2dd1c08543c95f7802dc5f7f1550065800"
+        },
+        "requiredCoverage": [
+          "concealed-four-pairs",
+          "payments"
+        ],
+        "sources": [
+          "docs/rules/variants/16-0.md",
+          "docs/rules/ORDINARY-STRUCTURES.md",
+          "apps/server/src/game/regional-profile.ts",
+          "apps/server/src/game/score-region-win.ts",
+          "apps/server/src/game/score-region-round.ts"
+        ],
+        "summary": {
+          "deck": "52 ordinary cards plus the regional special-card configuration.",
+          "win": "Four groups: sum-14 pairs, exposed same-rank triples, or quads; structure score gates the win threshold.",
+          "scoring": "Structure score/100 * 2^cappedFan without base beans.",
+          "declaration": "The original configuration has no declaration option; no declare action is exposed.",
+          "payments": "Exact per-payer 12-place rounding and no duplicate settlement."
+        }
+      }
+    },
+    {
+      "key": "19:0",
+      "directory": "19-0",
+      "sourcePath": "docs/rules/release/19-0/rulebook.json",
+      "sha256": "b54695575a9bdcc83fa9bb9127b37e24ae6c936ec748a049df103486a5af6d11",
+      "rulebook": {
+        "schemaVersion": 1,
+        "status": "approved",
+        "basis": "user-approved",
+        "variantKey": "19:0",
+        "ruleVersion": "tongjiang-independent-v1",
+        "title": "19:0 斗十四独立规则",
+        "approval": {
+          "path": "docs/rules/release/19-0/approval.json",
+          "sha256": "965a37db21eae980ff7d0c770507a848800e63d26a61171cd7ac770fcb5cf56a"
+        },
+        "requiredCoverage": [
+          "declared-wait-lock",
+          "concealed-four-pairs",
+          "payments"
+        ],
+        "sources": [
+          "docs/rules/variants/19-0.md",
+          "docs/rules/ORDINARY-STRUCTURES.md",
+          "apps/server/src/game/regional-profile.ts",
+          "apps/server/src/game/score-region-win.ts",
+          "apps/server/src/game/score-region-round.ts"
+        ],
+        "summary": {
+          "deck": "52 ordinary cards plus the regional special-card configuration.",
+          "win": "Four groups: sum-14 pairs, exposed same-rank triples, or quads; structure score gates the win threshold.",
+          "scoring": "Structure score/100 * 2^cappedFan * base beans; 15:0 applies its frozen 0.8 factor.",
+          "declaration": "Declaration locks the server-computed waits.",
+          "payments": "Exact per-payer 12-place rounding and no duplicate settlement."
+        }
+      }
+    },
+    {
+      "key": "20:0",
+      "directory": "20-0",
+      "sourcePath": "docs/rules/release/20-0/rulebook.json",
+      "sha256": "410e3768853fd18cb63dcbb7f0b8c1546677918a67760d1be1618dc5e1ad06b7",
+      "rulebook": {
+        "schemaVersion": 1,
+        "status": "approved",
+        "basis": "user-approved",
+        "variantKey": "20:0",
+        "ruleVersion": "rongxian-independent-v1",
+        "title": "20:0 红色阈值斗十四独立规则",
+        "approval": {
+          "path": "docs/rules/release/20-0/approval.json",
+          "sha256": "ec60be27fa1637ea84a3a99f06a2f6b4c5c8e6d38c5493c1ed8f1d9e2f9ba0dc"
+        },
+        "requiredCoverage": [
+          "payments"
+        ],
+        "sources": [
+          "docs/rules/variants/20-0.md",
+          "docs/rules/ORDINARY-STRUCTURES.md",
+          "apps/server/src/game/regional-profile.ts",
+          "apps/server/src/game/red-region-win.ts",
+          "apps/server/src/game/score-region-round.ts"
+        ],
+        "summary": {
+          "deck": "The regional pack is generated from the frozen wang/seven/option configuration.",
+          "win": "The red-point threshold gates a legal four-group structure; wildcards never add red points.",
+          "scoring": "The frozen regional fan schedule converts red points and fan items into exact transfer units.",
+          "declaration": "Declaration locks the server-computed waits when the variant exposes it.",
+          "payments": "Exact per-payer 12-place rounding and no duplicate settlement."
+        }
+      }
+    },
+    {
+      "key": "21:0",
+      "directory": "21-0",
+      "sourcePath": "docs/rules/release/21-0/rulebook.json",
+      "sha256": "8aaf6657215408b58e87a77f5b4389704112d2dbee653d3cdb77fd4c5e00ca70",
+      "rulebook": {
+        "schemaVersion": 1,
+        "status": "approved",
+        "basis": "user-approved",
+        "variantKey": "21:0",
+        "ruleVersion": "yuexi-independent-v1",
+        "title": "21:0 红色阈值斗十四独立规则",
+        "approval": {
+          "path": "docs/rules/release/21-0/approval.json",
+          "sha256": "19bd29aa45c286e6fd3f3660503872edf972715801d94476fd8760591731bd68"
+        },
+        "requiredCoverage": [
+          "payments"
+        ],
+        "sources": [
+          "docs/rules/variants/21-0.md",
+          "docs/rules/ORDINARY-STRUCTURES.md",
+          "apps/server/src/game/regional-profile.ts",
+          "apps/server/src/game/red-region-win.ts",
+          "apps/server/src/game/score-region-round.ts"
+        ],
+        "summary": {
+          "deck": "The regional pack is generated from the frozen wang/seven/option configuration.",
+          "win": "The red-point threshold gates a legal four-group structure; wildcards never add red points.",
+          "scoring": "The frozen regional fan schedule converts red points and fan items into exact transfer units.",
+          "declaration": "Declaration locks the server-computed waits when the variant exposes it.",
+          "payments": "Exact per-payer 12-place rounding and no duplicate settlement."
+        }
+      }
+    },
+    {
+      "key": "22:0",
+      "directory": "22-0",
+      "sourcePath": "docs/rules/release/22-0/rulebook.json",
+      "sha256": "df8d31735085eb829995ef12f9c58bad11119690840c6e2b6844358ba82a309f",
+      "rulebook": {
+        "schemaVersion": 1,
+        "status": "approved",
+        "basis": "user-approved",
+        "variantKey": "22:0",
+        "ruleVersion": "yanjin-independent-v1",
+        "title": "22:0 红色阈值斗十四独立规则",
+        "approval": {
+          "path": "docs/rules/release/22-0/approval.json",
+          "sha256": "ab04ab7916c1daefd4ab18d4b53fdb3fc1f8c2d3908fd549e0a6965f22d6c3cc"
+        },
+        "requiredCoverage": [
+          "payments"
+        ],
+        "sources": [
+          "docs/rules/variants/22-0.md",
+          "docs/rules/ORDINARY-STRUCTURES.md",
+          "apps/server/src/game/regional-profile.ts",
+          "apps/server/src/game/red-region-win.ts",
+          "apps/server/src/game/score-region-round.ts"
+        ],
+        "summary": {
+          "deck": "The regional pack is generated from the frozen wang/seven/option configuration.",
+          "win": "The red-point threshold gates a legal four-group structure; wildcards never add red points.",
+          "scoring": "The frozen regional fan schedule converts red points and fan items into exact transfer units.",
+          "declaration": "Declaration locks the server-computed waits when the variant exposes it.",
+          "payments": "Exact per-payer 12-place rounding and no duplicate settlement."
+        }
+      }
+    },
+    {
+      "key": "23:0",
+      "directory": "23-0",
+      "sourcePath": "docs/rules/release/23-0/rulebook.json",
+      "sha256": "d82faa4951ba433fc76ec3ac4f050f07968c0ee8bacf95e42139fc30a140eaa2",
+      "rulebook": {
+        "schemaVersion": 1,
+        "status": "approved",
+        "basis": "user-approved",
+        "variantKey": "23:0",
+        "ruleVersion": "xuzhou-independent-v1",
+        "title": "23:0 红色阈值斗十四独立规则",
+        "approval": {
+          "path": "docs/rules/release/23-0/approval.json",
+          "sha256": "c7686d9b3717df6747d7a2307db1c87d8c7116db3797e93a74b77f5494198f25"
+        },
+        "requiredCoverage": [
+          "payments"
+        ],
+        "sources": [
+          "docs/rules/variants/23-0.md",
+          "docs/rules/ORDINARY-STRUCTURES.md",
+          "apps/server/src/game/regional-profile.ts",
+          "apps/server/src/game/red-region-win.ts",
+          "apps/server/src/game/score-region-round.ts"
+        ],
+        "summary": {
+          "deck": "The regional pack is generated from the frozen wang/seven/option configuration.",
+          "win": "The red-point threshold gates a legal four-group structure; wildcards never add red points.",
+          "scoring": "The frozen regional fan schedule converts red points and fan items into exact transfer units.",
+          "declaration": "Declaration locks the server-computed waits when the variant exposes it.",
+          "payments": "Exact per-payer 12-place rounding and no duplicate settlement."
+        }
+      }
+    },
+    {
+      "key": "24:0",
+      "directory": "24-0",
+      "sourcePath": "docs/rules/release/24-0/rulebook.json",
+      "sha256": "4a0fca6d331deaa3d5849e1bbc9a2d700e12f6705993f8f85d7007dba61efbf9",
+      "rulebook": {
+        "schemaVersion": 1,
+        "status": "approved",
+        "basis": "user-approved",
+        "variantKey": "24:0",
+        "ruleVersion": "leibo-independent-v1",
+        "title": "24:0 红色阈值斗十四独立规则",
+        "approval": {
+          "path": "docs/rules/release/24-0/approval.json",
+          "sha256": "2d9fd6b6f21746a4dcf29b2cf13afd942150915f17559f6d9c91e4d19eb6400b"
+        },
+        "requiredCoverage": [
+          "payments"
+        ],
+        "sources": [
+          "docs/rules/variants/24-0.md",
+          "docs/rules/ORDINARY-STRUCTURES.md",
+          "apps/server/src/game/regional-profile.ts",
+          "apps/server/src/game/red-region-win.ts",
+          "apps/server/src/game/score-region-round.ts"
+        ],
+        "summary": {
+          "deck": "The regional pack is generated from the frozen wang/seven/option configuration.",
+          "win": "The red-point threshold gates a legal four-group structure; wildcards never add red points.",
+          "scoring": "The frozen regional fan schedule converts red points and fan items into exact transfer units.",
+          "declaration": "Declaration locks the server-computed waits when the variant exposes it.",
+          "payments": "Exact per-payer 12-place rounding and no duplicate settlement."
+        }
+      }
+    },
+    {
+      "key": "25:0",
+      "directory": "25-0",
+      "sourcePath": "docs/rules/release/25-0/rulebook.json",
+      "sha256": "5e5e5e43e5ff8f7070125224baa5200d844588a580cdd5c6aa7ef8d861e7d2ee",
+      "rulebook": {
+        "schemaVersion": 1,
+        "status": "approved",
+        "basis": "user-approved",
+        "variantKey": "25:0",
+        "ruleVersion": "junlian25-independent-v1",
+        "title": "25:0 红色阈值斗十四独立规则",
+        "approval": {
+          "path": "docs/rules/release/25-0/approval.json",
+          "sha256": "39fd3043620dacb8e1e6411e25057cabbe7696aacc222075ef8b35029a1ed406"
+        },
+        "requiredCoverage": [
+          "payments"
+        ],
+        "sources": [
+          "docs/rules/variants/25-0.md",
+          "docs/rules/ORDINARY-STRUCTURES.md",
+          "apps/server/src/game/regional-profile.ts",
+          "apps/server/src/game/red-region-win.ts",
+          "apps/server/src/game/score-region-round.ts"
+        ],
+        "summary": {
+          "deck": "The regional pack is generated from the frozen wang/seven/option configuration.",
+          "win": "The red-point threshold gates a legal four-group structure; wildcards never add red points.",
+          "scoring": "The frozen regional fan schedule converts red points and fan items into exact transfer units.",
+          "declaration": "Declaration locks the server-computed waits when the variant exposes it.",
+          "payments": "Exact per-payer 12-place rounding and no duplicate settlement."
+        }
+      }
+    },
+    {
+      "key": "26:0",
+      "directory": "26-0",
+      "sourcePath": "docs/rules/release/26-0/rulebook.json",
+      "sha256": "852b3aa8e72571e1736f9d9b7826d31201c0b4de82decf54b45928ceccc67139",
+      "rulebook": {
+        "schemaVersion": 1,
+        "status": "approved",
+        "basis": "user-approved",
+        "variantKey": "26:0",
+        "ruleVersion": "ganluo-independent-v1",
+        "title": "26:0 红色阈值斗十四独立规则",
+        "approval": {
+          "path": "docs/rules/release/26-0/approval.json",
+          "sha256": "548a349194ada6b3b71cab066810aeb6c12c092f8700600fb9197fc19f36bc1e"
+        },
+        "requiredCoverage": [
+          "declared-wait-lock",
+          "concealed-four-pairs",
+          "payments"
+        ],
+        "sources": [
+          "docs/rules/variants/26-0.md",
+          "docs/rules/ORDINARY-STRUCTURES.md",
+          "apps/server/src/game/regional-profile.ts",
+          "apps/server/src/game/red-region-win.ts",
+          "apps/server/src/game/score-region-round.ts"
+        ],
+        "summary": {
+          "deck": "The regional pack is generated from the frozen wang/seven/option configuration.",
+          "win": "The red-point threshold gates a legal four-group structure; wildcards never add red points.",
+          "scoring": "The frozen regional fan schedule converts red points and fan items into exact transfer units.",
+          "declaration": "Declaration locks the server-computed waits when the variant exposes it.",
+          "payments": "Exact per-payer 12-place rounding and no duplicate settlement."
+        }
+      }
+    },
+    {
+      "key": "27:0",
+      "directory": "27-0",
+      "sourcePath": "docs/rules/release/27-0/rulebook.json",
+      "sha256": "c9b1a7d61150006b91d233c41d258fbeebcf63b995d7d35ffa23b801a3a4a96e",
+      "rulebook": {
+        "schemaVersion": 1,
+        "status": "approved",
+        "basis": "user-approved",
+        "variantKey": "27:0",
+        "ruleVersion": "junlian27-independent-v1",
+        "title": "27:0 红色阈值斗十四独立规则",
+        "approval": {
+          "path": "docs/rules/release/27-0/approval.json",
+          "sha256": "2321b12e89f2ab5ef9723cd9860246a9fbcd05a012717c50109ed4008eb4bc05"
+        },
+        "requiredCoverage": [
+          "payments"
+        ],
+        "sources": [
+          "docs/rules/variants/27-0.md",
+          "docs/rules/ORDINARY-STRUCTURES.md",
+          "apps/server/src/game/regional-profile.ts",
+          "apps/server/src/game/red-region-win.ts",
+          "apps/server/src/game/score-region-round.ts"
+        ],
+        "summary": {
+          "deck": "The regional pack is generated from the frozen wang/seven/option configuration.",
+          "win": "The red-point threshold gates a legal four-group structure; wildcards never add red points.",
+          "scoring": "The frozen regional fan schedule converts red points and fan items into exact transfer units.",
+          "declaration": "Declaration locks the server-computed waits when the variant exposes it.",
+          "payments": "Exact per-payer 12-place rounding and no duplicate settlement."
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,2801 @@
+{
+  "schemaVersion": 1,
+  "kind": "final-settlement-regression",
+  "variantKey": "27:0",
+  "ruleVersion": "junlian27-independent-v1",
+  "officialCasesSha256": "c4a3b3cc360b5b4d0d3a4ab7a0010e3416b406aa16bb07450578a6da657b8aae",
+  "rulebookDigest": "c9b1a7d61150006b91d233c41d258fbeebcf63b995d7d35ffa23b801a3a4a96e",
+  "cases": [
+    {
+      "id": "27-an-dui-final-settlement",
+      "initialSnapshot": {
+        "version": "junlian27-independent-v1",
+        "variantKey": "27:0",
+        "number": 1,
+        "rules": {
+          "useCardType": 2,
+          "gameNum": 4,
+          "playerNum": 2,
+          "wangNum": 0,
+          "huRedScore": 21,
+          "qiFanDianNum": 21,
+          "anDuiFanNum": 6,
+          "qia20": 1,
+          "menQing": 0,
+          "daShaQiangHu": 1,
+          "qiang_7Hu": 1,
+          "haiDiLao": 1,
+          "ziQiangHu": 1,
+          "da_7hong_7hei": 0,
+          "yiDianZhu": 0,
+          "quanQiuRen": 0,
+          "luanHu": 0,
+          "xiaoHu": 0,
+          "siZhangLuoDi": 0,
+          "openGps": 0,
+          "baseBeans": "0.125",
+          "scoreRegion": {
+            "version": "junlian27-independent-v1",
+            "rulesVersion": "junlian27-independent-v1",
+            "status": "independent-definition-authorized",
+            "source": "docs/rules/variants/27-0.md:2026-09-24"
+          }
+        },
+        "players": [
+          {
+            "userId": "a",
+            "seat": 1,
+            "melds": [],
+            "declaredWaits": null,
+            "declaredBonusIds": null,
+            "piao": 0,
+            "handRevision": 0,
+            "passedClaimFaces": []
+          },
+          {
+            "userId": "b",
+            "seat": 2,
+            "melds": [],
+            "declaredWaits": null,
+            "declaredBonusIds": null,
+            "piao": 0,
+            "handRevision": 0,
+            "passedClaimFaces": []
+          }
+        ],
+        "cards": {
+          "pack": [
+            {
+              "id": "card-1",
+              "code": 101
+            },
+            {
+              "id": "card-2",
+              "code": 102
+            },
+            {
+              "id": "card-3",
+              "code": 103
+            },
+            {
+              "id": "card-4",
+              "code": 104
+            },
+            {
+              "id": "card-5",
+              "code": 105
+            },
+            {
+              "id": "card-6",
+              "code": 106
+            },
+            {
+              "id": "card-7",
+              "code": 107
+            },
+            {
+              "id": "card-8",
+              "code": 108
+            },
+            {
+              "id": "card-9",
+              "code": 109
+            },
+            {
+              "id": "card-10",
+              "code": 110
+            },
+            {
+              "id": "card-11",
+              "code": 111
+            },
+            {
+              "id": "card-12",
+              "code": 112
+            },
+            {
+              "id": "card-13",
+              "code": 113
+            },
+            {
+              "id": "card-14",
+              "code": 201
+            },
+            {
+              "id": "card-15",
+              "code": 202
+            },
+            {
+              "id": "card-16",
+              "code": 203
+            },
+            {
+              "id": "card-17",
+              "code": 204
+            },
+            {
+              "id": "card-18",
+              "code": 205
+            },
+            {
+              "id": "card-19",
+              "code": 206
+            },
+            {
+              "id": "card-20",
+              "code": 207
+            },
+            {
+              "id": "card-21",
+              "code": 208
+            },
+            {
+              "id": "card-22",
+              "code": 209
+            },
+            {
+              "id": "card-23",
+              "code": 210
+            },
+            {
+              "id": "card-24",
+              "code": 211
+            },
+            {
+              "id": "card-25",
+              "code": 212
+            },
+            {
+              "id": "card-26",
+              "code": 213
+            },
+            {
+              "id": "card-27",
+              "code": 301
+            },
+            {
+              "id": "card-28",
+              "code": 302
+            },
+            {
+              "id": "card-29",
+              "code": 303
+            },
+            {
+              "id": "card-30",
+              "code": 304
+            },
+            {
+              "id": "card-31",
+              "code": 305
+            },
+            {
+              "id": "card-32",
+              "code": 306
+            },
+            {
+              "id": "card-33",
+              "code": 307
+            },
+            {
+              "id": "card-34",
+              "code": 308
+            },
+            {
+              "id": "card-35",
+              "code": 309
+            },
+            {
+              "id": "card-36",
+              "code": 310
+            },
+            {
+              "id": "card-37",
+              "code": 311
+            },
+            {
+              "id": "card-38",
+              "code": 312
+            },
+            {
+              "id": "card-39",
+              "code": 313
+            },
+            {
+              "id": "card-40",
+              "code": 401
+            },
+            {
+              "id": "card-41",
+              "code": 402
+            },
+            {
+              "id": "card-42",
+              "code": 403
+            },
+            {
+              "id": "card-43",
+              "code": 404
+            },
+            {
+              "id": "card-44",
+              "code": 405
+            },
+            {
+              "id": "card-45",
+              "code": 406
+            },
+            {
+              "id": "card-46",
+              "code": 407
+            },
+            {
+              "id": "card-47",
+              "code": 408
+            },
+            {
+              "id": "card-48",
+              "code": 409
+            },
+            {
+              "id": "card-49",
+              "code": 410
+            },
+            {
+              "id": "card-50",
+              "code": 411
+            },
+            {
+              "id": "card-51",
+              "code": 412
+            },
+            {
+              "id": "card-52",
+              "code": 413
+            }
+          ],
+          "zones": [
+            {
+              "id": "deck",
+              "visibility": "hidden",
+              "cards": [
+                "card-8",
+                "card-9",
+                "card-11",
+                "card-12",
+                "card-13",
+                "card-14",
+                "card-15",
+                "card-16",
+                "card-19",
+                "card-21",
+                "card-23",
+                "card-24",
+                "card-25",
+                "card-26",
+                "card-27",
+                "card-28",
+                "card-29",
+                "card-30",
+                "card-32",
+                "card-34",
+                "card-36",
+                "card-37",
+                "card-38",
+                "card-39",
+                "card-40",
+                "card-41",
+                "card-42",
+                "card-43",
+                "card-44",
+                "card-45",
+                "card-46",
+                "card-47",
+                "card-48",
+                "card-49",
+                "card-50",
+                "card-51",
+                "card-52"
+              ]
+            },
+            {
+              "id": "table",
+              "visibility": "public",
+              "cards": []
+            },
+            {
+              "id": "discards",
+              "visibility": "public",
+              "cards": []
+            },
+            {
+              "id": "hand:a",
+              "visibility": "private",
+              "ownerId": "a",
+              "cards": [
+                "card-10",
+                "card-17",
+                "card-35",
+                "card-18",
+                "card-31",
+                "card-22",
+                "card-33",
+                "card-20"
+              ]
+            },
+            {
+              "id": "melds:a",
+              "visibility": "public",
+              "ownerId": "a",
+              "cards": []
+            },
+            {
+              "id": "bonus:a",
+              "visibility": "public",
+              "ownerId": "a",
+              "cards": []
+            },
+            {
+              "id": "hand:b",
+              "visibility": "private",
+              "ownerId": "b",
+              "cards": [
+                "card-1",
+                "card-2",
+                "card-3",
+                "card-4",
+                "card-5",
+                "card-6",
+                "card-7"
+              ]
+            },
+            {
+              "id": "melds:b",
+              "visibility": "public",
+              "ownerId": "b",
+              "cards": []
+            },
+            {
+              "id": "bonus:b",
+              "visibility": "public",
+              "ownerId": "b",
+              "cards": []
+            }
+          ]
+        },
+        "dealerId": "a",
+        "dealerRun": 1,
+        "activeId": "a",
+        "phase": "discard",
+        "serial": 1,
+        "source": {
+          "kind": "replacement",
+          "userId": "a",
+          "cardId": "card-20"
+        },
+        "claims": null,
+        "outcome": null,
+        "deal": {
+          "version": "score-region-deal-v1",
+          "policy": {
+            "selectedUserId": null,
+            "triggered": false,
+            "probability": "0",
+            "version": null
+          },
+          "candidates": 1,
+          "evaluation": [
+            52,
+            170
+          ]
+        },
+        "responseResume": null,
+        "startEvents": []
+      },
+      "actorId": "a",
+      "action": {
+        "type": "hu",
+        "decisionId": "sr:1:1"
+      },
+      "actions": [
+        {
+          "userId": "a",
+          "action": {
+            "type": "hu",
+            "decisionId": "sr:1:1"
+          },
+          "name": "hu"
+        }
+      ],
+      "expected": {
+        "settlement": [
+          {
+            "userId": "a",
+            "amount": "34.75"
+          },
+          {
+            "userId": "b",
+            "amount": "-34.75"
+          }
+        ],
+        "scoreUnits": "278",
+        "items": [
+          {
+            "pattern": "redFan",
+            "count": 1,
+            "fan": 2
+          },
+          {
+            "pattern": "haiDiLao",
+            "count": 1,
+            "fan": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "27-seven-red-seven-black-final-settlement",
+      "initialSnapshot": {
+        "version": "junlian27-independent-v1",
+        "variantKey": "27:0",
+        "number": 1,
+        "rules": {
+          "useCardType": 2,
+          "gameNum": 4,
+          "playerNum": 2,
+          "wangNum": 0,
+          "huRedScore": 21,
+          "qiFanDianNum": 21,
+          "anDuiFanNum": 6,
+          "qia20": 1,
+          "menQing": 0,
+          "daShaQiangHu": 0,
+          "qiang_7Hu": 0,
+          "haiDiLao": 0,
+          "ziQiangHu": 0,
+          "da_7hong_7hei": 1,
+          "yiDianZhu": 0,
+          "quanQiuRen": 0,
+          "luanHu": 0,
+          "xiaoHu": 0,
+          "siZhangLuoDi": 0,
+          "openGps": 0,
+          "baseBeans": "0.125",
+          "scoreRegion": {
+            "version": "junlian27-independent-v1",
+            "rulesVersion": "junlian27-independent-v1",
+            "status": "independent-definition-authorized",
+            "source": "docs/rules/variants/27-0.md:2026-09-24"
+          }
+        },
+        "players": [
+          {
+            "userId": "a",
+            "seat": 1,
+            "melds": [
+              {
+                "kind": "gang",
+                "cardIds": [
+                  "card-5",
+                  "card-18",
+                  "card-31",
+                  "card-44"
+                ]
+              },
+              {
+                "kind": "gang",
+                "cardIds": [
+                  "card-6",
+                  "card-19",
+                  "card-32",
+                  "card-45"
+                ]
+              },
+              {
+                "kind": "gang",
+                "cardIds": [
+                  "card-8",
+                  "card-21",
+                  "card-34",
+                  "card-47"
+                ]
+              }
+            ],
+            "declaredWaits": null,
+            "declaredBonusIds": null,
+            "piao": 0,
+            "handRevision": 0,
+            "passedClaimFaces": []
+          },
+          {
+            "userId": "b",
+            "seat": 2,
+            "melds": [],
+            "declaredWaits": null,
+            "declaredBonusIds": null,
+            "piao": 0,
+            "handRevision": 0,
+            "passedClaimFaces": []
+          }
+        ],
+        "cards": {
+          "pack": [
+            {
+              "id": "card-1",
+              "code": 101
+            },
+            {
+              "id": "card-2",
+              "code": 102
+            },
+            {
+              "id": "card-3",
+              "code": 103
+            },
+            {
+              "id": "card-4",
+              "code": 104
+            },
+            {
+              "id": "card-5",
+              "code": 105
+            },
+            {
+              "id": "card-6",
+              "code": 106
+            },
+            {
+              "id": "card-7",
+              "code": 107
+            },
+            {
+              "id": "card-8",
+              "code": 108
+            },
+            {
+              "id": "card-9",
+              "code": 109
+            },
+            {
+              "id": "card-10",
+              "code": 110
+            },
+            {
+              "id": "card-11",
+              "code": 111
+            },
+            {
+              "id": "card-12",
+              "code": 112
+            },
+            {
+              "id": "card-13",
+              "code": 113
+            },
+            {
+              "id": "card-14",
+              "code": 201
+            },
+            {
+              "id": "card-15",
+              "code": 202
+            },
+            {
+              "id": "card-16",
+              "code": 203
+            },
+            {
+              "id": "card-17",
+              "code": 204
+            },
+            {
+              "id": "card-18",
+              "code": 205
+            },
+            {
+              "id": "card-19",
+              "code": 206
+            },
+            {
+              "id": "card-20",
+              "code": 207
+            },
+            {
+              "id": "card-21",
+              "code": 208
+            },
+            {
+              "id": "card-22",
+              "code": 209
+            },
+            {
+              "id": "card-23",
+              "code": 210
+            },
+            {
+              "id": "card-24",
+              "code": 211
+            },
+            {
+              "id": "card-25",
+              "code": 212
+            },
+            {
+              "id": "card-26",
+              "code": 213
+            },
+            {
+              "id": "card-27",
+              "code": 301
+            },
+            {
+              "id": "card-28",
+              "code": 302
+            },
+            {
+              "id": "card-29",
+              "code": 303
+            },
+            {
+              "id": "card-30",
+              "code": 304
+            },
+            {
+              "id": "card-31",
+              "code": 305
+            },
+            {
+              "id": "card-32",
+              "code": 306
+            },
+            {
+              "id": "card-33",
+              "code": 307
+            },
+            {
+              "id": "card-34",
+              "code": 308
+            },
+            {
+              "id": "card-35",
+              "code": 309
+            },
+            {
+              "id": "card-36",
+              "code": 310
+            },
+            {
+              "id": "card-37",
+              "code": 311
+            },
+            {
+              "id": "card-38",
+              "code": 312
+            },
+            {
+              "id": "card-39",
+              "code": 313
+            },
+            {
+              "id": "card-40",
+              "code": 401
+            },
+            {
+              "id": "card-41",
+              "code": 402
+            },
+            {
+              "id": "card-42",
+              "code": 403
+            },
+            {
+              "id": "card-43",
+              "code": 404
+            },
+            {
+              "id": "card-44",
+              "code": 405
+            },
+            {
+              "id": "card-45",
+              "code": 406
+            },
+            {
+              "id": "card-46",
+              "code": 407
+            },
+            {
+              "id": "card-47",
+              "code": 408
+            },
+            {
+              "id": "card-48",
+              "code": 409
+            },
+            {
+              "id": "card-49",
+              "code": 410
+            },
+            {
+              "id": "card-50",
+              "code": 411
+            },
+            {
+              "id": "card-51",
+              "code": 412
+            },
+            {
+              "id": "card-52",
+              "code": 413
+            }
+          ],
+          "zones": [
+            {
+              "id": "deck",
+              "visibility": "hidden",
+              "cards": [
+                "card-12",
+                "card-13",
+                "card-14",
+                "card-15",
+                "card-16",
+                "card-17",
+                "card-20",
+                "card-23",
+                "card-24",
+                "card-25",
+                "card-26",
+                "card-27",
+                "card-28",
+                "card-29",
+                "card-30",
+                "card-33",
+                "card-35",
+                "card-36",
+                "card-37",
+                "card-38",
+                "card-39",
+                "card-40",
+                "card-41",
+                "card-42",
+                "card-43",
+                "card-46",
+                "card-48",
+                "card-49",
+                "card-50",
+                "card-51",
+                "card-52"
+              ]
+            },
+            {
+              "id": "table",
+              "visibility": "public",
+              "cards": []
+            },
+            {
+              "id": "discards",
+              "visibility": "public",
+              "cards": []
+            },
+            {
+              "id": "hand:a",
+              "visibility": "private",
+              "ownerId": "a",
+              "cards": [
+                "card-9",
+                "card-22"
+              ]
+            },
+            {
+              "id": "melds:a",
+              "visibility": "public",
+              "ownerId": "a",
+              "cards": [
+                "card-5",
+                "card-18",
+                "card-31",
+                "card-44",
+                "card-6",
+                "card-19",
+                "card-32",
+                "card-45",
+                "card-8",
+                "card-21",
+                "card-34",
+                "card-47"
+              ]
+            },
+            {
+              "id": "bonus:a",
+              "visibility": "public",
+              "ownerId": "a",
+              "cards": []
+            },
+            {
+              "id": "hand:b",
+              "visibility": "private",
+              "ownerId": "b",
+              "cards": [
+                "card-1",
+                "card-2",
+                "card-3",
+                "card-4",
+                "card-7",
+                "card-10",
+                "card-11"
+              ]
+            },
+            {
+              "id": "melds:b",
+              "visibility": "public",
+              "ownerId": "b",
+              "cards": []
+            },
+            {
+              "id": "bonus:b",
+              "visibility": "public",
+              "ownerId": "b",
+              "cards": []
+            }
+          ]
+        },
+        "dealerId": "a",
+        "dealerRun": 1,
+        "activeId": "a",
+        "phase": "discard",
+        "serial": 1,
+        "source": {
+          "kind": "replacement",
+          "userId": "a",
+          "cardId": "card-9"
+        },
+        "claims": null,
+        "outcome": null,
+        "deal": {
+          "version": "score-region-deal-v1",
+          "policy": {
+            "selectedUserId": null,
+            "triggered": false,
+            "probability": "0",
+            "version": null
+          },
+          "candidates": 1,
+          "evaluation": [
+            52,
+            170
+          ]
+        },
+        "responseResume": null,
+        "startEvents": []
+      },
+      "actorId": "a",
+      "action": {
+        "type": "hu",
+        "decisionId": "sr:1:1"
+      },
+      "actions": [
+        {
+          "userId": "a",
+          "action": {
+            "type": "hu",
+            "decisionId": "sr:1:1"
+          },
+          "name": "hu"
+        }
+      ],
+      "expected": {
+        "settlement": [
+          {
+            "userId": "a",
+            "amount": "19.25"
+          },
+          {
+            "userId": "b",
+            "amount": "-19.25"
+          }
+        ],
+        "scoreUnits": "154",
+        "items": [
+          {
+            "pattern": "redFan",
+            "count": 1,
+            "fan": 5
+          },
+          {
+            "pattern": "sevenRedSevenBlack",
+            "count": 1,
+            "fan": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "27-qiang-hu-final-settlement",
+      "initialSnapshot": {
+        "version": "junlian27-independent-v1",
+        "variantKey": "27:0",
+        "number": 1,
+        "rules": {
+          "useCardType": 2,
+          "gameNum": 4,
+          "playerNum": 2,
+          "wangNum": 0,
+          "huRedScore": 21,
+          "qiFanDianNum": 21,
+          "anDuiFanNum": 6,
+          "qia20": 1,
+          "menQing": 0,
+          "daShaQiangHu": 1,
+          "qiang_7Hu": 0,
+          "haiDiLao": 1,
+          "ziQiangHu": 1,
+          "da_7hong_7hei": 0,
+          "yiDianZhu": 0,
+          "quanQiuRen": 0,
+          "luanHu": 0,
+          "xiaoHu": 0,
+          "siZhangLuoDi": 0,
+          "openGps": 0,
+          "baseBeans": "0.125",
+          "scoreRegion": {
+            "version": "junlian27-independent-v1",
+            "rulesVersion": "junlian27-independent-v1",
+            "status": "independent-definition-authorized",
+            "source": "docs/rules/variants/27-0.md:2026-09-24"
+          }
+        },
+        "players": [
+          {
+            "userId": "a",
+            "seat": 1,
+            "melds": [],
+            "declaredWaits": null,
+            "declaredBonusIds": null,
+            "piao": 0,
+            "handRevision": 0,
+            "passedClaimFaces": []
+          },
+          {
+            "userId": "b",
+            "seat": 2,
+            "melds": [],
+            "declaredWaits": null,
+            "declaredBonusIds": null,
+            "piao": 0,
+            "handRevision": 0,
+            "passedClaimFaces": []
+          }
+        ],
+        "cards": {
+          "pack": [
+            {
+              "id": "card-1",
+              "code": 101
+            },
+            {
+              "id": "card-2",
+              "code": 102
+            },
+            {
+              "id": "card-3",
+              "code": 103
+            },
+            {
+              "id": "card-4",
+              "code": 104
+            },
+            {
+              "id": "card-5",
+              "code": 105
+            },
+            {
+              "id": "card-6",
+              "code": 106
+            },
+            {
+              "id": "card-7",
+              "code": 107
+            },
+            {
+              "id": "card-8",
+              "code": 108
+            },
+            {
+              "id": "card-9",
+              "code": 109
+            },
+            {
+              "id": "card-10",
+              "code": 110
+            },
+            {
+              "id": "card-11",
+              "code": 111
+            },
+            {
+              "id": "card-12",
+              "code": 112
+            },
+            {
+              "id": "card-13",
+              "code": 113
+            },
+            {
+              "id": "card-14",
+              "code": 201
+            },
+            {
+              "id": "card-15",
+              "code": 202
+            },
+            {
+              "id": "card-16",
+              "code": 203
+            },
+            {
+              "id": "card-17",
+              "code": 204
+            },
+            {
+              "id": "card-18",
+              "code": 205
+            },
+            {
+              "id": "card-19",
+              "code": 206
+            },
+            {
+              "id": "card-20",
+              "code": 207
+            },
+            {
+              "id": "card-21",
+              "code": 208
+            },
+            {
+              "id": "card-22",
+              "code": 209
+            },
+            {
+              "id": "card-23",
+              "code": 210
+            },
+            {
+              "id": "card-24",
+              "code": 211
+            },
+            {
+              "id": "card-25",
+              "code": 212
+            },
+            {
+              "id": "card-26",
+              "code": 213
+            },
+            {
+              "id": "card-27",
+              "code": 301
+            },
+            {
+              "id": "card-28",
+              "code": 302
+            },
+            {
+              "id": "card-29",
+              "code": 303
+            },
+            {
+              "id": "card-30",
+              "code": 304
+            },
+            {
+              "id": "card-31",
+              "code": 305
+            },
+            {
+              "id": "card-32",
+              "code": 306
+            },
+            {
+              "id": "card-33",
+              "code": 307
+            },
+            {
+              "id": "card-34",
+              "code": 308
+            },
+            {
+              "id": "card-35",
+              "code": 309
+            },
+            {
+              "id": "card-36",
+              "code": 310
+            },
+            {
+              "id": "card-37",
+              "code": 311
+            },
+            {
+              "id": "card-38",
+              "code": 312
+            },
+            {
+              "id": "card-39",
+              "code": 313
+            },
+            {
+              "id": "card-40",
+              "code": 401
+            },
+            {
+              "id": "card-41",
+              "code": 402
+            },
+            {
+              "id": "card-42",
+              "code": 403
+            },
+            {
+              "id": "card-43",
+              "code": 404
+            },
+            {
+              "id": "card-44",
+              "code": 405
+            },
+            {
+              "id": "card-45",
+              "code": 406
+            },
+            {
+              "id": "card-46",
+              "code": 407
+            },
+            {
+              "id": "card-47",
+              "code": 408
+            },
+            {
+              "id": "card-48",
+              "code": 409
+            },
+            {
+              "id": "card-49",
+              "code": 410
+            },
+            {
+              "id": "card-50",
+              "code": 411
+            },
+            {
+              "id": "card-51",
+              "code": 412
+            },
+            {
+              "id": "card-52",
+              "code": 413
+            }
+          ],
+          "zones": [
+            {
+              "id": "deck",
+              "visibility": "hidden",
+              "cards": [
+                "card-6",
+                "card-7",
+                "card-11",
+                "card-12",
+                "card-13",
+                "card-15",
+                "card-16",
+                "card-18",
+                "card-19",
+                "card-21",
+                "card-22",
+                "card-23",
+                "card-24",
+                "card-25",
+                "card-26",
+                "card-28",
+                "card-29",
+                "card-30",
+                "card-31",
+                "card-32",
+                "card-33",
+                "card-34",
+                "card-35",
+                "card-36",
+                "card-37",
+                "card-38",
+                "card-39",
+                "card-41",
+                "card-42",
+                "card-43",
+                "card-46",
+                "card-47",
+                "card-48",
+                "card-49",
+                "card-50",
+                "card-51",
+                "card-52"
+              ]
+            },
+            {
+              "id": "table",
+              "visibility": "public",
+              "cards": []
+            },
+            {
+              "id": "discards",
+              "visibility": "public",
+              "cards": []
+            },
+            {
+              "id": "hand:a",
+              "visibility": "private",
+              "ownerId": "a",
+              "cards": [
+                "card-10",
+                "card-17",
+                "card-9",
+                "card-44",
+                "card-8",
+                "card-45",
+                "card-20"
+              ]
+            },
+            {
+              "id": "melds:a",
+              "visibility": "public",
+              "ownerId": "a",
+              "cards": []
+            },
+            {
+              "id": "bonus:a",
+              "visibility": "public",
+              "ownerId": "a",
+              "cards": []
+            },
+            {
+              "id": "hand:b",
+              "visibility": "private",
+              "ownerId": "b",
+              "cards": [
+                "card-1",
+                "card-14",
+                "card-27",
+                "card-40",
+                "card-2",
+                "card-3",
+                "card-4",
+                "card-5"
+              ]
+            },
+            {
+              "id": "melds:b",
+              "visibility": "public",
+              "ownerId": "b",
+              "cards": []
+            },
+            {
+              "id": "bonus:b",
+              "visibility": "public",
+              "ownerId": "b",
+              "cards": []
+            }
+          ]
+        },
+        "dealerId": "a",
+        "dealerRun": 1,
+        "activeId": "b",
+        "phase": "discard",
+        "serial": 1,
+        "source": null,
+        "claims": null,
+        "outcome": null,
+        "deal": {
+          "version": "score-region-deal-v1",
+          "policy": {
+            "selectedUserId": null,
+            "triggered": false,
+            "probability": "0",
+            "version": null
+          },
+          "candidates": 1,
+          "evaluation": [
+            52,
+            170
+          ]
+        },
+        "responseResume": null,
+        "startEvents": []
+      },
+      "actorId": "b",
+      "action": {
+        "type": "gang",
+        "cardIds": [
+          "card-1",
+          "card-14",
+          "card-27",
+          "card-40"
+        ],
+        "decisionId": "sr:1:1"
+      },
+      "actions": [
+        {
+          "userId": "b",
+          "action": {
+            "type": "gang",
+            "cardIds": [
+              "card-1",
+              "card-14",
+              "card-27",
+              "card-40"
+            ],
+            "decisionId": "sr:1:1"
+          },
+          "name": "gang"
+        },
+        {
+          "userId": "a",
+          "action": {
+            "type": "respond",
+            "choiceId": "sr:1:2:0",
+            "decisionId": "sr:1:2"
+          },
+          "name": "respond-hu"
+        }
+      ],
+      "expected": {
+        "settlement": [
+          {
+            "userId": "a",
+            "amount": "31"
+          },
+          {
+            "userId": "b",
+            "amount": "-31"
+          }
+        ],
+        "scoreUnits": "248",
+        "items": [
+          {
+            "pattern": "redFan",
+            "count": 1,
+            "fan": 2
+          },
+          {
+            "pattern": "qiangHu",
+            "count": 1,
+            "fan": 1
+          },
+          {
+            "pattern": "haiDiLao",
+            "count": 1,
+            "fan": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "27-qiang-seven-final-settlement",
+      "initialSnapshot": {
+        "version": "junlian27-independent-v1",
+        "variantKey": "27:0",
+        "number": 1,
+        "rules": {
+          "useCardType": 2,
+          "gameNum": 4,
+          "playerNum": 2,
+          "wangNum": 0,
+          "huRedScore": 21,
+          "qiFanDianNum": 21,
+          "anDuiFanNum": 6,
+          "qia20": 1,
+          "menQing": 0,
+          "daShaQiangHu": 0,
+          "qiang_7Hu": 1,
+          "haiDiLao": 1,
+          "ziQiangHu": 1,
+          "da_7hong_7hei": 0,
+          "yiDianZhu": 0,
+          "quanQiuRen": 0,
+          "luanHu": 0,
+          "xiaoHu": 0,
+          "siZhangLuoDi": 0,
+          "openGps": 0,
+          "baseBeans": "0.125",
+          "scoreRegion": {
+            "version": "junlian27-independent-v1",
+            "rulesVersion": "junlian27-independent-v1",
+            "status": "independent-definition-authorized",
+            "source": "docs/rules/variants/27-0.md:2026-09-24"
+          }
+        },
+        "players": [
+          {
+            "userId": "a",
+            "seat": 1,
+            "melds": [],
+            "declaredWaits": null,
+            "declaredBonusIds": null,
+            "piao": 0,
+            "handRevision": 0,
+            "passedClaimFaces": []
+          },
+          {
+            "userId": "b",
+            "seat": 2,
+            "melds": [],
+            "declaredWaits": null,
+            "declaredBonusIds": null,
+            "piao": 0,
+            "handRevision": 0,
+            "passedClaimFaces": []
+          }
+        ],
+        "cards": {
+          "pack": [
+            {
+              "id": "card-1",
+              "code": 101
+            },
+            {
+              "id": "card-2",
+              "code": 102
+            },
+            {
+              "id": "card-3",
+              "code": 103
+            },
+            {
+              "id": "card-4",
+              "code": 104
+            },
+            {
+              "id": "card-5",
+              "code": 105
+            },
+            {
+              "id": "card-6",
+              "code": 106
+            },
+            {
+              "id": "card-7",
+              "code": 107
+            },
+            {
+              "id": "card-8",
+              "code": 108
+            },
+            {
+              "id": "card-9",
+              "code": 109
+            },
+            {
+              "id": "card-10",
+              "code": 110
+            },
+            {
+              "id": "card-11",
+              "code": 111
+            },
+            {
+              "id": "card-12",
+              "code": 112
+            },
+            {
+              "id": "card-13",
+              "code": 113
+            },
+            {
+              "id": "card-14",
+              "code": 201
+            },
+            {
+              "id": "card-15",
+              "code": 202
+            },
+            {
+              "id": "card-16",
+              "code": 203
+            },
+            {
+              "id": "card-17",
+              "code": 204
+            },
+            {
+              "id": "card-18",
+              "code": 205
+            },
+            {
+              "id": "card-19",
+              "code": 206
+            },
+            {
+              "id": "card-20",
+              "code": 207
+            },
+            {
+              "id": "card-21",
+              "code": 208
+            },
+            {
+              "id": "card-22",
+              "code": 209
+            },
+            {
+              "id": "card-23",
+              "code": 210
+            },
+            {
+              "id": "card-24",
+              "code": 211
+            },
+            {
+              "id": "card-25",
+              "code": 212
+            },
+            {
+              "id": "card-26",
+              "code": 213
+            },
+            {
+              "id": "card-27",
+              "code": 301
+            },
+            {
+              "id": "card-28",
+              "code": 302
+            },
+            {
+              "id": "card-29",
+              "code": 303
+            },
+            {
+              "id": "card-30",
+              "code": 304
+            },
+            {
+              "id": "card-31",
+              "code": 305
+            },
+            {
+              "id": "card-32",
+              "code": 306
+            },
+            {
+              "id": "card-33",
+              "code": 307
+            },
+            {
+              "id": "card-34",
+              "code": 308
+            },
+            {
+              "id": "card-35",
+              "code": 309
+            },
+            {
+              "id": "card-36",
+              "code": 310
+            },
+            {
+              "id": "card-37",
+              "code": 311
+            },
+            {
+              "id": "card-38",
+              "code": 312
+            },
+            {
+              "id": "card-39",
+              "code": 313
+            },
+            {
+              "id": "card-40",
+              "code": 401
+            },
+            {
+              "id": "card-41",
+              "code": 402
+            },
+            {
+              "id": "card-42",
+              "code": 403
+            },
+            {
+              "id": "card-43",
+              "code": 404
+            },
+            {
+              "id": "card-44",
+              "code": 405
+            },
+            {
+              "id": "card-45",
+              "code": 406
+            },
+            {
+              "id": "card-46",
+              "code": 407
+            },
+            {
+              "id": "card-47",
+              "code": 408
+            },
+            {
+              "id": "card-48",
+              "code": 409
+            },
+            {
+              "id": "card-49",
+              "code": 410
+            },
+            {
+              "id": "card-50",
+              "code": 411
+            },
+            {
+              "id": "card-51",
+              "code": 412
+            },
+            {
+              "id": "card-52",
+              "code": 413
+            }
+          ],
+          "zones": [
+            {
+              "id": "deck",
+              "visibility": "hidden",
+              "cards": [
+                "card-6",
+                "card-7",
+                "card-11",
+                "card-12",
+                "card-13",
+                "card-15",
+                "card-16",
+                "card-18",
+                "card-19",
+                "card-21",
+                "card-22",
+                "card-23",
+                "card-24",
+                "card-25",
+                "card-26",
+                "card-28",
+                "card-29",
+                "card-30",
+                "card-31",
+                "card-32",
+                "card-33",
+                "card-34",
+                "card-35",
+                "card-36",
+                "card-37",
+                "card-38",
+                "card-39",
+                "card-41",
+                "card-42",
+                "card-43",
+                "card-46",
+                "card-47",
+                "card-48",
+                "card-49",
+                "card-50",
+                "card-51",
+                "card-52"
+              ]
+            },
+            {
+              "id": "table",
+              "visibility": "public",
+              "cards": []
+            },
+            {
+              "id": "discards",
+              "visibility": "public",
+              "cards": []
+            },
+            {
+              "id": "hand:a",
+              "visibility": "private",
+              "ownerId": "a",
+              "cards": [
+                "card-10",
+                "card-17",
+                "card-9",
+                "card-44",
+                "card-8",
+                "card-45",
+                "card-20"
+              ]
+            },
+            {
+              "id": "melds:a",
+              "visibility": "public",
+              "ownerId": "a",
+              "cards": []
+            },
+            {
+              "id": "bonus:a",
+              "visibility": "public",
+              "ownerId": "a",
+              "cards": []
+            },
+            {
+              "id": "hand:b",
+              "visibility": "private",
+              "ownerId": "b",
+              "cards": [
+                "card-1",
+                "card-14",
+                "card-27",
+                "card-40",
+                "card-2",
+                "card-3",
+                "card-4",
+                "card-5"
+              ]
+            },
+            {
+              "id": "melds:b",
+              "visibility": "public",
+              "ownerId": "b",
+              "cards": []
+            },
+            {
+              "id": "bonus:b",
+              "visibility": "public",
+              "ownerId": "b",
+              "cards": []
+            }
+          ]
+        },
+        "dealerId": "a",
+        "dealerRun": 1,
+        "activeId": "b",
+        "phase": "discard",
+        "serial": 1,
+        "source": null,
+        "claims": null,
+        "outcome": null,
+        "deal": {
+          "version": "score-region-deal-v1",
+          "policy": {
+            "selectedUserId": null,
+            "triggered": false,
+            "probability": "0",
+            "version": null
+          },
+          "candidates": 1,
+          "evaluation": [
+            52,
+            170
+          ]
+        },
+        "responseResume": null,
+        "startEvents": []
+      },
+      "actorId": "b",
+      "action": {
+        "type": "gang",
+        "cardIds": [
+          "card-1",
+          "card-14",
+          "card-27",
+          "card-40"
+        ],
+        "decisionId": "sr:1:1"
+      },
+      "actions": [
+        {
+          "userId": "b",
+          "action": {
+            "type": "gang",
+            "cardIds": [
+              "card-1",
+              "card-14",
+              "card-27",
+              "card-40"
+            ],
+            "decisionId": "sr:1:1"
+          },
+          "name": "gang"
+        },
+        {
+          "userId": "a",
+          "action": {
+            "type": "respond",
+            "choiceId": "sr:1:2:0",
+            "decisionId": "sr:1:2"
+          },
+          "name": "respond-hu"
+        }
+      ],
+      "expected": {
+        "settlement": [
+          {
+            "userId": "a",
+            "amount": "31"
+          },
+          {
+            "userId": "b",
+            "amount": "-31"
+          }
+        ],
+        "scoreUnits": "248",
+        "items": [
+          {
+            "pattern": "redFan",
+            "count": 1,
+            "fan": 2
+          },
+          {
+            "pattern": "qiang7",
+            "count": 1,
+            "fan": 1
+          },
+          {
+            "pattern": "haiDiLao",
+            "count": 1,
+            "fan": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "27-one-red-final-settlement",
+      "initialSnapshot": {
+        "version": "junlian27-independent-v1",
+        "variantKey": "27:0",
+        "number": 1,
+        "rules": {
+          "useCardType": 2,
+          "gameNum": 4,
+          "playerNum": 2,
+          "wangNum": 0,
+          "huRedScore": 21,
+          "qiFanDianNum": 21,
+          "anDuiFanNum": 6,
+          "qia20": 1,
+          "menQing": 0,
+          "daShaQiangHu": 1,
+          "qiang_7Hu": 1,
+          "haiDiLao": 1,
+          "ziQiangHu": 1,
+          "da_7hong_7hei": 0,
+          "yiDianZhu": 1,
+          "quanQiuRen": 0,
+          "luanHu": 0,
+          "xiaoHu": 0,
+          "siZhangLuoDi": 0,
+          "openGps": 0,
+          "baseBeans": "0.125",
+          "scoreRegion": {
+            "version": "junlian27-independent-v1",
+            "rulesVersion": "junlian27-independent-v1",
+            "status": "independent-definition-authorized",
+            "source": "docs/rules/variants/27-0.md:2026-09-24"
+          }
+        },
+        "players": [
+          {
+            "userId": "a",
+            "seat": 1,
+            "melds": [],
+            "declaredWaits": null,
+            "declaredBonusIds": null,
+            "piao": 0,
+            "handRevision": 0,
+            "passedClaimFaces": []
+          },
+          {
+            "userId": "b",
+            "seat": 2,
+            "melds": [],
+            "declaredWaits": null,
+            "declaredBonusIds": null,
+            "piao": 0,
+            "handRevision": 0,
+            "passedClaimFaces": []
+          }
+        ],
+        "cards": {
+          "pack": [
+            {
+              "id": "card-1",
+              "code": 101
+            },
+            {
+              "id": "card-2",
+              "code": 102
+            },
+            {
+              "id": "card-3",
+              "code": 103
+            },
+            {
+              "id": "card-4",
+              "code": 104
+            },
+            {
+              "id": "card-5",
+              "code": 105
+            },
+            {
+              "id": "card-6",
+              "code": 106
+            },
+            {
+              "id": "card-7",
+              "code": 107
+            },
+            {
+              "id": "card-8",
+              "code": 108
+            },
+            {
+              "id": "card-9",
+              "code": 109
+            },
+            {
+              "id": "card-10",
+              "code": 110
+            },
+            {
+              "id": "card-11",
+              "code": 111
+            },
+            {
+              "id": "card-12",
+              "code": 112
+            },
+            {
+              "id": "card-13",
+              "code": 113
+            },
+            {
+              "id": "card-14",
+              "code": 201
+            },
+            {
+              "id": "card-15",
+              "code": 202
+            },
+            {
+              "id": "card-16",
+              "code": 203
+            },
+            {
+              "id": "card-17",
+              "code": 204
+            },
+            {
+              "id": "card-18",
+              "code": 205
+            },
+            {
+              "id": "card-19",
+              "code": 206
+            },
+            {
+              "id": "card-20",
+              "code": 207
+            },
+            {
+              "id": "card-21",
+              "code": 208
+            },
+            {
+              "id": "card-22",
+              "code": 209
+            },
+            {
+              "id": "card-23",
+              "code": 210
+            },
+            {
+              "id": "card-24",
+              "code": 211
+            },
+            {
+              "id": "card-25",
+              "code": 212
+            },
+            {
+              "id": "card-26",
+              "code": 213
+            },
+            {
+              "id": "card-27",
+              "code": 301
+            },
+            {
+              "id": "card-28",
+              "code": 302
+            },
+            {
+              "id": "card-29",
+              "code": 303
+            },
+            {
+              "id": "card-30",
+              "code": 304
+            },
+            {
+              "id": "card-31",
+              "code": 305
+            },
+            {
+              "id": "card-32",
+              "code": 306
+            },
+            {
+              "id": "card-33",
+              "code": 307
+            },
+            {
+              "id": "card-34",
+              "code": 308
+            },
+            {
+              "id": "card-35",
+              "code": 309
+            },
+            {
+              "id": "card-36",
+              "code": 310
+            },
+            {
+              "id": "card-37",
+              "code": 311
+            },
+            {
+              "id": "card-38",
+              "code": 312
+            },
+            {
+              "id": "card-39",
+              "code": 313
+            },
+            {
+              "id": "card-40",
+              "code": 401
+            },
+            {
+              "id": "card-41",
+              "code": 402
+            },
+            {
+              "id": "card-42",
+              "code": 403
+            },
+            {
+              "id": "card-43",
+              "code": 404
+            },
+            {
+              "id": "card-44",
+              "code": 405
+            },
+            {
+              "id": "card-45",
+              "code": 406
+            },
+            {
+              "id": "card-46",
+              "code": 407
+            },
+            {
+              "id": "card-47",
+              "code": 408
+            },
+            {
+              "id": "card-48",
+              "code": 409
+            },
+            {
+              "id": "card-49",
+              "code": 410
+            },
+            {
+              "id": "card-50",
+              "code": 411
+            },
+            {
+              "id": "card-51",
+              "code": 412
+            },
+            {
+              "id": "card-52",
+              "code": 413
+            }
+          ],
+          "zones": [
+            {
+              "id": "deck",
+              "visibility": "hidden",
+              "cards": [
+                "card-8",
+                "card-9",
+                "card-11",
+                "card-12",
+                "card-13",
+                "card-14",
+                "card-15",
+                "card-16",
+                "card-17",
+                "card-18",
+                "card-19",
+                "card-24",
+                "card-25",
+                "card-26",
+                "card-27",
+                "card-28",
+                "card-29",
+                "card-30",
+                "card-31",
+                "card-32",
+                "card-33",
+                "card-34",
+                "card-35",
+                "card-36",
+                "card-37",
+                "card-38",
+                "card-39",
+                "card-40",
+                "card-41",
+                "card-42",
+                "card-43",
+                "card-47",
+                "card-48",
+                "card-49",
+                "card-50",
+                "card-51",
+                "card-52"
+              ]
+            },
+            {
+              "id": "table",
+              "visibility": "public",
+              "cards": []
+            },
+            {
+              "id": "discards",
+              "visibility": "public",
+              "cards": []
+            },
+            {
+              "id": "hand:a",
+              "visibility": "private",
+              "ownerId": "a",
+              "cards": [
+                "card-23",
+                "card-22",
+                "card-44",
+                "card-21",
+                "card-45",
+                "card-20",
+                "card-46"
+              ]
+            },
+            {
+              "id": "melds:a",
+              "visibility": "public",
+              "ownerId": "a",
+              "cards": []
+            },
+            {
+              "id": "bonus:a",
+              "visibility": "public",
+              "ownerId": "a",
+              "cards": []
+            },
+            {
+              "id": "hand:b",
+              "visibility": "private",
+              "ownerId": "b",
+              "cards": [
+                "card-10",
+                "card-1",
+                "card-2",
+                "card-3",
+                "card-4",
+                "card-5",
+                "card-6",
+                "card-7"
+              ]
+            },
+            {
+              "id": "melds:b",
+              "visibility": "public",
+              "ownerId": "b",
+              "cards": []
+            },
+            {
+              "id": "bonus:b",
+              "visibility": "public",
+              "ownerId": "b",
+              "cards": []
+            }
+          ]
+        },
+        "dealerId": "a",
+        "dealerRun": 1,
+        "activeId": "b",
+        "phase": "discard",
+        "serial": 1,
+        "source": null,
+        "claims": null,
+        "outcome": null,
+        "deal": {
+          "version": "score-region-deal-v1",
+          "policy": {
+            "selectedUserId": null,
+            "triggered": false,
+            "probability": "0",
+            "version": null
+          },
+          "candidates": 1,
+          "evaluation": [
+            52,
+            170
+          ]
+        },
+        "responseResume": null,
+        "startEvents": []
+      },
+      "actorId": "b",
+      "action": {
+        "type": "discard",
+        "cardId": "card-10",
+        "decisionId": "sr:1:1"
+      },
+      "actions": [
+        {
+          "userId": "b",
+          "action": {
+            "type": "discard",
+            "cardId": "card-10",
+            "decisionId": "sr:1:1"
+          },
+          "name": "discard"
+        },
+        {
+          "userId": "a",
+          "action": {
+            "type": "respond",
+            "choiceId": "sr:1:2:0",
+            "decisionId": "sr:1:2"
+          },
+          "name": "respond-hu"
+        }
+      ],
+      "expected": {
+        "settlement": [
+          {
+            "userId": "a",
+            "amount": "12.75"
+          },
+          {
+            "userId": "b",
+            "amount": "-12.75"
+          }
+        ],
+        "scoreUnits": "102",
+        "items": [
+          {
+            "pattern": "oneRed",
+            "count": 1,
+            "fan": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "27-all-from-others-final-settlement",
+      "initialSnapshot": {
+        "version": "junlian27-independent-v1",
+        "variantKey": "27:0",
+        "number": 1,
+        "rules": {
+          "useCardType": 2,
+          "gameNum": 4,
+          "playerNum": 2,
+          "wangNum": 0,
+          "huRedScore": 21,
+          "qiFanDianNum": 21,
+          "anDuiFanNum": 6,
+          "qia20": 1,
+          "menQing": 0,
+          "daShaQiangHu": 0,
+          "qiang_7Hu": 0,
+          "haiDiLao": 1,
+          "ziQiangHu": 1,
+          "da_7hong_7hei": 0,
+          "yiDianZhu": 0,
+          "quanQiuRen": 1,
+          "luanHu": 0,
+          "xiaoHu": 0,
+          "siZhangLuoDi": 0,
+          "openGps": 0,
+          "baseBeans": "0.125",
+          "scoreRegion": {
+            "version": "junlian27-independent-v1",
+            "rulesVersion": "junlian27-independent-v1",
+            "status": "independent-definition-authorized",
+            "source": "docs/rules/variants/27-0.md:2026-09-24"
+          }
+        },
+        "players": [
+          {
+            "userId": "a",
+            "seat": 1,
+            "melds": [
+              {
+                "kind": "peng",
+                "cardIds": [
+                  "card-6",
+                  "card-19",
+                  "card-32"
+                ]
+              },
+              {
+                "kind": "peng",
+                "cardIds": [
+                  "card-8",
+                  "card-21",
+                  "card-34"
+                ]
+              },
+              {
+                "kind": "peng",
+                "cardIds": [
+                  "card-12",
+                  "card-25",
+                  "card-38"
+                ]
+              }
+            ],
+            "declaredWaits": null,
+            "declaredBonusIds": null,
+            "piao": 0,
+            "handRevision": 0,
+            "passedClaimFaces": []
+          },
+          {
+            "userId": "b",
+            "seat": 2,
+            "melds": [],
+            "declaredWaits": null,
+            "declaredBonusIds": null,
+            "piao": 0,
+            "handRevision": 0,
+            "passedClaimFaces": []
+          }
+        ],
+        "cards": {
+          "pack": [
+            {
+              "id": "card-1",
+              "code": 101
+            },
+            {
+              "id": "card-2",
+              "code": 102
+            },
+            {
+              "id": "card-3",
+              "code": 103
+            },
+            {
+              "id": "card-4",
+              "code": 104
+            },
+            {
+              "id": "card-5",
+              "code": 105
+            },
+            {
+              "id": "card-6",
+              "code": 106
+            },
+            {
+              "id": "card-7",
+              "code": 107
+            },
+            {
+              "id": "card-8",
+              "code": 108
+            },
+            {
+              "id": "card-9",
+              "code": 109
+            },
+            {
+              "id": "card-10",
+              "code": 110
+            },
+            {
+              "id": "card-11",
+              "code": 111
+            },
+            {
+              "id": "card-12",
+              "code": 112
+            },
+            {
+              "id": "card-13",
+              "code": 113
+            },
+            {
+              "id": "card-14",
+              "code": 201
+            },
+            {
+              "id": "card-15",
+              "code": 202
+            },
+            {
+              "id": "card-16",
+              "code": 203
+            },
+            {
+              "id": "card-17",
+              "code": 204
+            },
+            {
+              "id": "card-18",
+              "code": 205
+            },
+            {
+              "id": "card-19",
+              "code": 206
+            },
+            {
+              "id": "card-20",
+              "code": 207
+            },
+            {
+              "id": "card-21",
+              "code": 208
+            },
+            {
+              "id": "card-22",
+              "code": 209
+            },
+            {
+              "id": "card-23",
+              "code": 210
+            },
+            {
+              "id": "card-24",
+              "code": 211
+            },
+            {
+              "id": "card-25",
+              "code": 212
+            },
+            {
+              "id": "card-26",
+              "code": 213
+            },
+            {
+              "id": "card-27",
+              "code": 301
+            },
+            {
+              "id": "card-28",
+              "code": 302
+            },
+            {
+              "id": "card-29",
+              "code": 303
+            },
+            {
+              "id": "card-30",
+              "code": 304
+            },
+            {
+              "id": "card-31",
+              "code": 305
+            },
+            {
+              "id": "card-32",
+              "code": 306
+            },
+            {
+              "id": "card-33",
+              "code": 307
+            },
+            {
+              "id": "card-34",
+              "code": 308
+            },
+            {
+              "id": "card-35",
+              "code": 309
+            },
+            {
+              "id": "card-36",
+              "code": 310
+            },
+            {
+              "id": "card-37",
+              "code": 311
+            },
+            {
+              "id": "card-38",
+              "code": 312
+            },
+            {
+              "id": "card-39",
+              "code": 313
+            },
+            {
+              "id": "card-40",
+              "code": 401
+            },
+            {
+              "id": "card-41",
+              "code": 402
+            },
+            {
+              "id": "card-42",
+              "code": 403
+            },
+            {
+              "id": "card-43",
+              "code": 404
+            },
+            {
+              "id": "card-44",
+              "code": 405
+            },
+            {
+              "id": "card-45",
+              "code": 406
+            },
+            {
+              "id": "card-46",
+              "code": 407
+            },
+            {
+              "id": "card-47",
+              "code": 408
+            },
+            {
+              "id": "card-48",
+              "code": 409
+            },
+            {
+              "id": "card-49",
+              "code": 410
+            },
+            {
+              "id": "card-50",
+              "code": 411
+            },
+            {
+              "id": "card-51",
+              "code": 412
+            },
+            {
+              "id": "card-52",
+              "code": 413
+            }
+          ],
+          "zones": [
+            {
+              "id": "deck",
+              "visibility": "hidden",
+              "cards": [
+                "card-11",
+                "card-13",
+                "card-14",
+                "card-15",
+                "card-16",
+                "card-18",
+                "card-20",
+                "card-22",
+                "card-23",
+                "card-24",
+                "card-26",
+                "card-27",
+                "card-28",
+                "card-29",
+                "card-30",
+                "card-31",
+                "card-33",
+                "card-35",
+                "card-36",
+                "card-37",
+                "card-39",
+                "card-40",
+                "card-41",
+                "card-42",
+                "card-43",
+                "card-44",
+                "card-45",
+                "card-46",
+                "card-47",
+                "card-48",
+                "card-49",
+                "card-50",
+                "card-51",
+                "card-52"
+              ]
+            },
+            {
+              "id": "table",
+              "visibility": "public",
+              "cards": []
+            },
+            {
+              "id": "discards",
+              "visibility": "public",
+              "cards": []
+            },
+            {
+              "id": "hand:a",
+              "visibility": "private",
+              "ownerId": "a",
+              "cards": [
+                "card-10"
+              ]
+            },
+            {
+              "id": "melds:a",
+              "visibility": "public",
+              "ownerId": "a",
+              "cards": [
+                "card-6",
+                "card-19",
+                "card-32",
+                "card-8",
+                "card-21",
+                "card-34",
+                "card-12",
+                "card-25",
+                "card-38"
+              ]
+            },
+            {
+              "id": "bonus:a",
+              "visibility": "public",
+              "ownerId": "a",
+              "cards": []
+            },
+            {
+              "id": "hand:b",
+              "visibility": "private",
+              "ownerId": "b",
+              "cards": [
+                "card-17",
+                "card-1",
+                "card-2",
+                "card-3",
+                "card-4",
+                "card-5",
+                "card-7",
+                "card-9"
+              ]
+            },
+            {
+              "id": "melds:b",
+              "visibility": "public",
+              "ownerId": "b",
+              "cards": []
+            },
+            {
+              "id": "bonus:b",
+              "visibility": "public",
+              "ownerId": "b",
+              "cards": []
+            }
+          ]
+        },
+        "dealerId": "a",
+        "dealerRun": 1,
+        "activeId": "b",
+        "phase": "discard",
+        "serial": 1,
+        "source": null,
+        "claims": null,
+        "outcome": null,
+        "deal": {
+          "version": "score-region-deal-v1",
+          "policy": {
+            "selectedUserId": null,
+            "triggered": false,
+            "probability": "0",
+            "version": null
+          },
+          "candidates": 1,
+          "evaluation": [
+            52,
+            170
+          ]
+        },
+        "responseResume": null,
+        "startEvents": []
+      },
+      "actorId": "b",
+      "action": {
+        "type": "discard",
+        "cardId": "card-17",
+        "decisionId": "sr:1:1"
+      },
+      "actions": [
+        {
+          "userId": "b",
+          "action": {
+            "type": "discard",
+            "cardId": "card-17",
+            "decisionId": "sr:1:1"
+          },
+          "name": "discard"
+        },
+        {
+          "userId": "a",
+          "action": {
+            "type": "respond",
+            "choiceId": "sr:1:2:0",
+            "decisionId": "sr:1:2"
+          },
+          "name": "respond-hu"
+        }
+      ],
+      "expected": {
+        "settlement": [
+          {
+            "userId": "a",
+            "amount": "12"
+          },
+          {
+            "userId": "b",
+            "amount": "-12"
+          }
+        ],
+        "scoreUnits": "96",
+        "items": [
+          {
+            "pattern": "redFan",
+            "count": 1,
+            "fan": 3
+          },
+          {
+            "pattern": "allFromOthers",
+            "count": 1,
+            "fan": 1
+          }
+        ]
+      }
+    }
+  ],
+  "blocked": []
+}

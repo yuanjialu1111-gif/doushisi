@@ -1,0 +1,55 @@
+
+majiang.png
+size: 275,274
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+doudizhu-biaoti2
+  rotate: false
+  xy: 209, 17
+  size: 63, 32
+  orig: 63, 32
+  offset: 0, 0
+  index: -1
+doudizhu-biaoti3
+  rotate: false
+  xy: 202, 240
+  size: 63, 32
+  orig: 63, 32
+  offset: 0, 0
+  index: -1
+doudizhu-diban
+  rotate: false
+  xy: 2, 149
+  size: 198, 123
+  orig: 198, 123
+  offset: 0, 0
+  index: -1
+doudizhu-tubiao
+  rotate: false
+  xy: 2, 5
+  size: 157, 142
+  orig: 157, 142
+  offset: 0, 0
+  index: -1
+doudizhu-tubiao2
+  rotate: true
+  xy: 161, 51
+  size: 96, 112
+  orig: 97, 112
+  offset: 1, 0
+  index: -1
+wenzi
+  rotate: true
+  xy: 202, 157
+  size: 81, 44
+  orig: 83, 46
+  offset: 1, 1
+  index: -1
+xing
+  rotate: false
+  xy: 161, 2
+  size: 46, 47
+  orig: 57, 53
+  offset: 6, 4
+  index: -1

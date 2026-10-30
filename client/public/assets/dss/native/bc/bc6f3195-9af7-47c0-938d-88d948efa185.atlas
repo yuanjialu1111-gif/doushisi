@@ -1,0 +1,139 @@
+
+dss_gangduo.png
+size: 1024,256
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+dss_gangduo_10
+  rotate: false
+  xy: 2, 14
+  size: 73, 33
+  orig: 73, 33
+  offset: 0, 0
+  index: -1
+dss_gangduo_11
+  rotate: false
+  xy: 137, 56
+  size: 68, 33
+  orig: 68, 33
+  offset: 0, 0
+  index: -1
+dss_gangduo_12
+  rotate: false
+  xy: 77, 14
+  size: 73, 33
+  orig: 73, 33
+  offset: 0, 0
+  index: -1
+dss_gangduo_5
+  rotate: false
+  xy: 259, 57
+  size: 50, 32
+  orig: 50, 32
+  offset: 0, 0
+  index: -1
+dss_gangduo_6
+  rotate: false
+  xy: 207, 56
+  size: 50, 33
+  orig: 50, 33
+  offset: 0, 0
+  index: -1
+dss_gangduo_7
+  rotate: true
+  xy: 273, 4
+  size: 51, 34
+  orig: 51, 34
+  offset: 0, 0
+  index: -1
+dss_gangduo_8
+  rotate: true
+  xy: 201, 2
+  size: 52, 34
+  orig: 52, 34
+  offset: 0, 0
+  index: -1
+dss_gangduo_9
+  rotate: true
+  xy: 237, 2
+  size: 52, 34
+  orig: 52, 34
+  offset: 0, 0
+  index: -1
+dss_gangduo_di
+  rotate: false
+  xy: 2, 49
+  size: 133, 39
+  orig: 133, 39
+  offset: 0, 0
+  index: -1
+dss_gangduo_guang1
+  rotate: false
+  xy: 692, 92
+  size: 113, 158
+  orig: 113, 158
+  offset: 0, 0
+  index: -1
+dss_gangduo_guang2
+  rotate: true
+  xy: 807, 22
+  size: 113, 157
+  orig: 113, 157
+  offset: 0, 0
+  index: -1
+dss_gangduo_guang3
+  rotate: false
+  xy: 2, 90
+  size: 113, 160
+  orig: 113, 160
+  offset: 0, 0
+  index: -1
+dss_gangduo_guang4
+  rotate: false
+  xy: 117, 91
+  size: 113, 159
+  orig: 113, 159
+  offset: 0, 0
+  index: -1
+dss_gangduo_guang5
+  rotate: false
+  xy: 232, 91
+  size: 113, 159
+  orig: 113, 159
+  offset: 0, 0
+  index: -1
+dss_gangduo_guang6
+  rotate: false
+  xy: 347, 91
+  size: 113, 159
+  orig: 113, 159
+  offset: 0, 0
+  index: -1
+dss_gangduo_guang7
+  rotate: false
+  xy: 462, 91
+  size: 113, 159
+  orig: 113, 159
+  offset: 0, 0
+  index: -1
+dss_gangduo_guang8
+  rotate: false
+  xy: 577, 91
+  size: 113, 159
+  orig: 113, 159
+  offset: 0, 0
+  index: -1
+dss_gangduo_guang9
+  rotate: true
+  xy: 807, 137
+  size: 113, 158
+  orig: 113, 158
+  offset: 0, 0
+  index: -1
+dss_gangduo_tegang
+  rotate: true
+  xy: 152, 5
+  size: 49, 47
+  orig: 49, 47
+  offset: 0, 0
+  index: -1

@@ -1,0 +1,130 @@
+services:
+  database:
+    image: postgres:17-bookworm
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: doushisi
+      POSTGRES_USER: dss_migrator
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      DSS_APP_PASSWORD: ${DSS_APP_PASSWORD:?Set DSS_APP_PASSWORD in .env}
+      DSS_BACKUP_PASSWORD: ${DSS_BACKUP_PASSWORD:?Set DSS_BACKUP_PASSWORD in .env}
+    volumes:
+      - database:/var/lib/postgresql/data
+      - ./deploy/init-role.sh:/docker-entrypoint-initdb.d/001-app-role.sh:ro
+      - ./deploy/configure-backup-role.sh:/operations/configure-backup-role.sh:ro
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U dss_migrator -d doushisi']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  migrate:
+    build: .
+    command: [node, apps/server/dist/migrate.js]
+    environment:
+      DATABASE_URL: postgresql://dss_migrator:${POSTGRES_PASSWORD}@database:5432/doushisi
+    depends_on:
+      database:
+        condition: service_healthy
+  server:
+    build: .
+    restart: unless-stopped
+    init: true
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: 3000
+      DATABASE_URL: postgresql://dss_app:${DSS_APP_PASSWORD}@database:5432/doushisi
+      SKIP_MIGRATIONS: 'true'
+      ADMIN_ORIGIN: ${ADMIN_ORIGIN:-}
+    ports:
+      - '127.0.0.1:3000:3000'
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+  backup:
+    build:
+      context: .
+      dockerfile: deploy/backup.Dockerfile
+    restart: unless-stopped
+    stop_grace_period: 11m
+    init: true
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    environment:
+      PGHOST: database
+      PGPORT: 5432
+      PGDATABASE: doushisi
+      PGUSER: dss_backup
+      PGPASSWORD: ${DSS_BACKUP_PASSWORD:?Set DSS_BACKUP_PASSWORD in .env}
+      BACKUP_DIRECTORY: /backups
+      BACKUP_UTC_TIME: ${BACKUP_UTC_TIME:-19:00}
+      BACKUP_RETENTION_COUNT: ${BACKUP_RETENTION_COUNT:-14}
+      BACKUP_MAX_AGE_HOURS: 26
+    volumes:
+      - backups:/backups
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: [CMD, node, /operations/backup-cli.mjs, health]
+      interval: 60s
+      timeout: 10s
+      start_period: 15m
+      retries: 2
+    logging:
+      driver: json-file
+      options: {max-size: 10m, max-file: '5'}
+  restore-drill-database:
+    image: postgres:17-bookworm
+    profiles: [restore]
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: dss_restore
+      POSTGRES_PASSWORD: ${RESTORE_DRILL_PASSWORD:-}
+    networks: [recovery]
+    volumes:
+      - restore-drill-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U dss_restore -d postgres']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  restore-drill:
+    build:
+      context: .
+      dockerfile: deploy/backup.Dockerfile
+    profiles: [restore]
+    command: [node, /operations/backup-cli.mjs, restore]
+    init: true
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    networks: [recovery]
+    environment:
+      PGHOST: restore-drill-database
+      PGPORT: 5432
+      PGDATABASE: postgres
+      PGUSER: dss_restore
+      PGPASSWORD: ${RESTORE_DRILL_PASSWORD:-}
+      RESTORE_EXPECT_HOST: restore-drill-database
+      BACKUP_DIRECTORY: /backups
+      RESTORE_REPORT_DIRECTORY: /reports
+    volumes:
+      - backups:/backups:ro
+      - restore-reports:/reports
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+    depends_on:
+      restore-drill-database:
+        condition: service_healthy
+volumes:
+  database:
+  backups:
+  restore-drill-data:
+  restore-reports:
+networks:
+  recovery:
+    internal: true

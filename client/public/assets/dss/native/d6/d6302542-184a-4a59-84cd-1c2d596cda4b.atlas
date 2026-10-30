@@ -1,0 +1,76 @@
+
+mj_bigwin.png
+size: 896,124
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+res_hdjl
+  rotate: false
+  xy: 573, 62
+  size: 191, 60
+  orig: 191, 60
+  offset: 0, 0
+  index: -1
+res_hdjl_cd
+  rotate: false
+  xy: 2, 11
+  size: 569, 111
+  orig: 569, 111
+  offset: 0, 0
+  index: -1
+res_hdjl_cd1
+  rotate: false
+  xy: 638, 23
+  size: 32, 37
+  orig: 32, 37
+  offset: 0, 0
+  index: -1
+res_hdjl_cd2
+  rotate: true
+  xy: 573, 4
+  size: 23, 21
+  orig: 23, 21
+  offset: 0, 0
+  index: -1
+res_hdjl_cd3
+  rotate: true
+  xy: 618, 2
+  size: 10, 12
+  orig: 10, 12
+  offset: 0, 0
+  index: -1
+res_hdjl_cd4
+  rotate: true
+  xy: 596, 3
+  size: 24, 20
+  orig: 24, 20
+  offset: 0, 0
+  index: -1
+res_hdjl_cd5
+  rotate: true
+  xy: 573, 29
+  size: 31, 63
+  orig: 31, 63
+  offset: 0, 0
+  index: -1
+res_hdjl_cd6
+  rotate: true
+  xy: 766, 42
+  size: 80, 63
+  orig: 80, 63
+  offset: 0, 0
+  index: -1
+res_hdjl_cd7
+  rotate: true
+  xy: 831, 42
+  size: 80, 63
+  orig: 80, 63
+  offset: 0, 0
+  index: -1
+res_hdjl_cd8
+  rotate: false
+  xy: 618, 14
+  size: 13, 13
+  orig: 13, 13
+  offset: 0, 0
+  index: -1

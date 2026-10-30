@@ -1,0 +1,9 @@
+{
+  "kind": "user-rule-approval",
+  "ruleVersion": "leibo-independent-v1",
+  "variantKey": "24:0",
+  "recordedAt": "2026-09-16T00:00:00.000Z",
+  "statement": "用户全部自动批准，允许在21项范围内补齐24:0独立规则定义。",
+  "evidenceReference": "docs/rules/INDEPENDENT-APPROVAL.md",
+  "rulebookSha256": "b5460b2cb82ac277b672b1241cceffdf6cc6a74a6bd526cec14dcfd3cc57837f"
+}

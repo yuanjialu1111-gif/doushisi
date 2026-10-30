@@ -1,0 +1,13 @@
+{
+  "source": "APK assets/assets/main/index.js",
+  "sha256": "e99623ba8f071a6692df390c612e622f67f0c3465097a7332b2e06231130cb97",
+  "codecLine": 10601,
+  "commandLine": 9624,
+  "frameLines": [
+    9883,
+    9935
+  ],
+  "commandCount": 111,
+  "method": "Babel AST extraction; APK host/module entrypoints never executed",
+  "wireVerification": "static original codec fixture; original live server not available"
+}

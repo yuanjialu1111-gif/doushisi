@@ -1,0 +1,83 @@
+
+meiyuedali.png
+size: 256,266
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+di
+  rotate: false
+  xy: 40, 5
+  size: 126, 127
+  orig: 129, 131
+  offset: 0, 0
+  index: -1
+dou
+  rotate: true
+  xy: 187, 212
+  size: 52, 38
+  orig: 52, 38
+  offset: 0, 0
+  index: -1
+dou2
+  rotate: false
+  xy: 187, 177
+  size: 33, 33
+  orig: 33, 35
+  offset: 0, 1
+  index: -1
+dou3
+  rotate: true
+  xy: 222, 181
+  size: 29, 24
+  orig: 30, 24
+  offset: 1, 0
+  index: -1
+dou4
+  rotate: false
+  xy: 227, 236
+  size: 27, 28
+  orig: 27, 28
+  offset: 0, 0
+  index: -1
+guang
+  rotate: false
+  xy: 2, 134
+  size: 112, 130
+  orig: 119, 130
+  offset: 4, 0
+  index: -1
+longdan
+  rotate: true
+  xy: 116, 157
+  size: 107, 69
+  orig: 110, 73
+  offset: 2, 0
+  index: -1
+shanguang
+  rotate: false
+  xy: 116, 143
+  size: 11, 12
+  orig: 12, 12
+  offset: 0, 0
+  index: -1
+shouchong
+  rotate: false
+  xy: 168, 2
+  size: 80, 70
+  orig: 80, 70
+  offset: 0, 0
+  index: -1
+wenzi
+  rotate: true
+  xy: 2, 4
+  size: 128, 36
+  orig: 128, 36
+  offset: 0, 0
+  index: -1
+xing
+  rotate: false
+  xy: 168, 74
+  size: 74, 81
+  orig: 77, 85
+  offset: 0, 4
+  index: -1

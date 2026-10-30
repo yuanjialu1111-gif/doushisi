@@ -1,0 +1,8 @@
+{
+  "source": "work/game-rules.json; statically extracted from APK assets/assets/main/index.js FrameGameConfig",
+  "sourceSha256": "fd1a3cf4da24346c678ea78c6c5a1f56ac5d03b3d4741feee6544d61482555b9",
+  "gameIdCount": 27,
+  "configurationCount": 28,
+  "evidenceStatus": "unverified-gameplay",
+  "note": "All option labels/tooltips/defaults are client evidence only. No original live rule cases supplied."
+}

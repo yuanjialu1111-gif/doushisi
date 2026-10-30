@@ -1,0 +1,9 @@
+{
+  "kind": "user-rule-approval",
+  "ruleVersion": "ganluo-independent-v1",
+  "variantKey": "26:0",
+  "recordedAt": "2026-09-16T00:00:00.000Z",
+  "statement": "用户全部自动批准，允许在21项范围内补齐26:0独立规则定义。",
+  "evidenceReference": "docs/rules/INDEPENDENT-APPROVAL.md",
+  "rulebookSha256": "556a49b9d2d71f12fb4b8c02bbc4051e1160c06a8c375c7a414c5810c5a230bc"
+}

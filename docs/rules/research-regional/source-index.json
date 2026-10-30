@@ -1,0 +1,493 @@
+{
+  "schemaVersion": 1,
+  "researchedAt": "2026-09-08T04:59:18.643Z",
+  "status": "research-only-unapproved",
+  "originalApkSha256": "a9e8e06e2ce5a70b125d6d166df7de16e655e6affd793d8a8f923d7d70549d5f",
+  "originals": [
+    {
+      "file": "outputs/apk-deep-analysis/modules/hall/CreateRoomUIController.js",
+      "bytes": 17152,
+      "sha256": "4e325b9fdf19a8fb014553f52b7c0ad4ef54fc5af30d4b2fe8ea87f2687302d4"
+    },
+    {
+      "file": "outputs/apk-deep-analysis/modules/main/FrameGameConfig.js",
+      "bytes": 69499,
+      "sha256": "d3bd17bf6ad48f75c7f82c0de158d597f5d1b5346b7991eedcebf850f20c66b4"
+    },
+    {
+      "file": "outputs/apk-deep-analysis/modules/main/CommonPlayUIController.js",
+      "bytes": 24601,
+      "sha256": "afabb7f5e0cda800897978e44b3cb9d189ef4bcad1ec1ba8cd339e7457a2b67f"
+    },
+    {
+      "file": "outputs/apk-deep-analysis/modules/dss/dss_gameController.js",
+      "bytes": 77163,
+      "sha256": "1d98d08eb879dbe3e4c85fb19843d75c3d0519c47cc910aa7364e7c4575a9c47"
+    },
+    {
+      "file": "work/apk/assets/assets/hall/index.js",
+      "bytes": 146849,
+      "sha256": "b9be5ac95ae20157b20d2fef6934d05996195d6203e9ff8817b0bd7ff1075a23"
+    },
+    {
+      "file": "work/apk/assets/assets/main/index.js",
+      "bytes": 1315253,
+      "sha256": "e99623ba8f071a6692df390c612e622f67f0c3465097a7332b2e06231130cb97"
+    }
+  ],
+  "executableReproduction": {
+    "file": "outputs\\doushisi\\docs\\rules\\research-regional\\reproduce-fire-ui.mjs",
+    "bytes": 7029,
+    "sha256": "33d11bf3f8af3aba5ad63f3fd379557be412ce55bcf44b3faa83aad5bfad9917",
+    "result": {
+      "file": "outputs\\doushisi\\docs\\rules\\research-regional\\fire-ui-reproduction.json",
+      "bytes": 4709,
+      "sha256": "b509aa81e9b0c59fde9f808824d0376a8e57a0530874f7315a76294361a9908d"
+    },
+    "scope": "Original client functions with local stubs; no server or rendering"
+  },
+  "pages": [
+    {
+      "batch": "products",
+      "key": "product-1",
+      "query": "\"大懒人娱乐\" \"公司\"",
+      "url": "https://www.so.com/s?q=%22%E5%A4%A7%E6%87%92%E4%BA%BA%E5%A8%B1%E4%B9%90%22%20%22%E5%85%AC%E5%8F%B8%22",
+      "retrievedAt": "2026-09-08T04:45:10.965Z",
+      "file": "work/research-regional/product-1.html",
+      "bytes": 374300,
+      "sha256": "11d45136f9ef4eee2bb5226c6d1dc769542c94cf937626176f211c59e437dfda",
+      "title": "\"大懒人娱乐\" \"公司\"_360搜索",
+      "canonical": null,
+      "evidenceClass": "search-lead-only",
+      "bodyRead": true,
+      "acceptedAsRuleEvidence": false
+    },
+    {
+      "batch": "products",
+      "key": "product-2",
+      "query": "\"懒人耍十四\" \"规则\"",
+      "url": "https://www.so.com/s?q=%22%E6%87%92%E4%BA%BA%E8%80%8D%E5%8D%81%E5%9B%9B%22%20%22%E8%A7%84%E5%88%99%22",
+      "retrievedAt": "2026-09-08T04:45:11.001Z",
+      "file": "work/research-regional/product-2.html",
+      "bytes": 354525,
+      "sha256": "344deef93613908487c3fe615de8d53d6c9d87ac245e1fd493562e95f7990b0a",
+      "title": "\"懒人耍十四\" \"规则\"_360搜索",
+      "canonical": null,
+      "evidenceClass": "search-lead-only",
+      "bodyRead": true,
+      "acceptedAsRuleEvidence": false
+    },
+    {
+      "batch": "products",
+      "key": "product-3",
+      "query": "\"大懒人娱乐\" \"红二十\" \"规则\"",
+      "url": "https://www.so.com/s?q=%22%E5%A4%A7%E6%87%92%E4%BA%BA%E5%A8%B1%E4%B9%90%22%20%22%E7%BA%A2%E4%BA%8C%E5%8D%81%22%20%22%E8%A7%84%E5%88%99%22",
+      "retrievedAt": "2026-09-08T04:45:11.019Z",
+      "file": "work/research-regional/product-3.html",
+      "bytes": 354153,
+      "sha256": "f83ccd2920e89559c2d0f8edcdd3240772d5a24add8b69dc46d98c98ef74b59e",
+      "title": "\"大懒人娱乐\" \"红二十\" \"规则\"_360搜索",
+      "canonical": null,
+      "evidenceClass": "search-lead-only",
+      "bodyRead": true,
+      "acceptedAsRuleEvidence": false
+    },
+    {
+      "batch": "products",
+      "key": "product-4",
+      "query": "\"大懒人娱乐\" \"雷波\"",
+      "url": "https://www.so.com/s?q=%22%E5%A4%A7%E6%87%92%E4%BA%BA%E5%A8%B1%E4%B9%90%22%20%22%E9%9B%B7%E6%B3%A2%22",
+      "retrievedAt": "2026-09-08T04:45:11.025Z",
+      "file": "work/research-regional/product-4.html",
+      "bytes": 338105,
+      "sha256": "220ae33fb32ff6b5a366fa28866a78fba27bca66d3cf72d1aa4852e48edd0817",
+      "title": "\"大懒人娱乐\" \"雷波\"_360搜索",
+      "canonical": null,
+      "evidenceClass": "search-lead-only",
+      "bodyRead": true,
+      "acceptedAsRuleEvidence": false
+    },
+    {
+      "batch": "products",
+      "key": "product-5",
+      "query": "\"大懒人娱乐\" \"火十四\"",
+      "url": "https://www.so.com/s?q=%22%E5%A4%A7%E6%87%92%E4%BA%BA%E5%A8%B1%E4%B9%90%22%20%22%E7%81%AB%E5%8D%81%E5%9B%9B%22",
+      "retrievedAt": "2026-09-08T04:45:11.033Z",
+      "file": "work/research-regional/product-5.html",
+      "bytes": 352578,
+      "sha256": "6408acac5e7cd752559668869b5b0f5b0a7ad366dbdbd507a1146b57ac3d01e6",
+      "title": "\"大懒人娱乐\" \"火十四\"_360搜索",
+      "canonical": null,
+      "evidenceClass": "search-lead-only",
+      "bodyRead": true,
+      "acceptedAsRuleEvidence": false
+    },
+    {
+      "batch": "products",
+      "key": "product-6",
+      "query": "\"org.hwqp.cocos2d.sluggardRecreation\"",
+      "url": "https://www.so.com/s?q=%22org.hwqp.cocos2d.sluggardRecreation%22",
+      "retrievedAt": "2026-09-08T04:45:11.039Z",
+      "file": "work/research-regional/product-6.html",
+      "bytes": 343460,
+      "sha256": "33cd7308b8650f730acf84d9dfe67c9b7170f698af92e04bfc19c0ed383ccbcb",
+      "title": "\"org.hwqp.cocos2d.sluggardRecreation\"_360搜索",
+      "canonical": null,
+      "evidenceClass": "search-lead-only",
+      "bodyRead": true,
+      "acceptedAsRuleEvidence": false
+    },
+    {
+      "batch": "products",
+      "key": "product-7",
+      "query": "\"lanrendapai.cn\"",
+      "url": "https://www.so.com/s?q=%22lanrendapai.cn%22",
+      "retrievedAt": "2026-09-08T04:45:11.046Z",
+      "file": "work/research-regional/product-7.html",
+      "bytes": 333919,
+      "sha256": "56bad83bd9eb3b35388d4dbd67be084dfbb168dc41c0747fb44673b776050f8d",
+      "title": "\"lanrendapai.cn\"_360搜索",
+      "canonical": null,
+      "evidenceClass": "search-lead-only",
+      "bodyRead": true,
+      "acceptedAsRuleEvidence": false
+    },
+    {
+      "batch": "products",
+      "key": "product-8",
+      "query": "\"handka.com\" \"斗十四\"",
+      "url": "https://www.so.com/s?q=%22handka.com%22%20%22%E6%96%97%E5%8D%81%E5%9B%9B%22",
+      "retrievedAt": "2026-09-08T04:45:11.052Z",
+      "file": "work/research-regional/product-8.html",
+      "bytes": 349774,
+      "sha256": "973b81ab92bdeabc5e175a472cf0bcf73dca2fbaf3f97514c90ab80a4821bed4",
+      "title": "\"handka.com\" \"斗十四\"_360搜索",
+      "canonical": null,
+      "evidenceClass": "search-lead-only",
+      "bodyRead": true,
+      "acceptedAsRuleEvidence": false
+    },
+    {
+      "batch": "regions",
+      "key": "region-1",
+      "query": "\"雅安红二十\" \"王\" \"规则\"",
+      "url": "https://www.so.com/s?q=%22%E9%9B%85%E5%AE%89%E7%BA%A2%E4%BA%8C%E5%8D%81%22%20%22%E7%8E%8B%22%20%22%E8%A7%84%E5%88%99%22",
+      "retrievedAt": "2026-09-08T04:45:34.005Z",
+      "file": "work/research-regional/region-1.html",
+      "bytes": 424232,
+      "sha256": "e3796be3e0a59ca369505b6821807edc8b354eeeaa52ff2530dfa9ab7a979f0f",
+      "title": "\"雅安红二十\" \"王\" \"规则\"_360搜索",
+      "canonical": null,
+      "evidenceClass": "search-lead-only",
+      "bodyRead": true,
+      "acceptedAsRuleEvidence": false
+    },
+    {
+      "batch": "regions",
+      "key": "region-2",
+      "query": "\"雅安红二十\" \"红点\"",
+      "url": "https://www.so.com/s?q=%22%E9%9B%85%E5%AE%89%E7%BA%A2%E4%BA%8C%E5%8D%81%22%20%22%E7%BA%A2%E7%82%B9%22",
+      "retrievedAt": "2026-09-08T04:45:34.041Z",
+      "file": "work/research-regional/region-2.html",
+      "bytes": 351163,
+      "sha256": "1d2e6fa3b88556064c4be702d8f2a2697faa3c4dea0050efd41c2227da08350e",
+      "title": "\"雅安红二十\" \"红点\"_360搜索",
+      "canonical": null,
+      "evidenceClass": "search-lead-only",
+      "bodyRead": true,
+      "acceptedAsRuleEvidence": false
+    },
+    {
+      "batch": "regions",
+      "key": "region-3",
+      "query": "\"雅安红二十\" \"黑50\"",
+      "url": "https://www.so.com/s?q=%22%E9%9B%85%E5%AE%89%E7%BA%A2%E4%BA%8C%E5%8D%81%22%20%22%E9%BB%9150%22",
+      "retrievedAt": "2026-09-08T04:45:34.066Z",
+      "file": "work/research-regional/region-3.html",
+      "bytes": 339741,
+      "sha256": "2b7cf3f48dc073167f6b869283cdcea225b949036564e49699f2b5a2344850a1",
+      "title": "\"雅安红二十\" \"黑50\"_360搜索",
+      "canonical": null,
+      "evidenceClass": "search-lead-only",
+      "bodyRead": true,
+      "acceptedAsRuleEvidence": false
+    },
+    {
+      "batch": "regions",
+      "key": "region-4",
+      "query": "\"火十四\" \"八个\"",
+      "url": "https://www.so.com/s?q=%22%E7%81%AB%E5%8D%81%E5%9B%9B%22%20%22%E5%85%AB%E4%B8%AA%22",
+      "retrievedAt": "2026-09-08T04:45:34.075Z",
+      "file": "work/research-regional/region-4.html",
+      "bytes": 352236,
+      "sha256": "f91b84c12464ae28e5804271fc9b6800012d5df4140696bd288d6eb928c8048b",
+      "title": "\"火十四\" \"八个\"_360搜索",
+      "canonical": null,
+      "evidenceClass": "search-lead-only",
+      "bodyRead": true,
+      "acceptedAsRuleEvidence": false
+    },
+    {
+      "batch": "regions",
+      "key": "region-5",
+      "query": "\"彭水火十四\" \"规则\"",
+      "url": "https://www.so.com/s?q=%22%E5%BD%AD%E6%B0%B4%E7%81%AB%E5%8D%81%E5%9B%9B%22%20%22%E8%A7%84%E5%88%99%22",
+      "retrievedAt": "2026-09-08T04:45:34.082Z",
+      "file": "work/research-regional/region-5.html",
+      "bytes": 349706,
+      "sha256": "3b964309e9050b9a713851d16d0cf042cd9eb80794233e346945709e1f729d5c",
+      "title": "\"彭水火十四\" \"规则\"_360搜索",
+      "canonical": null,
+      "evidenceClass": "search-lead-only",
+      "bodyRead": true,
+      "acceptedAsRuleEvidence": false
+    },
+    {
+      "batch": "regions",
+      "key": "region-6",
+      "query": "\"雷波斗十四\" \"抢\"",
+      "url": "https://www.so.com/s?q=%22%E9%9B%B7%E6%B3%A2%E6%96%97%E5%8D%81%E5%9B%9B%22%20%22%E6%8A%A2%22",
+      "retrievedAt": "2026-09-08T04:45:34.087Z",
+      "file": "work/research-regional/region-6.html",
+      "bytes": 348083,
+      "sha256": "1979c620be8e3782461d9ce3af282c692f94d57574536aba7c9c3b0f6e7e3a34",
+      "title": "\"雷波斗十四\" \"抢\"_360搜索",
+      "canonical": null,
+      "evidenceClass": "search-lead-only",
+      "bodyRead": true,
+      "acceptedAsRuleEvidence": false
+    },
+    {
+      "batch": "regions",
+      "key": "region-7",
+      "query": "\"雷波\" \"抢巴\"",
+      "url": "https://www.so.com/s?q=%22%E9%9B%B7%E6%B3%A2%22%20%22%E6%8A%A2%E5%B7%B4%22",
+      "retrievedAt": "2026-09-08T04:45:34.094Z",
+      "file": "work/research-regional/region-7.html",
+      "bytes": 350088,
+      "sha256": "62ce7151f2d444d9a9c55360f292ce3373ab60ca562552b45000e968b5e575be",
+      "title": "\"雷波\" \"抢巴\"_360搜索",
+      "canonical": null,
+      "evidenceClass": "search-lead-only",
+      "bodyRead": true,
+      "acceptedAsRuleEvidence": false
+    },
+    {
+      "batch": "regions",
+      "key": "region-8",
+      "query": "\"懒人\" \"红二十\" \"白皮\"",
+      "url": "https://www.so.com/s?q=%22%E6%87%92%E4%BA%BA%22%20%22%E7%BA%A2%E4%BA%8C%E5%8D%81%22%20%22%E7%99%BD%E7%9A%AE%22",
+      "retrievedAt": "2026-09-08T04:45:34.099Z",
+      "file": "work/research-regional/region-8.html",
+      "bytes": 342400,
+      "sha256": "e54783a1ef2cae0dcb471fdb0995e244cda662ad7a7fe34e658c3433eb5da026",
+      "title": "\"懒人\" \"红二十\" \"白皮\"_360搜索",
+      "canonical": null,
+      "evidenceClass": "search-lead-only",
+      "bodyRead": true,
+      "acceptedAsRuleEvidence": false
+    },
+    {
+      "batch": "leads",
+      "key": "brand-video-redirect",
+      "url": "https://www.so.com/link?m=eeXB%2B0hz%2FLYtOVnY5PUcRSyTyPnmIHyTMRIe3JWAatzrbi3fda%2Fhj47sh8Uvxt6%2F%2BLnZck7p6gqMkIfmNvAW%2Bf4CVAtXeXErnRVmzzFXxgRNDX9ZdjHWyWmVQpjOC1%2F0THvaQlMvDjC8ngCgJ%2BcHF%2FFQA6xs0zugvEcmYdwC1HhPyAco0EslzBIyWDvvd1tOAQwYTCgtDGb3G3OYDcFBQ9IDzkK4mScc2%2B2AbckU9JrM%3D",
+      "retrievedAt": "2026-09-08T04:49:14.039Z",
+      "file": "work/research-regional/brand-video-redirect.html",
+      "bytes": 276,
+      "sha256": "d6d64c831bbf620f6947694ebd4fed58caf0a4c44fd05ece3b461222f184cae0",
+      "title": "",
+      "canonical": null,
+      "evidenceClass": "search-lead-only",
+      "bodyRead": false,
+      "acceptedAsRuleEvidence": false
+    },
+    {
+      "batch": "leads",
+      "key": "leibo-design-redirect",
+      "url": "https://www.so.com/link?m=wmXgt7oIw245TOX4CUS3tl4LLnNaJAhuwvZaG5F4VSlCp%2BEHG%2BcVIrU41ub3w9YMLbLt1oYruGMAE0pwN2%2FP4jAPt4Zl7p%2FMemSvMQxskdeqESIl5giXiUotikbxWqdHhcGyUzNvzGTwWQ7VhVxXDfXuGCykf1DYRVmv05sFeGVhPbtJ%2FJxBxZbATharHsLxq1kRl1dpif12Y3DRDB1pHIFhvGQR4f9EklArkhg%3D%3D",
+      "retrievedAt": "2026-09-08T04:49:14.066Z",
+      "file": "work/research-regional/leibo-design-redirect.html",
+      "bytes": 280,
+      "sha256": "aa6093d08defb4d68848d0548564298626ecf789a49b81e11ea08a3d7fa36610",
+      "title": "",
+      "canonical": null,
+      "evidenceClass": "search-lead-only",
+      "bodyRead": false,
+      "acceptedAsRuleEvidence": false
+    },
+    {
+      "batch": "leads",
+      "key": "yaan-video-redirect",
+      "url": "https://www.so.com/link?m=eBNeqdcajwHlL60XjvD9CzrKo5HjRto%2Be5TXl4ye6KFmyqscnKJEbCGDlnNl7GIQLszNb3A5G0HSzcd0oYqmhiZ1Ac6vlDkqBYsnAjgV5BG3YkfN40FXvvcKeJBLy%2BiqjzL0IB3r1uhlTNHUGl%2B0m8lPGjJYZKgiNYvIxIxD0WVtHINgnDBnPxo2zsAREgwZDzIN1y58jC18A1aSrYMdjjtG7lqg140Or",
+      "retrievedAt": "2026-09-08T04:49:14.082Z",
+      "file": "work/research-regional/yaan-video-redirect.html",
+      "bytes": 276,
+      "sha256": "ebeb37ea7fcea3c4b82eb0dd7f6ddcfa7765a771e45f7a450c6698d437de8c36",
+      "title": "",
+      "canonical": null,
+      "evidenceClass": "search-lead-only",
+      "bodyRead": false,
+      "acceptedAsRuleEvidence": false
+    },
+    {
+      "batch": "leads",
+      "key": "brand-download-redirect",
+      "url": "https://www.so.com/link?m=bIHdhGorGUHVpufY8djXjfrvw%2FzyM2PaI7eSpYbZ%2F4fRYnDRRki2diJ2XfDc3Pe%2BD8NmuaMpYmdXAXPVkOhYDUHi7dUgAQFcmNBv5vR%2BktqtWmFjaBDQ4%2BCQLCQxGlbAX4QI0PfJvXzWFgmIySrRzFjj9fdWfF6eLycT4laA2jlcmf7tXWBis8sna9GxeGKaMsXde3XLTqZNAnzbYc7KTFf3a2CrWgkCjoChAzjrruNPbRPRoc15eNXF5iD87%2Fxm7TWps347KnY0%3D",
+      "retrievedAt": "2026-09-08T04:49:14.088Z",
+      "file": "work/research-regional/brand-download-redirect.html",
+      "bytes": 254,
+      "sha256": "19e514ad4164aceb2f7f14faac496dab3d5abce89ff3838faf630c2ce1f42f7b",
+      "title": "",
+      "canonical": null,
+      "evidenceClass": "search-lead-only",
+      "bodyRead": false,
+      "acceptedAsRuleEvidence": false
+    },
+    {
+      "batch": "originalPublic",
+      "key": "original-privacy",
+      "url": "http://dssshare.lanrendapai.cn:8019/public/yinsitiaokuan",
+      "retrievedAt": "2026-09-08T04:45:33.988Z",
+      "error": "curl: (7) Failed to connect to dssshare.lanrendapai.cn port 8019 after 16931 ms: Couldn't connect to server\r\n",
+      "evidenceClass": "original-client-public-url-attempt",
+      "bodyRead": false,
+      "acceptedAsRuleEvidence": false
+    },
+    {
+      "batch": "originalPublic",
+      "key": "original-agreement",
+      "url": "http://dssshare.lanrendapai.cn:8019/public/yonghuxieyi",
+      "retrievedAt": "2026-09-08T04:45:34.025Z",
+      "error": "curl: (7) Failed to connect to dssshare.lanrendapai.cn port 8019 after 16762 ms: Couldn't connect to server\r\n",
+      "evidenceClass": "original-client-public-url-attempt",
+      "bodyRead": false,
+      "acceptedAsRuleEvidence": false
+    },
+    {
+      "batch": "originalPublic",
+      "key": "original-download",
+      "url": "https://appdown.weitianwlkj.com/62OrIO",
+      "retrievedAt": "2026-09-08T04:45:34.048Z",
+      "error": "curl: (35) schannel: next InitializeSecurityContext failed: SEC_E_INVALID_TOKEN (0x80090308) - �������ṩ�ı�־��Ч\r\n",
+      "evidenceClass": "original-client-public-url-attempt",
+      "bodyRead": false,
+      "acceptedAsRuleEvidence": false
+    },
+    {
+      "batch": "direct",
+      "key": "brand-video",
+      "url": "https://www.douyin.com/video/7323040155093191990",
+      "retrievedAt": "2026-09-08T04:52:27.356Z",
+      "file": "work/research-regional/brand-video.html",
+      "bytes": 72914,
+      "sha256": "9b56a6acdcb27eb620b5ee1ad870ad67964c70131b6fc31e8bd946b39c1e309e",
+      "title": "",
+      "canonical": null,
+      "evidenceClass": "external-page",
+      "bodyRead": false,
+      "acceptedAsRuleEvidence": false
+    },
+    {
+      "batch": "direct",
+      "key": "yaan-video",
+      "url": "https://www.douyin.com/video/7272936573665070377",
+      "retrievedAt": "2026-09-08T04:52:27.381Z",
+      "file": "work/research-regional/yaan-video.html",
+      "bytes": 72914,
+      "sha256": "9b56a6acdcb27eb620b5ee1ad870ad67964c70131b6fc31e8bd946b39c1e309e",
+      "title": "",
+      "canonical": null,
+      "evidenceClass": "external-page",
+      "bodyRead": false,
+      "acceptedAsRuleEvidence": false
+    },
+    {
+      "batch": "direct",
+      "key": "leibo-design",
+      "url": "https://www.zcool.com.cn/work/ZMzM4MTA2ODQ%3D.html",
+      "retrievedAt": "2026-09-08T04:52:27.395Z",
+      "file": "work/research-regional/leibo-design.html",
+      "bytes": 444702,
+      "sha256": "a09828a7f6e234a77d59041de0b197c500dda37f68123e7e3da204b9ceffe7e6",
+      "title": "雷波斗十四_zmr0524-站酷ZCOOL",
+      "canonical": "https://www.zcool.com.cn/work/ZMzM4MTA2ODQ%3D.html",
+      "evidenceClass": "external-page",
+      "bodyRead": true,
+      "acceptedAsRuleEvidence": false
+    },
+    {
+      "batch": "direct",
+      "key": "brand-download",
+      "url": "https://m.kangdown.com/jjdz/2189.html",
+      "retrievedAt": "2026-09-08T04:52:27.400Z",
+      "file": "work/research-regional/brand-download.html",
+      "bytes": 25200,
+      "sha256": "9f9f247267d9dcdb7a4bff6204e3e75b89bf18ccf60beb08a765102266b58125",
+      "title": "大懒人娱乐雅安红二十下载-大懒人娱乐雅安红二十下载v2.3.6-康当网",
+      "canonical": "https://www.kangdown.com/jjdz/2189.html",
+      "evidenceClass": "external-page",
+      "bodyRead": true,
+      "acceptedAsRuleEvidence": false
+    }
+  ],
+  "scratchRecords": [
+    {
+      "file": "work\\research-regional\\products.json",
+      "bytes": 624499,
+      "sha256": "3edb168cb9c824b5f93874740a75c88afd13fd62a6da5083bf4d98298c071ccd"
+    },
+    {
+      "file": "work\\research-regional\\regions.json",
+      "bytes": 642745,
+      "sha256": "d8843049b2f4d831d4e942038c6d85d77962750ba484b78333fbf2452d81f539"
+    },
+    {
+      "file": "work\\research-regional\\leads.json",
+      "bytes": 2533,
+      "sha256": "81887f62687fec7288f392c1c2ea040811c11c5c18e05edcfcd170d045fa8548"
+    },
+    {
+      "file": "work\\research-regional\\originalPublic.json",
+      "bytes": 871,
+      "sha256": "dac2d25b06fe80347b86edb9d01ab2b2461c767e9cfb6d75c9a03f5b91ec4242"
+    },
+    {
+      "file": "work\\research-regional\\direct.json",
+      "bytes": 40112,
+      "sha256": "1ff110e4a87cf50b249f2d28195609a3a92a17ab2d0a65fbabc8f9efabb4d040"
+    }
+  ],
+  "scripts": [
+    {
+      "file": "work\\research-regional\\collect.mjs",
+      "bytes": 5003,
+      "sha256": "8f12325e6b6ab90be4e1e703045c3050561593c7c896133b3a53b177b2f02934"
+    },
+    {
+      "file": "work\\research-regional\\inspect-leibo-page.mjs",
+      "bytes": 2214,
+      "sha256": "4f101e7fab0e0658190a146bfd02e36421b63f45e79af003c2b4c48d19a8c9f7"
+    },
+    {
+      "file": "work\\research-regional\\build-index.mjs",
+      "bytes": 3200,
+      "sha256": "615db6113a7610f468a552dae462c52e7676aca405a878ad7155787437a18311"
+    }
+  ],
+  "visualLimitations": [
+    {
+      "url": "https://www.zcool.com.cn/work/ZMzM4MTA2ODQ%3D.html",
+      "status": "Static HTML read; browser attempt timed out waiting for __NEXT_DATA__; no images inspected or reused"
+    }
+  ],
+  "conclusions": {
+    "fireUi": "Seven paths reproduced; dynamic two-deck linkage exists but saved selection and onLoad pointer paths can generate inconsistent option values.",
+    "yaan": "No new complete deck, wildcard point or blood-battle rules found.",
+    "leibo": "Original selectable label and desk label still disagree about ownBaKeQiang; public design page is not a rules implementation.",
+    "approvals": {
+      "D03": false,
+      "D04": false,
+      "D05": false
+    }
+  }
+}

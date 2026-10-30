@@ -1,0 +1,15 @@
+{
+  "engine": "Cocos Creator 2.4.7",
+  "source": "C:\\Users\\Administrator\\Documents\\Codex\\2026-09-08\\files-mentioned-by-the-user-296902a8\\work\\apk\\assets",
+  "bundles": [
+    "main",
+    "internal",
+    "resources",
+    "hall",
+    "dss"
+  ],
+  "sourceMainSha256": "e99623ba8f071a6692df390c612e622f67f0c3465097a7332b2e06231130cb97",
+  "engineSha256": "36fa92706c922863da486756c7d8876fff72f447258052cbdfdce7d1b9e0e522",
+  "recoveredAt": "2026-09-09T17:12:13.843Z",
+  "note": "Compiled scene and prefab recovery. This is not the missing original Creator editor source project."
+}

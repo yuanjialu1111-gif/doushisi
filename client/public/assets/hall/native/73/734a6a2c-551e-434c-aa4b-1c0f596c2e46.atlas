@@ -1,0 +1,125 @@
+
+shouye-bg-xiaji.png
+size: 1766,1526
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+bg
+  rotate: false
+  xy: 2, 524
+  size: 1750, 1000
+  orig: 1750, 1000
+  offset: 0, 0
+  index: -1
+guang1
+  rotate: false
+  xy: 566, 76
+  size: 525, 446
+  orig: 576, 513
+  offset: 20, 58
+  index: -1
+guang2
+  rotate: true
+  xy: 2, 3
+  size: 519, 562
+  orig: 556, 563
+  offset: 21, 0
+  index: -1
+shanhu1
+  rotate: true
+  xy: 1716, 65
+  size: 60, 48
+  orig: 66, 49
+  offset: 0, 1
+  index: -1
+shanhu2
+  rotate: true
+  xy: 1333, 16
+  size: 218, 163
+  orig: 218, 169
+  offset: 0, 3
+  index: -1
+shanhu3
+  rotate: true
+  xy: 1093, 2
+  size: 232, 238
+  orig: 235, 238
+  offset: 3, 0
+  index: -1
+shanhu4
+  rotate: false
+  xy: 1498, 42
+  size: 112, 83
+  orig: 114, 94
+  offset: 0, 11
+  index: -1
+shanhu5
+  rotate: true
+  xy: 1093, 236
+  size: 286, 409
+  orig: 321, 409
+  offset: 35, 0
+  index: -1
+shanhu6
+  rotate: true
+  xy: 1504, 127
+  size: 395, 241
+  orig: 395, 241
+  offset: 0, 0
+  index: -1
+xiao
+  rotate: false
+  xy: 1612, 12
+  size: 58, 29
+  orig: 58, 29
+  offset: 0, 0
+  index: -1
+yu1
+  rotate: false
+  xy: 776, 23
+  size: 86, 51
+  orig: 88, 51
+  offset: 2, 0
+  index: -1
+yu2
+  rotate: false
+  xy: 864, 24
+  size: 105, 50
+  orig: 105, 51
+  offset: 0, 0
+  index: -1
+yu3
+  rotate: false
+  xy: 566, 5
+  size: 104, 69
+  orig: 104, 69
+  offset: 0, 0
+  index: -1
+yu4
+  rotate: false
+  xy: 971, 27
+  size: 106, 47
+  orig: 107, 48
+  offset: 1, 1
+  index: -1
+yu5
+  rotate: false
+  xy: 672, 10
+  size: 102, 64
+  orig: 115, 64
+  offset: 13, 0
+  index: -1
+yu6
+  rotate: false
+  xy: 1716, 16
+  size: 45, 47
+  orig: 46, 47
+  offset: 0, 0
+  index: -1
+yu8
+  rotate: false
+  xy: 1612, 43
+  size: 102, 82
+  orig: 103, 82
+  offset: 0, 0
+  index: -1

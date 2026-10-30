@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "status": "approved",
+  "basis": "user-approved",
+  "variantKey": "15:0",
+  "ruleVersion": "maoxian-independent-v1",
+  "title": "15:0 斗十四独立规则",
+  "approval": {
+    "path": "docs/rules/release/15-0/approval.json",
+    "sha256": "b0087900dafd85bd845a6ae35408bea378dbb403d5e1d6eb496ed95d6a374fd2"
+  },
+  "requiredCoverage": [
+    "declared-wait-lock",
+    "concealed-four-pairs",
+    "payments"
+  ],
+  "sources": [
+    "docs/rules/variants/15-0.md",
+    "docs/rules/ORDINARY-STRUCTURES.md",
+    "apps/server/src/game/regional-profile.ts",
+    "apps/server/src/game/score-region-win.ts",
+    "apps/server/src/game/score-region-round.ts"
+  ],
+  "summary": {
+    "deck": "52 ordinary cards plus the regional special-card configuration.",
+    "win": "Four groups: sum-14 pairs, exposed same-rank triples, or quads; structure score gates the win threshold.",
+    "scoring": "Structure score/100 * 2^cappedFan * base beans; 15:0 applies its frozen 0.8 factor.",
+    "declaration": "Declaration locks the server-computed waits.",
+    "payments": "Exact per-payer 12-place rounding and no duplicate settlement."
+  }
+}

@@ -1,0 +1,34 @@
+[
+  {
+    "id": "3e26a673-2e91-4cb3-9f86-e2a0396e7fa5",
+    "atlas": "dds_lose_score.png",
+    "glyph": {
+      "xOffset": 2,
+      "yOffset": 45,
+      "xAdvance": 18,
+      "rect": {
+        "x": 132,
+        "y": 125,
+        "width": 14,
+        "height": 20
+      }
+    },
+    "pixels": "Unmodified original minus glyph crop"
+  },
+  {
+    "id": "47abc047-115e-4b58-ad87-56b8da3b7cdf",
+    "atlas": "dds_win_score.png",
+    "glyph": {
+      "xOffset": 2,
+      "yOffset": 45,
+      "xAdvance": 18,
+      "rect": {
+        "x": 132,
+        "y": 125,
+        "width": 14,
+        "height": 20
+      }
+    },
+    "pixels": "Unmodified original minus glyph crop"
+  }
+]

@@ -1,0 +1,9 @@
+{
+  "kind": "user-rule-approval",
+  "ruleVersion": "junlian27-independent-v1",
+  "variantKey": "27:0",
+  "recordedAt": "2026-09-16T00:00:00.000Z",
+  "statement": "用户全部自动批准，允许在21项范围内补齐27:0独立规则定义。",
+  "evidenceReference": "docs/rules/INDEPENDENT-APPROVAL.md",
+  "rulebookSha256": "6d56baf5868fd0ee77a30ff0c1ecef69e89e54c126d970684ca77b45b9af0b3e"
+}

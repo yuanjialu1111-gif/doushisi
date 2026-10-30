@@ -1,0 +1,9 @@
+{
+  "kind": "user-rule-approval",
+  "ruleVersion": "xinjin-independent-v1",
+  "variantKey": "4:0",
+  "recordedAt": "2026-09-16T00:00:00.000Z",
+  "statement": "用户全部自动批准，允许在21项范围内补齐新津独立规则定义。",
+  "evidenceReference": "docs/rules/INDEPENDENT-APPROVAL.md",
+  "rulebookSha256": "b95da3d5424d14e6e18d0303727301ab5d5efe9aeed4e1cd6cf5f65a47a6e131"
+}
