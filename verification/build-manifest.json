@@ -1,8 +1,8 @@
 {
   "version": 1,
-  "builtAt": "2026-10-18T14:56:42.116Z",
+  "builtAt": "2026-10-30T19:38:48.969Z",
   "sources": {
-    "sha256": "10c2ce573514cbaa2b570a917b107bf26383c5fa43cb1d0def519107eed9d196",
+    "sha256": "a4da13a0a8c91999d10cbfa9f9843dff9a623417c36dfb5365d133c72e9a81d2",
     "files": [
       {
         "path": "apps/admin/index.html",
@@ -14,11 +14,11 @@
       },
       {
         "path": "apps/admin/src/App.tsx",
-        "sha256": "6750640de97859b6c6e14ea6f6fbc30d771844937c449eeed880c14bd53f0631"
+        "sha256": "0353ffa3d8ec6e621f9d511065f2f283b550ba1f8274b2b3c797fd7cabc5800d"
       },
       {
         "path": "apps/admin/src/api.ts",
-        "sha256": "2742a339e89eb3ac98be30d39e1ab4e56eee41473189cd2c73e0bf92c431a3c0"
+        "sha256": "5f0a757cd7cac3c1c555094c1a774384d915b351e49ce01808960d5c463045e4"
       },
       {
         "path": "apps/admin/src/main.tsx",
@@ -26,7 +26,7 @@
       },
       {
         "path": "apps/admin/src/styles.css",
-        "sha256": "9f40528f60159a5e471e84fc4f7258f7883485cd3e0a0133bdd5ee2e0fcd8dc3"
+        "sha256": "e17b766f4365165ab51ce01a8a18edbb2def8d219f08b7682bc9beaf87088ec1"
       },
       {
         "path": "apps/admin/tsconfig.json",
@@ -34,7 +34,7 @@
       },
       {
         "path": "apps/admin/vite.config.ts",
-        "sha256": "c3e1847a1a57299231b6e590a5d87781cf40f6c9c1d132553985dac6f71dd93a"
+        "sha256": "53a944e0d635ba2cdcc33013f1ea94278c3c27ed447a41a23ea716027be28556"
       },
       {
         "path": "apps/server/migrations/001-initial.sql",
@@ -73,16 +73,24 @@
         "sha256": "3d5692ecf52037ff7756da5deb2c5c9a3a227d7888d6b84dd9918d3ef77f03bb"
       },
       {
+        "path": "apps/server/migrations/010-lobby-profile.sql",
+        "sha256": "0f059a0937e0e2e2460b69eceaed6e185d135e971b0e757ed4c4822d2a575f5b"
+      },
+      {
         "path": "apps/server/package.json",
-        "sha256": "64a840737670ca609b59db6c0a2937de7b000ce758258a5a3df441dffb131710"
+        "sha256": "25eda800c56e666ebab8badb8acbefd7be9cb49b589fcd705eacdd1f2b78e924"
       },
       {
         "path": "apps/server/src/app.ts",
-        "sha256": "70df2ec6cca002967f81a7fc515f85b9a2fdb19ee1dda2d0b537a5d561b63789"
+        "sha256": "5a4048b05290451afe0e4544b45ef167f3f8444d09dba8b26135df37d954ef0a"
       },
       {
         "path": "apps/server/src/auth.ts",
-        "sha256": "6d26b7c34ca7fef84992bb934aecaee6a629b760baefe9e1f5146f137d61d6aa"
+        "sha256": "072247628a261c2dae4b1f921770f3eff4590a90a96d7b1dedd7278504928038"
+      },
+      {
+        "path": "apps/server/src/avatars.ts",
+        "sha256": "e62fab592b3a0b73d85aabf778ede881cd492b627b963ec160292adae1941af1"
       },
       {
         "path": "apps/server/src/bootstrap-admin.ts",
@@ -269,6 +277,10 @@
         "sha256": "78971eaa3a92f06a7f37afbb1a6f293c3fbe4a4d9989587c3a8bb54bbccfb8bf"
       },
       {
+        "path": "apps/server/src/lobby.ts",
+        "sha256": "767604301f170b02b72ab0a4ae1a24fd5ebb582ba92aaf1294f98ecca856025b"
+      },
+      {
         "path": "apps/server/src/local-backups.ts",
         "sha256": "fd8a8f1b1384d62610120e8bca6a5e159ae948ecc2de1fcc9e5247963617601b"
       },
@@ -282,11 +294,11 @@
       },
       {
         "path": "apps/server/src/local-setup.ts",
-        "sha256": "e5b08cdca985e5d948479e15749542a9c2c1c9797784a60631656046f6c197b9"
+        "sha256": "6502d44c203e81d1beaf6b00d52c8260bf681b5c2e61b18376f722996fe974a8"
       },
       {
         "path": "apps/server/src/main.ts",
-        "sha256": "ed91752dca7eaca94d6fc2622697e6597728651037cbfed1f7bf2927cf642560"
+        "sha256": "1e0684f1ff4b64d2df3759e86899b61715800478c0a2fdefb3f30aa8778ceeeb"
       },
       {
         "path": "apps/server/src/migrate.ts",
@@ -298,7 +310,7 @@
       },
       {
         "path": "apps/server/src/original-wire.ts",
-        "sha256": "e5453139a5af0d2f8e0d1dd83db5f0268cc301dd3d31d3ae9b3e507edffefdbb"
+        "sha256": "c3a5ee5f49471c68ccedbfa80ea96ab0364ad53c1d2e68dbf937f70db5e24f1e"
       },
       {
         "path": "apps/server/src/policies.ts",
@@ -307,6 +319,10 @@
       {
         "path": "apps/server/src/preview.ts",
         "sha256": "6f6f35b96ece541475e7ff745bd62b747a1767d8edb7fc5ce8478073b84d611c"
+      },
+      {
+        "path": "apps/server/src/profile.ts",
+        "sha256": "ac95ea31eaa8cd3b40b0c1dfea03801c4e9e545a106053bd7bb85cdb7fb12d74"
       },
       {
         "path": "apps/server/src/qionglai-patterns.ts",
@@ -318,7 +334,7 @@
       },
       {
         "path": "apps/server/src/replays.ts",
-        "sha256": "852d79b966b9771a9d10e1a93433d71050e42fbcc30759ccab15429825b072d5"
+        "sha256": "79450d1a4218543bc10c2699a3986f3773c77eeb335dfc8ce9a15e7a8a90a554"
       },
       {
         "path": "apps/server/src/room-scheduler.ts",
@@ -326,7 +342,7 @@
       },
       {
         "path": "apps/server/src/rooms.ts",
-        "sha256": "4a6c5ada166aac5f660aff2531faf8a61e035cfbaa898ef8da4798e5e3a35be7"
+        "sha256": "405a4096995f503e91e859038386cc8759bd92be0205ba46ce982a6230ea010d"
       },
       {
         "path": "apps/server/src/round-context.ts",
@@ -350,7 +366,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "670563ce7c6812cc571f0a984c501796ec111df326f59079b5d6946c9765d6a7"
+        "sha256": "bc1ac5b485bb43f452689070f1d1f978d51b5f35e1b88d51cd4e26e009dbe5e0"
       },
       {
         "path": "packages/protocol/package.json",
@@ -390,7 +406,7 @@
       },
       {
         "path": "packages/rules/src/index.ts",
-        "sha256": "669ac31c1ecd9c31b91b349b790377acd436c48af44c0aa2d9758f2d0c6d3b4a"
+        "sha256": "7036f50cbc56ee5d283c14f879b7168e6f5039c92bfb1811b53085a47b0e43e6"
       },
       {
         "path": "packages/rules/src/original-catalogue.ts",
@@ -410,11 +426,11 @@
       },
       {
         "path": "pnpm-lock.yaml",
-        "sha256": "ec98db18415baefa7e6e6e356e081d84605f1b8a5e8252f5269ba663d9052142"
+        "sha256": "593a0ebda4226abaa6433ac90b3f0952d1e2ff6120c2b3d2e0a61aace00f157b"
       },
       {
         "path": "pnpm-workspace.yaml",
-        "sha256": "1a0e6c4188b3b2c6a299b3f93f697aa7c312977406c6147e37178b66323bf1d2"
+        "sha256": "f4c6ba55d6160e535b99c667929ba5e2ce26d2da4e70778c091ffc6a2da767e6"
       },
       {
         "path": "tools/build-fingerprint.mjs",
@@ -435,27 +451,31 @@
     ]
   },
   "binaries": {
-    "sha256": "d17b2c083d3ade8601cd8d485fd9651a90508c57810dd058b5ebf307e2c59906",
+    "sha256": "a254c8f249428ff11d285093be5bb3a614231e12f0fb68615c94e71a86101c8a",
     "files": [
       {
-        "path": "apps/admin/dist/assets/index-CMJ85LRU.js",
-        "sha256": "a58ab46d0ff7d9991bafe4e71363727bab20316aad173da94b24a080c561c19b"
+        "path": "apps/admin/dist/assets/index-CD9Yp__T.css",
+        "sha256": "c7fd307ce6c130ac6b23e3654b62bbe09b41853682580ab508c548ba489c613f"
       },
       {
-        "path": "apps/admin/dist/assets/index-DSXjJA71.css",
-        "sha256": "0e8f35079321ec6482541c1a576d525458d74c3997826a437f16be943d85af5c"
+        "path": "apps/admin/dist/assets/index-D85DKeux.js",
+        "sha256": "59cf22c9d1592fc0b9c6633cc0aa25736862e6109f52c7d5f1023ed895c1299c"
       },
       {
         "path": "apps/admin/dist/index.html",
-        "sha256": "f79af538d3e1f35c4e773c9e330baf2679dfb8f4c5214a0be1631e523a316e81"
+        "sha256": "02fbb637d8423f1a75a320b7ecf75bde5f3f86cc471aa7b37a6639e17078b19d"
       },
       {
         "path": "apps/server/dist/app.js",
-        "sha256": "161529ad1878f9e794a2670d4f2a06c16d50fdbab956ab2048868d722469392d"
+        "sha256": "076d64f7272c4ca6ae914c1a5e3ecc0adbac12bc5c7d697d12595e3003ee6bff"
       },
       {
         "path": "apps/server/dist/auth.js",
-        "sha256": "1bb92a7a410caec6a8db506d75195d3fec09ad7e2b31fb6212452893d4c6bf9b"
+        "sha256": "e611ad856ab4974f9450d985c44629f0cc378bf8a6f0b4d508d6c5441b1c81a9"
+      },
+      {
+        "path": "apps/server/dist/avatars.js",
+        "sha256": "57083c34054b33ad9c104b61b02dff997c85b8de2a14f2d226b9dd8c8cc61947"
       },
       {
         "path": "apps/server/dist/bootstrap-admin.js",
@@ -642,6 +662,10 @@
         "sha256": "a824ecca5cce3e967bd33582183f92e05a23ab134c3c86a80d04cade8cde915a"
       },
       {
+        "path": "apps/server/dist/lobby.js",
+        "sha256": "52a348d73f00b06ad51c5d08f688a11e43fd58d66d967e0937c5b6318b81c16d"
+      },
+      {
         "path": "apps/server/dist/local-backups.js",
         "sha256": "3a4323dab7665f23a67dda4b23c6335fbc5cf99d7d944072c6e45ac408db8752"
       },
@@ -655,11 +679,11 @@
       },
       {
         "path": "apps/server/dist/local-setup.js",
-        "sha256": "6c96b76a354b0c2c5ffc32dff4bb5e5f7a9e03b3a05c9cb21ba2063b4ad53c0e"
+        "sha256": "249e6f9b3cdb8eaf929f98baa999374118721bed503e9a23702bfc38d1ad1eff"
       },
       {
         "path": "apps/server/dist/main.js",
-        "sha256": "e3dc5b2e05d6d79929bcfdbbc08638c75d92a43bc7aceaac07e5a6513232d2a6"
+        "sha256": "9e7eb5e9abbfccedbcf31576e15702bb0b41631a3df1a1ab542f0c9bed053199"
       },
       {
         "path": "apps/server/dist/migrate.js",
@@ -671,7 +695,7 @@
       },
       {
         "path": "apps/server/dist/original-wire.js",
-        "sha256": "57095d20d7499923e2013f85d00273211fa7ecdc1657c7ca3c522d0c06fd132c"
+        "sha256": "b64c6c87ac65dfa6af97f842c53a6a753a3c8122653d67f9522a28940ec7217a"
       },
       {
         "path": "apps/server/dist/policies.js",
@@ -680,6 +704,10 @@
       {
         "path": "apps/server/dist/preview.js",
         "sha256": "89b501137d97937f484c10952ce4cce03c8093d5e99cfb10836ade0e09502759"
+      },
+      {
+        "path": "apps/server/dist/profile.js",
+        "sha256": "f7d9bc79446dbc5f6adb8d4d7d9d4506d3343e76af54d4f4d89435f4d6c16757"
       },
       {
         "path": "apps/server/dist/qionglai-patterns.js",
@@ -691,7 +719,7 @@
       },
       {
         "path": "apps/server/dist/replays.js",
-        "sha256": "b34eeb350e5ec0dced688c5ee49d5159b9db209e304f76b3aafd0e9a672c18d5"
+        "sha256": "a2c94f569196fd6701f194deb0736e5104ff7e6ea685cbdfb695cbba300f07d1"
       },
       {
         "path": "apps/server/dist/room-scheduler.js",
@@ -699,7 +727,7 @@
       },
       {
         "path": "apps/server/dist/rooms.js",
-        "sha256": "abb39bf90b1a3cab0dd87c513aa996104dbec43b42f1a0800ace82be8c73cdfc"
+        "sha256": "5b010302ec8ae9d646adfffc0c35cbf8dc7d755647c4b6b63bd5a953fa41f914"
       },
       {
         "path": "apps/server/dist/round-context.js",
@@ -771,7 +799,7 @@
       },
       {
         "path": "packages/rules/dist/index.js",
-        "sha256": "81eee8e6bf4b96f567ad88aa27f28a4100573dfb8b28c1012f09ef2eeacc4a59"
+        "sha256": "b88c26584bf260e7bfb1fcaa06b329385b7174febdd8229609185d80cc536ca3"
       },
       {
         "path": "packages/rules/dist/original-catalogue.d.ts",

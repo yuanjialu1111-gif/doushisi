@@ -1,9 +1,10 @@
 # 当前任务（2026-10-30，新会话追加；下方原交接说明未改动）
 
-- **任务**：大厅公开桌 + 首次上传头像昵称 + 附近桌子。
-- **状态**：简报、计划都已确认（10-30）；M0 底座完成（迁移 010、系统账号 `system-lobby`、sharp、敏感词表 `apps/server/data/sensitive-words.txt`、红线扫描 `pnpm redline`），服务端 710 个测试全过。
-- **下一步**：M1 资料与头像（R6–R9）：`profile.ts`、`avatars.ts`、6 处头像出口、接入层资料设置浮层。客户端改动只在 `standalone.js` 里做（原版 APK 资源不在本机，`client-prepare.mjs` 不能重跑）。
-- **关键文件**：`docs/requirements/斗十四大厅-需求简报.md`（R1–R11）、`DECISIONS.md`、方案图 https://claude.ai/artifact/TF467m5uNcJYC55RvjwQNe
+- **任务**：大厅公开桌 + 首次上传头像昵称 + 附近桌子（R1–R11）。
+- **状态**：M0–M6 都已在本机提交（main，没有推送，也没有部署）。全量测试 750 项通过，typecheck、build、红线扫描都通过；安卓离线自测 300 项通过。逐页自检时修了大厅在 16:10 和 4:3 窗口下被切的问题。还没做：安卓真机打包和验证（命令由用户运行），以及 `docs/plan/待确认.md` 里 3 条等用户拍板。
+- **下一步**：按用户对待确认 3 条的答复去改；用户要上线时，先确认域名（APK 的 `--api-base` 要用 https），再写发布脚本，由用户点运行。
+- **关键文件**：`docs/plan/验收清单.md`（AC→证据）、`docs/本地演示.md`、`.planning/2026-10-30-lobby/progress-android.md`（安卓打包命令和约定）。
+- **注意**：改 `client/public/standalone.js` 后要跑 `node tools/android-native-adapter.mjs`，重新生成 `client/public/native/`。
 
 ---
 

@@ -46,7 +46,7 @@
 
 ### 5. 真机验收报告
 
-必须使用至少两台实体Android手机，与服务器处于同一Wi-Fi，不依赖ADB reverse/forward，覆盖注册、豆子充值、创建/加入、完整对局、结算、托管、重连、动画回放、GPS、快捷语音和局域网直连。
+必须使用至少两台实体Android手机，与服务器处于同一Wi-Fi，不依赖ADB reverse/forward，覆盖注册、豆子充值、创建/加入、完整对局、结算、托管、重连、动画回放、大厅定位（「附近」只显示档位；房内不再用 GPS）、快捷语音和局域网直连。
 
 当前状态：`verification/local-native.json`仍为旧构建的失败报告，`devices=[]`，失败代码`DEVICE_NOT_AUTHORIZED`，且其APK哈希与当前正式APK不一致。ADB当前未列出任何设备，无法执行要求两个不同设备序列号的预检。自动化报告已全部重新生成并绑定当前releaseSubject；真机验收仍需两台不同实体Android手机，模拟器不算。
 
