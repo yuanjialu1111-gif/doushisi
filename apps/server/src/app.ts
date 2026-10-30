@@ -19,6 +19,7 @@ import { ReplayService } from './replays.js';
 import { AppError, requireCondition } from './errors.js';
 import { registerOriginalProtocol } from './original-wire.js';
 import { ProfileService } from './profile.js';
+import { LobbyService } from './lobby.js';
 import { AVATAR_CONTENT_TYPES, AVATAR_ROUTE, DEFAULT_AVATAR_URL, MAX_AVATAR_UPLOAD, avatarUrl, parseAvatarFile } from './avatars.js';
 
 const credentials = z.object({ username: z.string().min(4).max(32), password: z.string().min(8).max(128) }).strict();
@@ -51,6 +52,8 @@ export async function createApp(db: Database, options: {
   isolatedDatabase?: boolean;
   /** 资料没设好的人不能开房进房（R6）。正式入口 main.ts 打开；原有测试夹具不设资料，默认关。 */
   profileRequired?: boolean;
+  /** 正式入口第一次启动时放入默认大厅桌模板（R2）。 */
+  seedLobby?: boolean;
 } = {}) {
   const app = Fastify({ logger: options.logger ? { redact: ['req.headers.authorization', 'req.headers.cookie'],
     serializers: { err: (error: Error & { code?: string }) => ({ type: error.name, code: error.code, stack: '',
@@ -65,7 +68,10 @@ export async function createApp(db: Database, options: {
   const scheduler = options.scheduler === false ? null : new RoomScheduler(rooms, {
     ...options.scheduler, onError: (error, roomId) => app.log.error({ err: error, roomId }, 'Room scheduler operation failed'),
   });
-  app.addHook('onReady', async () => { scheduler?.start(); });
+  const lobby = new LobbyService(db, rooms, { profiles, profileRequired: options.profileRequired === true,
+    onError: error => app.log.error({ err: error }, 'Lobby maintenance failed') });
+  if (options.seedLobby) await lobby.seedDefaults();
+  app.addHook('onReady', async () => { scheduler?.start(); if (scheduler) lobby.start(); });
   const live = new Map<string, Set<WebSocket>>();
   const isOnline = (userId: string) => Boolean(live.get(userId)?.size);
   const markOnline = (userId: string, socket: WebSocket) => {
@@ -216,6 +222,34 @@ export async function createApp(db: Database, options: {
     return { entries: rows.rows, total, page, pageSize: PAGE_SIZE };
   });
 
+  // 大厅（R1、R4、R10）：轮询按登录令牌限流，同一出口 IP 下的多个玩家互不影响。
+  const perToken = { rateLimit: { max: 120, timeWindow: '1 minute', keyGenerator: (request: { headers: { authorization?: string }; ip: string }) => request.headers.authorization ?? request.ip } };
+  app.get('/api/lobby/tables', { config: perToken }, async request => {
+    const user = await actor(request, 'player');
+    const query = z.object({ variant: z.string().max(20).optional(), since: z.string().max(40).optional() }).strict().parse(request.query);
+    return lobby.tables(user.id, query.variant || undefined, query.since);
+  });
+  app.post('/api/lobby/quick-start', { config: { rateLimit: { max: 30, timeWindow: '1 minute' } } }, async request => {
+    const user = await actor(request, 'player');
+    const { variant } = z.object({ variant: z.string().max(20).optional() }).strict().parse(request.body ?? {});
+    return lobby.quickStart(user, variant || undefined);
+  });
+  // 位置只放请求体，不进网址；服务端只存内存（R10）。
+  app.post('/api/me/location', { config: perToken }, async request => {
+    const user = await actor(request, 'player');
+    const input = z.object({ lat: z.number(), lon: z.number() }).strict().parse(request.body);
+    lobby.setLocation(user.id, input.lat, input.lon);
+    return { ok: true };
+  });
+  const templateSchema = z.object({ variantKey: z.string().max(20), options: z.record(z.unknown()), standingEmpty: z.number(), thresholdMultiplier: z.number(),
+    idleClearMinutes: z.number(), enabled: z.boolean(), sortOrder: z.number() }).strict();
+  app.get('/api/admin/lobby-templates', async request => { await actor(request, 'beans_admin'); return lobby.listTemplates(); });
+  app.post('/api/admin/lobby-templates', async request => lobby.createTemplate(await actor(request, 'beans_admin'), templateSchema.parse(request.body)));
+  app.put('/api/admin/lobby-templates/:id', async request => {
+    const admin = await actor(request, 'beans_admin');
+    return lobby.updateTemplate(admin, idSchema.parse((request.params as any).id), templateSchema.parse(request.body));
+  });
+
   app.get('/api/games', async request => { await actor(request, 'player'); return { games: rooms.games() }; });
   app.post('/api/rooms', async request => {
     const user = await actor(request, 'player');
@@ -312,8 +346,8 @@ export async function createApp(db: Database, options: {
     app.get('/', async (_request, reply) => reply.redirect('/admin/'));
   }
   app.addHook('onClose', async () => {
-    await scheduler?.stop();
+    await scheduler?.stop(); await lobby.stop();
     for (const sockets of live.values()) for (const socket of sockets) socket.close(1001, 'Server restarting');
   });
-  return { app, auth, ledger, policies, rooms, replays, profiles, live, scheduler };
+  return { app, auth, ledger, policies, rooms, replays, profiles, lobby, live, scheduler };
 }

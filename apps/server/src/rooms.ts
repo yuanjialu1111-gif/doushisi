@@ -15,6 +15,11 @@ import { engineLegalActions, finishInteractions, nextScheduledAt, planInteractio
 import { validateNextRoundContext } from './round-context.js';
 import { avatarUrl } from './avatars.js';
 
+/** 系统桌房主（迁移 010 建的内置账号，不能登录，不入座）。 */
+export const SYSTEM_ACCOUNT_ID = '00000000-0000-4000-8000-000000000001';
+/** 玩家公开桌没有模板，入座门槛按默认 10 倍底分（R5 AC2）。 */
+export const DEFAULT_THRESHOLD_MULTIPLIER = 10;
+
 export interface DissolveState {
   initiatorId: string;
   expiresAt: number;
@@ -31,8 +36,8 @@ export class RoomService extends EventEmitter {
     return found.rows[0] ? this.view(found.rows[0].id, userId) : null;
   }
 
-  async create(actor: Actor, variantKey: string, options: Record<string, unknown>, region?: unknown) {
-    requireRole(actor, 'player');
+  /** 开房选项的权威校验；玩家开房、系统桌和后台模板共用（R2、R3）。 */
+  prepareRoom(variantKey: string, options: Record<string, unknown>, region?: unknown) {
     requireCondition(supportsNewRoom(variantKey), 'GAME_REMOVED', 'This game is not available in the regional edition.', 409);
     requireCondition(variantKey !== '6:0' || options.processType !== 2, 'GAME_REMOVED', 'Red-twenty blood-battle is not included in this edition.', 409);
     const variant = getVariant(variantKey);
@@ -67,35 +72,57 @@ export class RoomService extends EventEmitter {
       requireCondition(new Decimal(baseBeans).greaterThan(0), 'INVALID_ROOM_OPTIONS', 'Base beans must be positive.', 400);
       baseBeansSource = 'original-basicTimes';
     }
+    const ruleVersion = this.engines.has(variantKey) ? this.engines.get(variantKey).version : variant.ruleVersion;
+    const rules = { ...normalized, playerNumSource, baseBeans, baseBeansSource, region, roundingVersion: TRANSFER_ROUNDING_VERSION,
+      independentApproval: freezeIndependentApproval(variantKey),
+      ...(variantKey === '8:0' ? { qionglai: freezeQionglaiOptions(normalized) } : {}),
+      ...(variantKey === '6:0' ? { yaan: freezeYaanOptions(normalized) } : {}),
+      ...(variantKey === '4:0' ? { xinjin: freezeXinjinOptions(normalized) } : {}),
+      ...(variantKey === '5:0' ? { anyue: freezeAnyueOptions(normalized) } : {}),
+      ...(variantKey === '7:0' ? { pujiang: freezePujiangOptions(normalized) } : {}),
+      ...(variantKey === '9:0' ? { aba: freezeAbaOptions(normalized, '9:0') } : {}),
+      ...(variantKey === '10:0' ? { aba: freezeAbaOptions(normalized, '10:0') } : {}),
+      ...(variantKey === '11:0' ? { aba: freezeAbaOptions(normalized, '11:0') } : {}),
+      ...(variantKey === '12:0' ? { aba: freezeAbaOptions(normalized, '12:0') } : {}),
+      ...(['14:0', '15:0', '16:0', '19:0', '20:0', '21:0', '22:0', '23:0', '24:0', '25:0', '26:0', '27:0']
+        .includes(variantKey) ? { scoreRegion: freezeScoreRegionOptions(normalized,
+          variantKey as '14:0' | '15:0' | '16:0' | '19:0' | '20:0' | '21:0' | '22:0' | '23:0' | '24:0' | '25:0' | '26:0' | '27:0') } : {}) };
+    return { variantKey, ruleVersion, rules, playerCount: normalized.playerNum as number, rounds: normalized.gameNum as number,
+      feeMode: (normalized.useCardType === 1 ? 'owner' : 'aa') as 'owner' | 'aa', baseBeans };
+  }
+
+  private async insertRoom(tx: Sql, ownerId: string, prepared: ReturnType<RoomService['prepareRoom']>, visibility: 'private' | 'public', templateId: string | null) {
     const id = randomUUID();
-    await this.db.transaction(async tx => {
+    // A single creation lock prevents room-code collisions without retrying an aborted transaction.
+    await tx.query('SELECT pg_advisory_xact_lock(2026090901)');
+    let code: string;
+    do { code = String(randomInt(100000, 1000000)); }
+    while ((await tx.query("SELECT id FROM rooms WHERE code=$1 AND state <> 'closed'", [code])).rows.length);
+    // 公开桌一律 AA（R5 AC1）：桌上显示的房费方式和扣费保持一致。
+    const rules = visibility === 'public' && 'useCardType' in prepared.rules ? { ...prepared.rules, useCardType: 2 } : prepared.rules;
+    await tx.query("INSERT INTO rooms(id,code,owner_id,variant_key,rule_version,rules,player_count,rounds,fee_mode,state,visibility,lobby_template_id) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,'waiting',$10,$11)",
+      [id, code, ownerId, prepared.variantKey, prepared.ruleVersion, JSON.stringify(rules), prepared.playerCount, prepared.rounds,
+        visibility === 'public' ? 'aa' : prepared.feeMode, visibility, templateId]);
+    return { id, code };
+  }
+
+  async create(actor: Actor, variantKey: string, options: Record<string, unknown>, region?: unknown, visibility: 'private' | 'public' = 'private') {
+    requireRole(actor, 'player');
+    const prepared = this.prepareRoom(variantKey, options, region);
+    const { id } = await this.db.transaction(async tx => {
       await tx.query('SELECT pg_advisory_xact_lock(hashtextextended($1,0))', [`player-room:${actor.id}`]);
       await this.requireNoRoom(tx, actor.id);
-      // A single creation lock prevents room-code collisions without retrying an aborted transaction.
-      await tx.query('SELECT pg_advisory_xact_lock(2026090901)');
-      let code: string;
-      do { code = String(randomInt(100000, 1000000)); }
-      while ((await tx.query("SELECT id FROM rooms WHERE code=$1 AND state <> 'closed'", [code])).rows.length);
-      const version = this.engines.has(variantKey) ? this.engines.get(variantKey).version : variant.ruleVersion;
-      await tx.query("INSERT INTO rooms(id,code,owner_id,variant_key,rule_version,rules,player_count,rounds,fee_mode,state) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,'waiting')", [id, code, actor.id, variantKey, version, JSON.stringify({ ...normalized, playerNumSource, baseBeans, baseBeansSource, region, roundingVersion: TRANSFER_ROUNDING_VERSION,
-        independentApproval: freezeIndependentApproval(variantKey),
-        ...(variantKey === '8:0' ? { qionglai: freezeQionglaiOptions(normalized) } : {}),
-        ...(variantKey === '6:0' ? { yaan: freezeYaanOptions(normalized) } : {}),
-        ...(variantKey === '4:0' ? { xinjin: freezeXinjinOptions(normalized) } : {}),
-        ...(variantKey === '5:0' ? { anyue: freezeAnyueOptions(normalized) } : {}),
-        ...(variantKey === '7:0' ? { pujiang: freezePujiangOptions(normalized) } : {}),
-        ...(variantKey === '9:0' ? { aba: freezeAbaOptions(normalized, '9:0') } : {}),
-        ...(variantKey === '10:0' ? { aba: freezeAbaOptions(normalized, '10:0') } : {}),
-        ...(variantKey === '11:0' ? { aba: freezeAbaOptions(normalized, '11:0') } : {}),
-        ...(variantKey === '12:0' ? { aba: freezeAbaOptions(normalized, '12:0') } : {}),
-        ...(['14:0', '15:0', '16:0', '19:0', '20:0', '21:0', '22:0', '23:0', '24:0', '25:0', '26:0', '27:0']
-          .includes(variantKey) ? { scoreRegion: freezeScoreRegionOptions(normalized,
-            variantKey as '14:0' | '15:0' | '16:0' | '19:0' | '20:0' | '21:0' | '22:0' | '23:0' | '24:0' | '25:0' | '26:0' | '27:0') } : {}) }),
-      normalized.playerNum,
-      normalized.gameNum, normalized.useCardType === 1 ? 'owner' : 'aa']);
-      await tx.query('INSERT INTO room_members(room_id,user_id,seat) VALUES($1,$2,1)', [id, actor.id]);
+      const room = await this.insertRoom(tx, actor.id, prepared, visibility, null);
+      await tx.query('INSERT INTO room_members(room_id,user_id,seat) VALUES($1,$2,1)', [room.id, actor.id]);
+      return room;
     });
     return this.view(id, actor.id);
+  }
+
+  /** 系统桌：房主是不能登录的系统账号，不入座（R2）。 */
+  async createSystemRoom(templateId: string, variantKey: string, options: Record<string, unknown>, region?: unknown) {
+    const prepared = this.prepareRoom(variantKey, options, region);
+    return this.db.transaction(tx => this.insertRoom(tx, SYSTEM_ACCOUNT_ID, prepared, 'public', templateId));
   }
 
   async join(actor: Actor, code: string) {
@@ -112,6 +139,7 @@ export class RoomService extends EventEmitter {
       await this.requireNoRoom(tx, actor.id);
       requireCondition(room.state === 'waiting' && room.current_round === 0, 'ROOM_STARTED', 'This room has already started.', 409);
       requireCondition(members.rows.length < room.player_count, 'ROOM_FULL', 'Room is full.', 409);
+      if (room.visibility === 'public') await this.requireThreshold(tx, actor.id, room);
       let seat = 1;
       while (members.rows.some(m => m.seat === seat)) seat++;
       await tx.query('INSERT INTO room_members(room_id,user_id,seat) VALUES($1,$2,$3)', [room.id, actor.id, seat]);
@@ -120,6 +148,19 @@ export class RoomService extends EventEmitter {
     });
     this.emit('changed', id);
     return this.view(id, actor.id);
+  }
+
+  /** 公开桌入座门槛：豆子不少于「底分 × 倍数」，不够就提示还差多少（R5 AC2）。 */
+  async thresholdFor(sql: Sql, room: Record<string, any>) {
+    const template = room.lobby_template_id ? (await sql.query('SELECT threshold_multiplier FROM lobby_templates WHERE id=$1', [room.lobby_template_id])).rows[0] : null;
+    return new Decimal(room.rules?.baseBeans ?? '0').times(template?.threshold_multiplier ?? DEFAULT_THRESHOLD_MULTIPLIER);
+  }
+
+  private async requireThreshold(tx: Sql, userId: string, room: Record<string, any>) {
+    const required = await this.thresholdFor(tx, room);
+    const balance = new Decimal((await tx.query('SELECT balance::text FROM wallets WHERE user_id=$1', [userId])).rows[0]?.balance ?? '0');
+    requireCondition(balance.greaterThanOrEqualTo(required), 'BELOW_THRESHOLD',
+      `豆子不够：这桌至少要 ${money(required)} 豆，你还差 ${money(required.minus(balance))} 豆。`, 409);
   }
 
   private async requireNoRoom(tx: Sql, userId: string) {
@@ -186,7 +227,9 @@ export class RoomService extends EventEmitter {
           : null;
         requireCondition(!previous || previous.rows.length === 1, 'ROUND_CONTEXT_MISSING', 'The previous completed round is missing.', 409);
         const previousRoundContext = previous?.rows[0]?.next_round_context;
-        const snapshot = engine.create({ players: members.rows.map(m => ({ userId: m.user_id, seat: m.seat })), ownerUserId: room.owner_id,
+        // 系统桌的房主不入座，首局庄家按 1 号座位算。
+        const ownerUserId = members.rows.some(m => m.user_id === room.owner_id) ? room.owner_id : members.rows[0]!.user_id;
+        const snapshot = engine.create({ players: members.rows.map(m => ({ userId: m.user_id, seat: m.seat })), ownerUserId,
           rules: room.rules, number: room.current_round + 1, policy,
           ...(previousRoundContext == null ? {} : { previousRoundContext: structuredClone(previousRoundContext) }) });
         const atMs = this.now();
@@ -458,6 +501,35 @@ export class RoomService extends EventEmitter {
     });
     this.emit('changed', roomId);
     return { ok: true };
+  }
+
+  /** 系统桌清座：坐下超过时限还没开局就请离，不扣豆（R2 AC4）。 */
+  async clearIdleSeat(roomId: string, userId: string, idleMinutes: number): Promise<boolean> {
+    const cleared = await this.db.transaction(async tx => {
+      const room = (await tx.query('SELECT * FROM rooms WHERE id=$1 FOR UPDATE', [roomId])).rows[0];
+      if (!room?.lobby_template_id || room.state !== 'waiting' || room.current_round !== 0) return false;
+      const removed = await tx.query("DELETE FROM room_members WHERE room_id=$1 AND user_id=$2 AND joined_at <= now() - make_interval(mins => $3) RETURNING seat", [roomId, userId, idleMinutes]);
+      if (!removed.rows.length) return false;
+      await tx.query('DELETE FROM dissolve_votes WHERE room_id=$1', [roomId]);
+      await tx.query('INSERT INTO audit_events(id,actor_id,user_id,kind,details) VALUES($1,$2,$3,$4,$5)',
+        [randomUUID(), SYSTEM_ACCOUNT_ID, userId, 'lobby_seat_cleared', JSON.stringify({ roomId, seat: removed.rows[0]!.seat, idleMinutes })]);
+      return true;
+    });
+    if (cleared) { this.emit('seatCleared', { roomId, userId, idleMinutes }); this.emit('changed', roomId); }
+    return cleared;
+  }
+
+  /** 后台调少常驻空桌或停用模板时，关掉多出来的空系统桌；有人坐了就不动。 */
+  async closeEmptySystemRoom(roomId: string): Promise<boolean> {
+    const closed = await this.db.transaction(async tx => {
+      const room = (await tx.query('SELECT * FROM rooms WHERE id=$1 FOR UPDATE', [roomId])).rows[0];
+      if (!room?.lobby_template_id || room.state !== 'waiting' || room.current_round !== 0) return false;
+      if ((await tx.query('SELECT 1 FROM room_members WHERE room_id=$1 LIMIT 1', [roomId])).rows.length) return false;
+      await tx.query("UPDATE rooms SET state='closed',closed_at=now() WHERE id=$1", [roomId]);
+      return true;
+    });
+    if (closed) this.emit('changed', roomId);
+    return closed;
   }
 
   async kick(actor: Actor, roomId: string, seatIndex: number) {

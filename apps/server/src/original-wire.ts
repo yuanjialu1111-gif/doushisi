@@ -439,11 +439,17 @@ export async function registerOriginalProtocol(app: FastifyInstance, services: O
   }
   const onChanged = (roomId: string) => { void queueRoom(roomId); };
   rooms.on('changed', onChanged);
+  // 系统桌清座只通知本人（R2 AC4）；带错误扩展的通知由接入层弹提示，原版不处理。
+  const onSeatCleared = ({ userId, idleMinutes }: { userId: string; idleMinutes: number }) => {
+    const message = `坐下超过 ${idleMinutes} 分钟还没开局，已自动离座，没有扣豆子。`;
+    for (const peer of online.get(userId) ?? []) peer.send(MSGEvent.HWNotifyNotice, { noticeInfo: { msg: message, intervalSecond: 0, endTime: '' } }, [], { code: 'SEAT_CLEARED', message });
+  };
+  rooms.on('seatCleared', onSeatCleared);
   const onBalanceChanged = (changes: BalanceChange[]) => publishBalanceChanges(changes);
   ledger.on('balanceChanged', onBalanceChanged);
   rooms.on('balanceChanged', onBalanceChanged);
   app.addHook('onClose', async () => {
-    shuttingDown = true; rooms.off('changed', onChanged); ledger.off('balanceChanged', onBalanceChanged); rooms.off('balanceChanged', onBalanceChanged);
+    shuttingDown = true; rooms.off('changed', onChanged); rooms.off('seatCleared', onSeatCleared); ledger.off('balanceChanged', onBalanceChanged); rooms.off('balanceChanged', onBalanceChanged);
     for (const timer of voteTimers.values()) clearTimeout(timer);
     voteTimers.clear(); await Promise.all(roomQueues.values());
     for (const connections of online.values()) for (const connection of connections) connection.socket.close(1001, 'Server closing');
