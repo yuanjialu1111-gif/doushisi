@@ -160,7 +160,7 @@ export class RoomService extends EventEmitter {
     const required = await this.thresholdFor(tx, room);
     const balance = new Decimal((await tx.query('SELECT balance::text FROM wallets WHERE user_id=$1', [userId])).rows[0]?.balance ?? '0');
     requireCondition(balance.greaterThanOrEqualTo(required), 'BELOW_THRESHOLD',
-      `豆子不够：这桌至少要 ${money(required)} 豆，你还差 ${money(required.minus(balance))} 豆。`, 409);
+      `豆子不足：这桌至少要 ${money(required)} 豆，你还差 ${money(required.minus(balance))} 豆。`, 409);
   }
 
   private async requireNoRoom(tx: Sql, userId: string) {
@@ -561,6 +561,8 @@ export class RoomService extends EventEmitter {
       const room = await this.lockRoom(tx, roomId, actor.id);
       if (room.state === 'closed' && agree) return { closed: true, votes: [] };
       requireCondition(room.state !== 'closed', 'ROOM_CLOSED', 'Room is already closed.', 409);
+      // 大厅系统桌开局前只能退出，不能被玩家投票解散（R2 AC2）。
+      requireCondition(!(room.lobby_template_id && room.current_round === 0 && room.state === 'waiting'), 'SYSTEM_ROOM_LEAVE', 'Leave a lobby table before play instead of dissolving it.', 409);
       if (room.current_round === 0 && room.owner_id === actor.id && agree) {
         await tx.query("UPDATE rooms SET state='closed',closed_at=now() WHERE id=$1", [roomId]);
         await tx.query('DELETE FROM dissolve_votes WHERE room_id=$1', [roomId]);

@@ -159,7 +159,7 @@ const messages: Record<string, string> = {
   CLIENT_UPGRADE_REQUIRED: '请使用支持精确豆子显示的独立版客户端。',
   INVALID_CREDENTIALS: '账号或密码错误。', UNAUTHORIZED: '登录已过期，请重新登录。',
   USERNAME_TAKEN: '账号已存在。', INVALID_USERNAME: '账号格式不正确。', INVALID_PASSWORD: '密码格式不正确。',
-  ROOM_FULL: '当前房间已满。', ROOM_NOT_FOUND: '此房间不存在。', ROOM_STARTED: '对局已经开始。',
+  ROOM_FULL: '当前房间已满。', ROOM_NOT_FOUND: '此房间不存在。', ROOM_STARTED: '对局已经开始。', SYSTEM_ROOM_LEAVE: '大厅桌开局前不用解散，直接退出就行。',
   ALREADY_IN_ROOM: '请先退出当前房间。', INSUFFICIENT_BALANCE: '豆子不足，请联系豆子管理员。',
   KICK_ROOM_NOT_FOUND: '此房间不存在。', KICK_OWNER_MISMATCH: '只有房主可以请离玩家。',
   KICK_TARGET_NOT_IN_ROOM: '该座位没有可请离的玩家。', KICK_ROOM_STARTED: '对局已经开始，不能请离玩家。',
@@ -272,6 +272,8 @@ export async function registerOriginalProtocol(app: FastifyInstance, services: O
     display: { score?: string; changeScore?: string } = {}) {
     const user: Record<string, any> = { uid: await numericUid(member.userId), nick: member.nickname,
       picUrl: member.avatarUrl ?? avatarUrl({ id: member.userId, avatarHash: member.avatarHash, avatarStatus: member.avatarStatus }), seatIndex: member.seat, isReady: member.ready, online: isUserOnline(member.userId), sex: wireSex(member.sex), headType: 0,
+      // 没飘时原版发 -1；缺省成 0 会让客户端以为已开局，开局前只给「解散」不给「退出」。
+      piaoNum: -1,
     };
     // Original protobuf names are retained only as a compatibility projection.  In the
     // standalone game a table score is the current bean balance and changeScore is the

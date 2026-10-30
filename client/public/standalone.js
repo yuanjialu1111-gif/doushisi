@@ -905,6 +905,288 @@
     });
   }
 
+  // 位置只用来给大厅「附近」排档位（R10）：放在请求体里发，服务端只存在内存里；拿不到就不发，大厅照常用。
+  var locationSentAt = 0, locationAsking = false, locationTimer = null;
+  function readPosition(done) {
+    var game = cc.mm.gameserver;
+    if (cc.sys.isNative) {
+      try { game.requestLocation(); } catch (_) { return done(); }
+      return setTimeout(function () {
+        var lat = Number(game.getLatitude()), lon = Number(game.getLongitude());
+        if (isFinite(lat) && isFinite(lon) && (lat || lon)) done(lat, lon); else done();
+      }, 3000);
+    }
+    if (!navigator.geolocation) return done();
+    navigator.geolocation.getCurrentPosition(function (position) {
+      game.locationLat = position.coords.latitude;
+      game.locationIng = position.coords.longitude;
+      done(position.coords.latitude, position.coords.longitude);
+    }, function () { done(); }, { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 });
+  }
+  function reportLocation() {
+    if (locationAsking || Date.now() - locationSentAt < 120000 || !(cc.mm && cc.mm.framemodel && cc.mm.framemodel.token)) return;
+    locationAsking = true; locationSentAt = Date.now();
+    readPosition(function (lat, lon) {
+      locationAsking = false;
+      if (lat !== undefined) apiRequest('POST', '/api/me/location', { lat: lat, lon: lon }).catch(function () {});
+    });
+  }
+  function startLocationReports() {
+    reportLocation();
+    if (!locationTimer) locationTimer = setInterval(reportLocation, 120000);
+  }
+
+  // 大厅（R1、R2、R4、R5）：「好友约局」打开原版娱乐场窗口，中间的场次卡换成公开桌，左边玩法列表当筛选。
+  var LOBBY_ALL = '全部玩法';
+  var lobbyFrames = null, lobbyFramesQueue = null;
+  function withLobbyFrames(done) {
+    if (lobbyFrames) return done(lobbyFrames);
+    if (lobbyFramesQueue) return lobbyFramesQueue.push(done);
+    var bundle = cc.assetManager.getBundle('hall');
+    if (!bundle) return;
+    lobbyFramesQueue = [done];
+    bundle.load(['res/nt/chaungjianfangjain/diban', 'res/nt/map/doushisi-ditu-button-yeqian-xuanzhong', 'res/nt/map/doushisi-ditu-button-yeqian-weixuanzhong'], cc.SpriteFrame, function (error, frames) {
+      var queue = lobbyFramesQueue; lobbyFramesQueue = null;
+      if (error) return toast('大厅界面加载失败，请稍后再试。');
+      lobbyFrames = { card: frames[0], tabOn: frames[1], tabOff: frames[2] };
+      queue.forEach(function (callback) { callback(lobbyFrames); });
+    });
+  }
+  function lobbyLabel(parent, text, x, y, size, color, anchorX, bold) {
+    var label = kitLabel(parent, text, x, y, size, color, anchorX);
+    label.enableBold = !!bold;
+    return label;
+  }
+  function shortName(text, length) {
+    text = String(text || '');
+    return text.length > length ? text.substring(0, length) + '..' : text;
+  }
+  function openLobby(hall) {
+    hall.hideView();
+    hall.onClickBgBtn();
+    cc.mm.uimanager.showWindow(cc.mm.config.hall, 'HallAmuseUI');
+  }
+  function lobbySelect(controller, node) {
+    if (controller._lastTouchBtn && cc.isValid(controller._lastTouchBtn)) controller._lastTouchBtn.getChildByName('selectImg').active = false;
+    node.getChildByName('selectImg').active = true;
+    controller._lastTouchBtn = node;
+  }
+  function lobbyVariant(data) {
+    return data && !data.standaloneAll && data.gameId !== 2 ? data.gameId + ':0' : null;
+  }
+  function installLobby() {
+    var Controller = cc.js.getClassByName('HallAmuseUIController');
+    if (!Controller || Controller.prototype._standaloneLobbyInstalled) return;
+    Controller.prototype._standaloneLobbyInstalled = true;
+    var loadGames = Controller.prototype.loadGames, onClickGameBtn = Controller.prototype.onClickGameBtn;
+    // 列表最上面加一项「全部玩法」，每次打开默认选它。
+    Controller.prototype.loadGames = function () {
+      var result = loadGames.apply(this, arguments);
+      var all = cc.instantiate(this.views.baseGameBtn);
+      cc.mm.uitools.restNode(all);
+      all.data = { name: LOBBY_ALL, gameId: 0, standaloneAll: true };
+      all.getChildByName('label').getComponent(cc.Label).string = LOBBY_ALL;
+      all.getChildByName('selectImg').getChildByName('label').getComponent(cc.Label).string = LOBBY_ALL;
+      all.getChildByName('selectImg').active = false;
+      this.views['games/scrollview/view/content'].insertChild(all, 0);
+      cc.mm.uitools.addBtnLister(all, this.onClickGameBtn.bind(this), this);
+      this._gameBtns.unshift(all);
+      this.onClickGameBtn({ node: all });
+      return result;
+    };
+    Controller.prototype.onClickGameBtn = function (event) {
+      if (event.node.data && event.node.data.standaloneAll) { lobbySelect(this, event.node); this._areaType = 0; }
+      else onClickGameBtn.apply(this, arguments);
+      var lobby = this._standaloneLobby || (this._standaloneLobby = {});
+      lobby.variant = lobbyVariant(event.node.data);
+      lobbyRefresh(this, true);
+    };
+    Controller.prototype.onClickQuickBtn = function () { lobbyQuickStart(this); };
+    afterLoadUI('HallAmuseUIController', patchLobby);
+  }
+  function patchLobby(controller) {
+    var lobby = controller._standaloneLobby || (controller._standaloneLobby = {});
+    startLocationReports();
+    // 每 2 秒问一次有没有变化。用普通定时器：窗口复用时原版会停掉组件定时器，
+    // 浏览器窗口被遮挡时游戏帧也会降频；大厅不显示或已销毁就不发请求。
+    function poll() {
+      clearInterval(lobby.timer);
+      lobby.timer = setInterval(function () {
+        if (!cc.isValid(controller.node)) return clearInterval(lobby.timer);
+        if (controller.node.activeInHierarchy) lobbyRefresh(controller, false);
+      }, 2000);
+      lobbyRefresh(controller, true);
+    }
+    if (lobby.root) { if (lobby.content) poll(); return; }
+    if (!controller.views || !controller.views.left) return;
+    hide(controller.views, ['fireReward', 'games/label', 'left/gamaname', 'left/select_1', 'left/select_2', 'left/select_3', 'left/select_4', 'left/select_5', 'backBtn/yulechang-yuke']);
+    lobby.root = controller.views.left;
+    var title = lobbyLabel(controller.views.backBtn, '大厅', 30, 0, 36, cc.color(255, 255, 255), 0.5, true);
+    var outline = title.node.addComponent(cc.LabelOutline); outline.color = cc.color(32, 86, 168); outline.width = 2;
+    var quick = controller.views['left/quick_start'];
+    quick.active = true; quick.scale = 0.72; quick.setPosition(-245, -306);
+    controller.views['left/quick_start/label'].getComponent(cc.Label).string = '快速开始';
+    quick.off('click');
+    cc.mm.uitools.addBtnLister(quick, function () { lobbyQuickStart(controller); }, controller);
+    withLobbyFrames(function (frames) {
+      if (!cc.isValid(controller.node)) return;
+      lobby.frames = frames;
+      lobby.tab = 'all';
+      lobby.tabs = [['all', '全部', -455], ['nearby', '附近', -315]].map(function (entry) {
+        var node = new cc.Node('standaloneLobbyTab');
+        var sprite = node.addComponent(cc.Sprite); sprite.sizeMode = cc.Sprite.SizeMode.CUSTOM;
+        node.setContentSize(132, 62); node.setPosition(entry[2], 262); lobby.root.addChild(node);
+        node.addComponent(cc.Button).transition = cc.Button.Transition.SCALE;
+        var label = lobbyLabel(node, entry[1], 0, 6, 26, cc.color(255, 255, 255), 0.5, true);
+        cc.mm.uitools.addBtnLister(node, function () { lobby.tab = entry[0]; renderLobby(controller); }, controller);
+        return { key: entry[0], node: node, sprite: sprite, label: label };
+      });
+      lobby.count = lobbyLabel(lobby.root, '', 520, 262, 22, cc.color(255, 255, 255), 1);
+      var scrollNode = new cc.Node('standaloneLobbyTables');
+      scrollNode.setContentSize(1050, 470); scrollNode.setPosition(0, -12); lobby.root.addChild(scrollNode);
+      var view = new cc.Node('view');
+      view.setContentSize(1050, 470); view.addComponent(cc.Mask); scrollNode.addChild(view);
+      var content = new cc.Node('content');
+      content.anchorY = 1; content.setContentSize(1050, 470); content.setPosition(0, 235); view.addChild(content);
+      var scroll = scrollNode.addComponent(cc.ScrollView);
+      scroll.content = content; scroll.horizontal = false; scroll.vertical = true; scroll.inertia = true; scroll.elastic = true; scroll.brake = 0.75;
+      lobby.content = content; lobby.cards = {};
+      // 空状态放在和桌卡同款的底板上，雪景背景上也看得清。
+      var emptyPanel = new cc.Node('standaloneLobbyEmpty');
+      var emptyBg = emptyPanel.addComponent(cc.Sprite);
+      emptyBg.spriteFrame = frames.card; emptyBg.type = cc.Sprite.Type.SLICED; emptyBg.sizeMode = cc.Sprite.SizeMode.CUSTOM;
+      emptyPanel.setContentSize(640, 120); emptyPanel.setPosition(0, 40); lobby.root.addChild(emptyPanel);
+      lobby.empty = lobbyLabel(emptyPanel, '', 0, 0, 26, cc.color(122, 58, 0), 0.5, true);
+      poll();
+    });
+  }
+  function lobbyRefresh(controller, reset) {
+    var lobby = controller._standaloneLobby;
+    if (!lobby || !lobby.content || !cc.isValid(controller.node)) return;
+    if (reset) lobby.version = null;
+    if (lobby.loading) { lobby.again = lobby.again || reset; return; }
+    lobby.loading = true;
+    var variant = lobby.variant, query = [];
+    if (variant) query.push('variant=' + encodeURIComponent(variant));
+    if (lobby.version) query.push('since=' + encodeURIComponent(lobby.version));
+    apiRequest('GET', '/api/lobby/tables' + (query.length ? '?' + query.join('&') : '')).then(function (data) {
+      lobby.loading = false;
+      if (!cc.isValid(controller.node)) return;
+      if (lobby.again || lobby.variant !== variant) { lobby.again = false; return lobbyRefresh(controller, true); }
+      if (data.unchanged) return;
+      lobby.version = data.version; lobby.data = data; lobby.failed = false;
+      renderLobby(controller);
+    }, function () {
+      lobby.loading = false;
+      if (!cc.isValid(controller.node) || lobby.data) return;
+      lobby.failed = true;
+      renderLobby(controller);
+    });
+  }
+  function renderLobby(controller) {
+    var lobby = controller._standaloneLobby, data = lobby.data || { tables: [], variants: [], hasLocation: false };
+    if (!data.hasLocation && lobby.tab === 'nearby') lobby.tab = 'all';
+    lobby.tabs.forEach(function (tab) {
+      var on = tab.key === lobby.tab;
+      tab.node.active = tab.key === 'all' || data.hasLocation;
+      tab.sprite.spriteFrame = on ? lobby.frames.tabOn : lobby.frames.tabOff;
+      tab.node.setContentSize(132, 62);
+      tab.label.node.color = on ? cc.color(122, 58, 0) : cc.color(255, 255, 255);
+    });
+    var tables = data.tables.slice();
+    if (lobby.tab === 'nearby') tables = tables.filter(function (table) { return table.nearby; }).sort(function (a, b) { return a.nearby.rank - b.nearby.rank; });
+    lobby.count.string = lobby.data ? '共 ' + tables.length + ' 桌' : '';
+    lobby.empty.string = lobby.failed ? '大厅加载失败，稍后会自动重试' : !lobby.data ? '正在加载…'
+      : tables.length ? '' : lobby.tab === 'nearby' ? '附近暂时没有人在玩，去「全部」看看'
+      // 有大厅桌模板才能快速开一桌；没有就引导去创建房间约朋友。
+      : data.variants.some(function (item) { return !lobby.variant || item.key === lobby.variant; }) ? '这个玩法暂时没有公开桌，点「快速开始」开一桌'
+      : '这个玩法还没有大厅桌，点「创建房间」约朋友来玩';
+    lobby.empty.node.parent.active = !!lobby.empty.string;
+    var next = {};
+    tables.forEach(function (table, index) {
+      var signature = JSON.stringify([table, lobby.tab]), card = lobby.cards[table.code];
+      if (!card || !cc.isValid(card) || card._standaloneSignature !== signature) {
+        if (card && cc.isValid(card)) card.destroy();
+        card = lobbyCard(controller, table, lobby.tab === 'nearby');
+        card._standaloneSignature = signature;
+        lobby.content.addChild(card);
+      }
+      card.setPosition(-350 + index % 3 * 350, -110 - Math.floor(index / 3) * 220);
+      next[table.code] = card;
+    });
+    Object.keys(lobby.cards).forEach(function (code) { if (!next[code] && cc.isValid(lobby.cards[code])) lobby.cards[code].destroy(); });
+    lobby.cards = next;
+    lobby.content.height = Math.max(470, Math.ceil(tables.length / 3) * 220);
+  }
+  function lobbyCard(controller, table, nearbyTab) {
+    var lobby = controller._standaloneLobby, playing = table.state === 'playing';
+    var card = new cc.Node('standaloneLobbyCard');
+    card.setContentSize(340, 205);
+    var background = card.addComponent(cc.Sprite);
+    background.spriteFrame = lobby.frames.card; background.type = cc.Sprite.Type.SLICED; background.sizeMode = cc.Sprite.SizeMode.CUSTOM;
+    card.setContentSize(340, 205);
+    var brown = cc.color(122, 58, 0), grey = cc.color(128, 116, 100);
+    lobbyLabel(card, table.variantName, -152, 72, 26, brown, 0, true);
+    var missing = table.playerCount - table.seats.length;
+    lobbyLabel(card, playing ? '进行中 ' + table.currentRound + '/' + table.rounds + ' 局' : missing ? '缺 ' + missing + ' 人' : '已坐满', 152, 72, 22,
+      playing ? cc.color(204, 86, 30) : cc.color(46, 139, 87), 1, true);
+    var bySeat = {};
+    table.seats.forEach(function (seat) { bySeat[seat.seat] = seat; });
+    var stride = table.playerCount > 3 ? 78 : 96;
+    for (var seat = 1; seat <= table.playerCount; seat++) {
+      var x = (seat - (table.playerCount + 1) / 2) * stride, player = bySeat[seat];
+      if (player) {
+        avatarView(card, x, 10, 60)(player.avatarUrl || DEFAULT_AVATAR);
+        lobbyLabel(card, shortName(player.nickname, 4), x, -38, 17, cc.color(90, 74, 60));
+      } else {
+        var empty = new cc.Node('standaloneEmptySeat');
+        empty.setPosition(x, 10); card.addChild(empty);
+        var pen = empty.addComponent(cc.Graphics);
+        pen.fillColor = cc.color(236, 226, 206); pen.circle(0, 0, 30); pen.fill();
+        pen.lineWidth = 2; pen.strokeColor = cc.color(214, 196, 162); pen.circle(0, 0, 30); pen.stroke();
+        lobbyLabel(card, '空位', x, 10, 17, grey);
+      }
+    }
+    lobbyLabel(card, '底分 ' + table.baseBeans + ' · ' + table.rounds + ' 局 · 门槛 ' + table.threshold + ' 豆', -152, -74, 19, grey, 0);
+    if (nearbyTab && table.nearby) lobbyLabel(card, table.nearby.band, 152, -74, 19, cc.color(32, 110, 196), 1, true);
+    var button = card.addComponent(cc.Button); button.transition = cc.Button.Transition.SCALE; button.zoomScale = 0.97;
+    cc.mm.uitools.addBtnLister(card, function () {
+      if (playing) return toast('这桌已经开局了，换一桌吧。');
+      if (!missing) return toast('这桌已经坐满了，换一桌吧。');
+      lobbyJoin(lobby, table.code);
+    }, controller);
+    if (playing) card.opacity = 215;
+    return card;
+  }
+  function lobbyJoin(lobby, code) {
+    if (lobby.joiningAt && Date.now() - lobby.joiningAt < 2000) return;
+    lobby.joiningAt = Date.now();
+    cc.mm.hallserver.requestJoinRoom(String(code));
+  }
+  // 快速开始（R4）：服务端挑好桌并入座，返回房号；再走原版输房号进房，和点桌子是同一条路。
+  function lobbyQuickStart(controller) {
+    var lobby = controller._standaloneLobby || {};
+    if (lobby.starting) return;
+    lobby.starting = true;
+    apiRequest('POST', '/api/lobby/quick-start', lobby.variant ? { variant: lobby.variant } : {}).then(function (result) {
+      lobby.starting = false;
+      lobby.joiningAt = 0;
+      lobbyJoin(lobby, result.code);
+    }, function (error) { lobby.starting = false; toast(error.message); });
+  }
+  // 大厅首页的「好友约局」卡改成打开大厅；开房、输房号在大厅底部。
+  function patchHallLobbyEntry(controller) {
+    installLobby();
+    Object.keys(controller.views).forEach(function (name) {
+      if (!/^games\/game_type_\d+\/haoyou$/.test(name)) return;
+      var node = controller.views[name];
+      if (node._standaloneLobbyEntry) return;
+      node._standaloneLobbyEntry = true;
+      node.off('click');
+      cc.mm.uitools.addBtnLister(node, function () { openLobby(controller); }, controller);
+    });
+  }
+
   var disabledWindows = new Set(['HallShopUI', 'HallIAPUI', 'CommonSelectPayUI', 'HallWeekCardUI', 'HallMonthUI', 'HallActivityUI', 'DoubleHolidayUI', 'HallTipUI', 'H5DownloadUI', 'BigUpdateUI', 'ForceUpdateUI', 'EventRecallResultUI', 'EventRecallUI', 'HallLiQuanUI', 'HallMatchUI', 'FirstPayUI', 'JoinFriendFail', 'SupplementUI', 'HallFriendUI', 'RecallFriend', 'HallAuthentication']);
   window.Standalone = {
     supportsArea: function (id) {
@@ -1251,6 +1533,7 @@
     },
     hall: function (controller) {
       checkProfile();
+      patchHallLobbyEntry(controller);
       if (!profileKit && !profileKitQueue) withProfileKit(function () {});
       var nickname = controller.views['hallHeadBtn/namelabel'];
       if (nickname && !nickname._standaloneNameBounds) {

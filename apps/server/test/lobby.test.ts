@@ -103,12 +103,12 @@ test('R2/R1/R5: templates keep standing empty system tables, the lobby lists onl
   listing = await tablesOf(ctx, rich.headers);
   assert.equal(listing.tables.filter((table: any) => table.system && table.seats.length === 0).length, 2);
 
-  // R5 AC2：豆子不够门槛，入座被拒并提示还差多少。
+  // R5 AC2：豆子不足门槛，入座被拒并提示还差多少。
   const poor = await ctx.player('lobby_poor', '4.5');
   const refused = await ctx.app.inject({ method: 'POST', url: '/api/rooms/join', headers: poor.headers, payload: { code: emptyCode } });
   assert.equal(refused.statusCode, 409);
   assert.equal(refused.json().error.code, 'BELOW_THRESHOLD');
-  assert.equal(refused.json().error.message, '豆子不够：这桌至少要 10 豆，你还差 5.5 豆。');
+  assert.equal(refused.json().error.message, '豆子不足：这桌至少要 10 豆，你还差 5.5 豆。');
   // 门槛只管公开桌，输房号进私人房照旧。
   const privateCode = (await ctx.db.query("SELECT code FROM rooms WHERE visibility='private'")).rows[0]!.code;
   assert.equal((await ctx.app.inject({ method: 'POST', url: '/api/rooms/join', headers: poor.headers, payload: { code: privateCode } })).statusCode, 200);
@@ -167,6 +167,20 @@ test('R2 AC4: a seat idle past the limit is cleared without charging beans and t
   assert.equal(await ctx.ledger.balance(sitter.actor.id), '50');
   assert.equal((await ctx.db.query("SELECT COUNT(*)::int AS count FROM audit_events WHERE kind='lobby_seat_cleared' AND user_id=$1", [sitter.actor.id])).rows[0]!.count, 1);
   assert.equal((await ctx.db.query('SELECT state FROM rooms WHERE id=$1', [room.id])).rows[0]!.state, 'waiting');
+});
+
+test('R2 AC2: leaving a system table before play keeps it open, and a dissolve vote cannot close it', async t => {
+  const ctx = await setup(); t.after(ctx.close);
+  await ctx.lobby.createTemplate(ctx.beans, template({ standingEmpty: 1 }));
+  await ctx.lobby.maintain();
+  const sitter = await ctx.player('lobby_leave_sitter', '50');
+  const code = (await tablesOf(ctx, sitter.headers)).tables[0].code;
+  const room = await ctx.rooms.join(sitter.actor, code);
+  await assert.rejects(ctx.rooms.dissolve(sitter.actor, room.id, true), (error: any) => error.code === 'SYSTEM_ROOM_LEAVE');
+  await ctx.rooms.leave(sitter.actor, room.id);
+  assert.equal(await ctx.rooms.current(sitter.actor.id), null);
+  assert.equal((await ctx.db.query('SELECT state FROM rooms WHERE id=$1', [room.id])).rows[0]!.state, 'waiting');
+  assert.deepEqual((await tablesOf(ctx, sitter.headers)).tables.map((table: any) => table.code), [code]);
 });
 
 test('R4: quick start joins the fullest affordable table, opens one from a template when none fits, and refuses when no tier is affordable', async t => {
