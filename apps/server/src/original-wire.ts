@@ -26,7 +26,7 @@ export interface OriginalExtension {
   request?: { commandId: string; roomId: string; expectedRoundId?: string; expectedStateVersion?: number; decisionId?: string };
   capabilities?: string[];
   decisionId?: string | null;
-  createRoom?: { baseBeans?: string; playerNum?: number; qionglai?: QionglaiWireOptions };
+  createRoom?: { baseBeans?: string; playerNum?: number; qionglai?: QionglaiWireOptions; visibility?: 'public' };
   roomOptions?: { baseBeans: string; baseBeansSource: 'manual' | 'original-basicTimes'; playerNum: number; playerNumSource: 'manual' | 'original'; qionglai?: QionglaiWireOptions };
   roomState?: { roomId: string | null; roundId: string | null; stateVersion: number | null };
   ack?: { commandId: string };
@@ -43,7 +43,9 @@ const createRoomSchema = z.object({
   baseBeans: z.string().regex(/^(?:0|[1-9]\d{0,79})(?:\.\d{1,12})?$/).optional(),
   playerNum: z.number().int().min(2).max(4).optional(),
   qionglai: qionglaiSchema.optional(),
-}).strict().refine(value => value.baseBeans !== undefined || value.playerNum !== undefined);
+  // 开房勾了「公开到大厅」（R3）。
+  visibility: z.literal('public').optional(),
+}).strict().refine(value => value.baseBeans !== undefined || value.playerNum !== undefined || value.visibility !== undefined);
 const roomOptionsSchema = z.object({
   baseBeans: z.string().regex(/^(?:0|[1-9]\d{0,79})(?:\.\d{1,12})?$/),
   baseBeansSource: z.enum(['manual', 'original-basicTimes']),
@@ -153,7 +155,6 @@ const regionChoices: [string, string[]][] = [
   ['眉山', ['彭山', '其他区域']],
 ];
 const messages: Record<string, string> = {
-  GPS_REQUIRED: '请先开启定位并允许获取位置。',
   RULES_NOT_VERIFIED: '该玩法规则尚未完成原版核验，暂不能开始对局，未扣房费。',
   RULE_DEFAULT_NOT_VERIFIED: '该玩法的原服务端默认规则尚未核实，暂不能创建房间。',
   CLIENT_UPGRADE_REQUIRED: '请使用支持精确豆子显示的独立版客户端。',
@@ -173,7 +174,6 @@ const resultCodes: Record<string, number> = {
   UNAUTHORIZED: 1001, ROOM_NOT_FOUND: 1003, ROOM_FULL: 1023, ALREADY_IN_ROOM: 1011,
   RULES_NOT_VERIFIED: 2002, RULE_DEFAULT_NOT_VERIFIED: 2002, CLIENT_UPGRADE_REQUIRED: 2002,
   INVALID_ROOM_OPTIONS: 2001, INSUFFICIENT_BALANCE: 1012, ROOM_STARTED: 1033,
-  GPS_CREATE_REQUIRED: 1019, GPS_REQUIRED: 1025,
   KICK_ROOM_NOT_FOUND: 1051, KICK_OWNER_MISMATCH: 1052, KICK_TARGET_NOT_IN_ROOM: 1053, KICK_ROOM_STARTED: 1054,
 };
 const responseCommands = new Map<number, number>(Object.entries(MSGEvent).filter(([name]) => name.startsWith('HWRequest')).flatMap(([name, value]) => {
@@ -199,7 +199,6 @@ export async function registerOriginalProtocol(app: FastifyInstance, services: O
   const projections = new Map<string, RoomProjection>();
   const roomQueues = new Map<string, Promise<void>>();
   const voteTimers = new Map<string, ReturnType<typeof setTimeout>>();
-  const locations = new Map<string, Map<string, { lat: number; lon: number }>>();
   let shuttingDown = false;
 
   function isUserOnline(userId: string): boolean {
@@ -221,34 +220,6 @@ export async function registerOriginalProtocol(app: FastifyInstance, services: O
     requireCondition(room && (code === undefined || Number(room.code) === code), 'ROOM_NOT_FOUND', 'Room does not exist.', 404);
     return room;
   }
-  function readLocation(body: Record<string, any>): { lat: number; lon: number } | null | undefined {
-    if (body.lat === undefined && body.lon === undefined) return undefined;
-    requireCondition(typeof body.lat === 'number' && typeof body.lon === 'number' && Number.isFinite(body.lat) && Number.isFinite(body.lon)
-      && Math.abs(body.lat) <= 90 && Math.abs(body.lon) <= 180, 'INVALID_LOCATION', 'Invalid GPS coordinates.');
-    if (body.lat === 0 && body.lon === 0) return null;
-    return { lat: body.lat, lon: body.lon };
-  }
-  function saveLocation(roomId: string, userId: string, point: { lat: number; lon: number } | null | undefined) {
-    if (point) { const known = locations.get(roomId) ?? new Map(); known.set(userId, point); locations.set(roomId, known); }
-  }
-  function locationInfo(roomId: string, members: Record<string, any>[]) {
-    const points = locations.get(roomId);
-    const distInfo = [];
-    for (let first = 0; first < members.length; first++) for (let second = first + 1; second < members.length; second++) {
-      const a = points?.get(members[first]!.userId); const b = points?.get(members[second]!.userId);
-      if (!a || !b) continue;
-      const radians = Math.PI / 180;
-      const h = Math.sin((b.lat - a.lat) * radians / 2) ** 2 + Math.cos(a.lat * radians) * Math.cos(b.lat * radians) * Math.sin((b.lon - a.lon) * radians / 2) ** 2;
-      const distance = Math.round(6371000 * 2 * Math.atan2(Math.sqrt(Math.min(1, h)), Math.sqrt(Math.max(0, 1 - h))));
-      distInfo.push({ seatIndex_1: members[first]!.seat, seatIndex_2: members[second]!.seat, distance });
-    }
-    return { distInfo };
-  }
-  async function publishLocation(roomId: string) {
-    const members = (await db.query('SELECT user_id AS "userId",seat FROM room_members WHERE room_id=$1 ORDER BY seat', [roomId])).rows;
-    const info = locationInfo(roomId, members);
-    for (const peer of roomConnections(roomId)) peer.send(MSGEvent.HWNotifyLocation, info);
-  }
   async function tableInfo(room: NonNullable<Awaited<ReturnType<RoomService['current']>>>) {
     const gameId = Number(room.variantKey.split(':')[0]);
     const data: Record<string, unknown> = { ...room.rules, roomId: Number(room.code), roomType: 100,
@@ -256,6 +227,8 @@ export async function registerOriginalProtocol(app: FastifyInstance, services: O
       playerNum: room.playerCount, gameNum: room.rounds, useCardType: room.feeMode === 'owner' ? 1 : 2,
     };
     delete data.region;
+    // 房内不再定位（R11）：老 GPS 房也按没开定位下发，客户端不弹距离。
+    delete data.openGps;
     if (gameId === 101) data.processType = 2;
     return data;
   }
@@ -346,7 +319,7 @@ export async function registerOriginalProtocol(app: FastifyInstance, services: O
   async function syncRoom(roomId: string): Promise<void> {
     if (shuttingDown) return;
     const watchers = roomConnections(roomId);
-    if (!watchers.length && !locations.has(roomId)) { projections.delete(roomId); return; }
+    if (!watchers.length) { projections.delete(roomId); return; }
     const previous = projections.get(roomId);
     const current = await roomProjection(roomId);
     if (!current) return;
@@ -369,7 +342,7 @@ export async function registerOriginalProtocol(app: FastifyInstance, services: O
     for (const peer of watchers) peer.roomState = current.members.some(member => member.userId === peer.actor?.id) ? current.cursor : emptyRoomState();
     if (current.state === 'closed') {
       for (const peer of watchers) { peer.send(MSGEvent.HWNotifyDissolvedTable, { roomId: current.code, result: true, dating: true }); peer.roomId = undefined; }
-      projections.delete(roomId); locations.delete(roomId); return;
+      projections.delete(roomId); return;
     }
     if (previous?.dissolve && (!current.dissolve || previous.dissolve.expiresAt !== current.dissolve.expiresAt)) {
       // The original window updates votes only; a new vote needs a fresh window
@@ -377,7 +350,6 @@ export async function registerOriginalProtocol(app: FastifyInstance, services: O
       for (const peer of watchers) peer.send(MSGEvent.HWNotifyDissolvedTable, { roomId: current.code, result: false, dating: false });
     }
     for (const departed of previous?.members ?? []) if (!current.members.some(member => member.userId === departed.userId)) {
-      locations.get(roomId)?.delete(departed.userId);
       // dss.onLeaveRoom is what moves the leaving player back to the hall. A
       // successful HWResponseLogoutTable alone does not drive that transition.
       for (const peer of watchers) peer.send(MSGEvent.HWNotifyLogoutTable, { seatIndex: departed.seat });
@@ -397,12 +369,6 @@ export async function registerOriginalProtocol(app: FastifyInstance, services: O
     if (current.dissolve && JSON.stringify(previous?.dissolve) !== JSON.stringify(current.dissolve)) {
       const info = await dissolveInfo(current);
       for (const peer of roomConnections(roomId)) peer.send(MSGEvent.HWNotifyDissolveTableOperation, info!);
-    }
-    const known = locations.get(roomId);
-    if (known) for (const userId of known.keys()) if (!current.members.some(member => member.userId === userId)) known.delete(userId);
-    if (known && JSON.stringify(previous?.members.map(member => member.userId)) !== JSON.stringify(current.members.map(member => member.userId))) {
-      const info = locationInfo(roomId, current.members);
-      for (const peer of roomConnections(roomId)) peer.send(MSGEvent.HWNotifyLocation, info);
     }
   }
   function queueRoomTask(roomId: string, operation: () => Promise<void>): Promise<void> {
@@ -546,7 +512,7 @@ export async function registerOriginalProtocol(app: FastifyInstance, services: O
       if (!wasOnline) await publishPresence(actor.id);
     }
 
-    async function enterFinished(actor: Actor, code: number, coordinates: Record<string, any>) {
+    async function enterFinished(actor: Actor, code: number) {
       const active = await activeRoom(actor, code);
       await queueRoomTask(active.id, async () => {
       const snapshot = await rooms.originalEnter(actor, active.id);
@@ -554,12 +520,6 @@ export async function registerOriginalProtocol(app: FastifyInstance, services: O
       if (room.rules?.qionglai) requireCondition(connection.capabilities?.includes(QIONGLAI_OPTION_VERSION), 'CLIENT_UPGRADE_REQUIRED', messages.CLIENT_UPGRADE_REQUIRED!, 426);
       if (rooms.engines.has(room.variantKey) && rooms.engines.get(room.variantKey, room.ruleVersion).interactions?.responseWindow) {
         requireCondition(connection.capabilities?.includes('decision-window-v1'), 'CLIENT_UPGRADE_REQUIRED', messages.CLIENT_UPGRADE_REQUIRED!, 426);
-      }
-      if (room.rules.openGps) {
-        const point = readLocation(coordinates);
-        if (point === null && locations.get(room.id)?.delete(actor.id)) await publishLocation(room.id);
-        requireCondition(point || point === undefined && locations.get(room.id)?.has(actor.id), 'GPS_REQUIRED', messages.GPS_REQUIRED!);
-        saveLocation(room.id, actor.id, point);
       }
       await attachRoom(connection, room.id);
       const fields: DecimalField[] = [];
@@ -572,12 +532,10 @@ export async function registerOriginalProtocol(app: FastifyInstance, services: O
       connection.sequence = snapshot.sequence;
       connection.send(MSGEvent.HWResponseEnterTableFinish, { ...(gameProjection?.body ?? {}), result: 1, tableInfo: info, userInfo: users, tableState: gameProjection?.body.tableState ?? 0,
         seatIndex: room.members.find(member => member.userId === actor.id)!.seat, ...(pendingVote ? { dissolveInfos: pendingVote } : {}),
-        ...(room.rules.openGps ? { location: locationInfo(room.id, room.members) } : {}),
         leftCardNum: gameProjection?.body.leftCardNum ?? 0, round: room.currentRound, shiName: room.rules.region?.shiName ?? connection.region.shiName,
         xianName: room.rules.region?.xianName ?? connection.region.xianName, showPipeiPic: false, pipeiCd: 0,
       }, [...fields, ...(gameProjection?.decimalFields ?? [])], undefined, undefined, undefined, room.responseWindow?.id ?? null);
       await syncRoom(room.id);
-      if (room.rules.openGps) await publishLocation(room.id);
       });
     }
 
@@ -644,8 +602,6 @@ export async function registerOriginalProtocol(app: FastifyInstance, services: O
           const spec = getRoomSpec(key, connection.region);
           const playerNum = spec.unresolvedFields.includes('playerNum') ? createRoom?.playerNum : body.playerNum;
           const baseBeans = spec.unresolvedFields.includes('basicTimes') ? createRoom?.baseBeans : undefined;
-          const point = body.openGps ? readLocation(body) : undefined;
-          requireCondition(!body.openGps || point, 'GPS_CREATE_REQUIRED', messages.GPS_REQUIRED!);
           requireCondition(!spec.unresolvedFields.includes('playerNum') || playerNum !== undefined, 'RULE_DEFAULT_NOT_VERIFIED', '请选择房间人数。');
           requireCondition(!spec.unresolvedFields.includes('basicTimes') || baseBeans !== undefined, 'RULE_DEFAULT_NOT_VERIFIED', '请输入正数底分。');
           const options: RoomOptions = {};
@@ -662,8 +618,7 @@ export async function registerOriginalProtocol(app: FastifyInstance, services: O
             ...options,
             ...(spec.unresolvedFields.includes('playerNum') ? { playerNum } : {}),
             ...(baseBeans ? { baseBeans } : {}),
-          }, connection.region);
-          saveLocation(room.id, actor.id, point);
+          }, connection.region, createRoom?.visibility ?? 'private');
           await attachRoom(connection, room.id);
           connection.send(MSGEvent.HWResponseCreateTable, { result: 1, tableInfo: await tableInfo(room), userInfo: [], showType: [], leftCardNum: 0 }); return;
         }
@@ -680,18 +635,13 @@ export async function registerOriginalProtocol(app: FastifyInstance, services: O
             if (rooms.engines.has(variant.variant_key) && rooms.engines.get(variant.variant_key, variant.rule_version).interactions?.responseWindow) {
               requireCondition(connection.capabilities?.includes('decision-window-v1'), 'CLIENT_UPGRADE_REQUIRED', messages.CLIENT_UPGRADE_REQUIRED!, 426);
             }
-            const point = current.rules.openGps ? readLocation(body) : undefined;
-            // Only a current member can invalidate their cached point; omitted coordinates retain it.
-            if (current.member && point === null && locations.get(target.id)?.delete(actor.id)) await publishLocation(target.id);
-            requireCondition(!current.rules.openGps || point || point === undefined && current.member && locations.get(target.id)?.has(actor.id), 'GPS_REQUIRED', messages.GPS_REQUIRED!);
             const room = await rooms.join(actor, String(body.roomId));
-            saveLocation(room.id, actor.id, point);
             await attachRoom(connection, room.id);
             connection.send(MSGEvent.HWResponseEnterTable, { result: 1, tableInfo: await tableInfo(room) });
           });
           return;
         }
-        case MSGEvent.HWRequestEnterTableFinish: await enterFinished(actor, body.roomId, body); return;
+        case MSGEvent.HWRequestEnterTableFinish: await enterFinished(actor, body.roomId); return;
         case MSGEvent.HWRequestReadyForGame: {
           const room = await activeRoom(actor);
           requireCondition(typeof body.state === 'boolean', 'INVALID_REQUEST', 'Ready state is required.');

@@ -339,7 +339,7 @@ test('original chat buttons relay bounded phrase, expression and seated interact
   assert.equal((await db.query('SELECT count(*)::int AS n FROM ledger_operations')).rows[0]!.n, 0);
 });
 
-test('GPS rooms require valid coordinates and project seat-pair distances without exposing coordinates', async t => {
+test('R11 AC2/AC3: rooms never ask for a location, old GPS rooms included, and the table gets no distances', async t => {
   const db = await openDatabase(); await migrate(db);
   const app = Fastify(); await app.register(websocket);
   const auth = new AuthService(db); const ledger = new LedgerService(db); const policies = new PolicyService(db);
@@ -353,113 +353,66 @@ test('GPS rooms require valid coordinates and project seat-pair distances withou
     const login = await auth.login(user.username, 'test-password-only');
     await client.request(1, { hwRequestGameLogin: { token: login.token } }, 2);
   }
+  // 老客户端仍可能勾着「开启GPS定位」且拿不到坐标：照常开房，规则里不留 openGps。
   const options = { ...getDefaultOptions('4:0'), areaType: 4, roomType: 100, playerNum: 2, openGps: true };
-  const missing = await a.request(3, { hwRequestCreateTable: { ...options, lat: 0, lon: 0 } }, 4);
-  assert.equal((missing.frame.data.hwResponseCreateTable as any).result, 1019);
-  assert.equal((await db.query('SELECT count(*)::int AS n FROM rooms')).rows[0]!.n, 0);
-  const created = await a.request(3, { hwRequestCreateTable: { ...options, lat: 30, lon: 104 } }, 4);
-  const roomCode = (created.frame.data.hwResponseCreateTable as any).tableInfo.roomId;
-  const refused = await b.request(5, { hwRequestEnterTable: { roomId: roomCode } }, 6);
-  assert.equal((refused.frame.data.hwResponseEnterTable as any).result, 1025);
-  const invalid = await b.request(5, { hwRequestEnterTable: { roomId: roomCode, lat: 100, lon: 104 } }, 6);
-  assert.equal(invalid.extension?.error?.code, 'INVALID_LOCATION');
-  await b.request(5, { hwRequestEnterTable: { roomId: roomCode, lat: 31, lon: 104 } }, 6);
-  const entered = await b.request(47, { hwRequestEnterTableFinish: { roomId: roomCode, lat: 31, lon: 104 } }, 48);
-  const distances = (entered.frame.data.hwResponseEnterTableFinish as any).location.distInfo;
-  assert.deepEqual(distances, [{ seatIndex_1: 1, seatIndex_2: 2, distance: 111195 }]);
-  assert.ok(!JSON.stringify(entered.frame.data).includes('"lat"'));
-  assert.ok(!JSON.stringify(entered.frame.data).includes('"lon"'));
-  const mark = a.inbox.length;
-  await b.request(47, { hwRequestEnterTableFinish: { roomId: roomCode, lat: 30, lon: 104 } }, 48);
-  const refreshed = (await a.wait(203, mark, event => (event.frame.data.hwNotifyLocation as any).distInfo[0]?.distance === 0)).frame.data.hwNotifyLocation as any;
-  assert.equal(refreshed.distInfo[0].distance, 0);
+  const created = await a.request(3, { hwRequestCreateTable: { ...options, lat: 0, lon: 0 } }, 4);
+  const createReply = created.frame.data.hwResponseCreateTable as any;
+  assert.equal(createReply.result, 1);
+  assert.ok(!createReply.tableInfo.openGps);
+  const roomCode = createReply.tableInfo.roomId;
+  const roomId = (await db.query('SELECT id,rules FROM rooms WHERE code=$1', [String(roomCode)])).rows[0]!;
+  assert.equal(roomId.rules.openGps, undefined);
+  // AC3：模拟以前开了定位、还没解散的房间。
+  await db.query(`UPDATE rooms SET rules = rules || '{"openGps":1}'::jsonb WHERE id=$1`, [roomId.id]);
+  const entered = await b.request(5, { hwRequestEnterTable: { roomId: roomCode } }, 6);
+  assert.equal((entered.frame.data.hwResponseEnterTable as any).result, 1);
+  assert.ok(!(entered.frame.data.hwResponseEnterTable as any).tableInfo.openGps);
+  for (const client of [b, a]) {
+    // 断线重连同样走进房完成，不带坐标也不被拒。
+    const finished = await client.request(47, { hwRequestEnterTableFinish: { roomId: roomCode } }, 48);
+    const body = finished.frame.data.hwResponseEnterTableFinish as any;
+    assert.equal(finished.extension?.error, undefined);
+    assert.equal(body.result, 1);
+    assert.equal(body.location, undefined);
+    assert.ok(!body.tableInfo.openGps);
+  }
+  await a.request(37, { hwRequestHeartBeat: {} }, 38);
+  for (const client of [a, b]) assert.equal(client.inbox.filter(event => event.frame.cmd === MSGEvent.HWNotifyLocation).length, 0);
   assert.equal((await db.query('SELECT count(*)::int AS n FROM ledger_operations')).rows[0]!.n, 0);
 });
 
-test('GPS unavailability clears only the authenticated member point while omitted coordinates retain it', async t => {
+test('R3 AC1/AC2: the create-room extension opens a public AA room only when 公开到大厅 is ticked', async t => {
   const db = await openDatabase(); await migrate(db);
   const app = Fastify(); await app.register(websocket);
   const auth = new AuthService(db); const ledger = new LedgerService(db); const policies = new PolicyService(db);
   const rooms = new RoomService(db, new EngineRegistry(), policies);
   await registerOriginalProtocol(app, { db, auth, ledger, policies, rooms, markOnline() {} });
   const address = (await app.listen({ host: '127.0.0.1', port: 0 })).replace('http', 'ws') + '/ws/original';
-  const a = await openWireTestClient(address); const b = await openWireTestClient(address); const outsider = await openWireTestClient(address);
-  t.after(async () => { await a.close(); await b.close(); await outsider.close(); await app.close(); await db.close(); });
-  const users = [];
-  for (const [index, client] of [a, b, outsider].entries()) {
-    const actor = await auth.create(`gps_refresh_${index}`, 'test-password-only');
-    const login = await auth.login(actor.username, 'test-password-only');
-    const reply = await client.request(1, { hwRequestGameLogin: { token: login.token } }, 2);
-    users.push({ actor, uid: (reply.frame.data.hwResponseGameLogin as any).uid });
+  const a = await openWireTestClient(address); const b = await openWireTestClient(address);
+  t.after(async () => { await a.close(); await b.close(); await app.close(); await db.close(); });
+  const uids: string[] = [];
+  for (const [index, client] of [a, b].entries()) {
+    const user = await auth.create(`public_host_${index}`, 'test-password-only');
+    const login = await auth.login(user.username, 'test-password-only');
+    uids.push((await client.request(1, { hwRequestGameLogin: { token: login.token } }, 2)).frame.data.hwResponseGameLogin.uid as string);
   }
-  const options = { ...getDefaultOptions('4:0'), areaType: 4, roomType: 100, playerNum: 2, openGps: true };
-  const created = await a.request(3, { hwRequestCreateTable: { ...options, lat: 30, lon: 104 } }, 4);
-  const roomCode = (created.frame.data.hwResponseCreateTable as any).tableInfo.roomId;
-  await b.request(5, { hwRequestEnterTable: { roomId: roomCode, lat: 31, lon: 104 } }, 6);
-  const roomId = (await rooms.current(users[0]!.actor.id))!.id;
-  const expectedDistances = [{ seatIndex_1: 1, seatIndex_2: 2, distance: 111195 }];
-  async function assertDistances() {
-    const entered = await a.request(47, { hwRequestEnterTableFinish: { roomId: roomCode } }, 48);
-    assert.equal(entered.extension?.error, undefined);
-    assert.deepEqual((entered.frame.data.hwResponseEnterTableFinish as any).location.distInfo, expectedDistances);
+  // 房主付费也照样改成 AA。
+  const body = { ...getDefaultOptions('4:0'), areaType: 4, roomType: 100, playerNum: 2, useCardType: 1 };
+  async function create(client: typeof a, uid: string, createRoom: NonNullable<OriginalExtension['createRoom']>) {
+    const start = client.inbox.length;
+    client.socket.send(encodeOriginalResponse(3, body, uid, { createRoom }));
+    return (await client.wait(4, start)).frame.data.hwResponseCreateTable as any;
   }
-  const membership = (await db.query('SELECT user_id,seat FROM room_members WHERE room_id=$1 ORDER BY seat', [roomId])).rows;
-  const paths = [
-    { command: 47, response: 48, field: 'hwRequestEnterTableFinish' },
-    { command: 5, response: 6, field: 'hwRequestEnterTable' },
-  ];
-  for (const path of paths) {
-    const omitted = await b.request(path.command, { [path.field]: { roomId: roomCode } }, path.response);
-    assert.equal(omitted.extension?.error, undefined);
-    await assertDistances();
-    for (const malformed of [{ lat: 91, lon: 104 }, { lat: 30 }]) {
-      const invalid = await b.request(path.command, { [path.field]: { roomId: roomCode, ...malformed } }, path.response);
-      assert.equal(invalid.extension?.error?.code, 'INVALID_LOCATION');
-      await assertDistances();
-    }
-    const mark = a.inbox.length;
-    const unavailable = await b.request(path.command, { [path.field]: { roomId: roomCode, lat: 0, lon: 0 } }, path.response);
-    assert.equal(unavailable.extension?.error?.code, 'GPS_REQUIRED');
-    const changed = await a.wait(MSGEvent.HWNotifyLocation, mark, event => ((event.frame.data.hwNotifyLocation as any).distInfo ?? []).length === 0);
-    assert.deepEqual((changed.frame.data.hwNotifyLocation as any).distInfo ?? [], []);
-    for (const retry of paths) {
-      const denied = await b.request(retry.command, { [retry.field]: { roomId: roomCode } }, retry.response);
-      assert.equal(denied.extension?.error?.code, 'GPS_REQUIRED');
-    }
-    assert.deepEqual((await db.query('SELECT user_id,seat FROM room_members WHERE room_id=$1 ORDER BY seat', [roomId])).rows, membership);
-    const fresh = await b.request(path.command, { [path.field]: { roomId: roomCode, lat: 31, lon: 104 } }, path.response);
-    assert.equal(fresh.extension?.error, undefined);
-    await assertDistances();
-  }
-  for (const path of paths) {
-    await a.request(37, { hwRequestHeartBeat: {} }, 38);
-    const mark = a.inbox.length; const outsiderMark = outsider.inbox.length;
-    outsider.socket.send(encodeFrame({ cmd: path.command, protoVersion: 2, uid: users[1]!.uid }, {
-      [path.field]: { roomId: roomCode, lat: 0, lon: 0 },
-    }));
-    const denied = await outsider.wait(path.response, outsiderMark);
-    assert.equal(denied.extension?.error?.code, path.command === 47 ? 'ROOM_NOT_FOUND' : 'GPS_REQUIRED');
-    await a.request(37, { hwRequestHeartBeat: {} }, 38);
-    assert.equal(a.inbox.slice(mark).filter(event => event.frame.cmd === MSGEvent.HWNotifyLocation).length, 0);
-    await assertDistances();
-    assert.equal(await rooms.current(users[2]!.actor.id), null);
-  }
-  const full = await outsider.request(5, { hwRequestEnterTable: { roomId: roomCode, lat: 32, lon: 104 } }, 6);
-  assert.equal(full.extension?.error?.code, 'ROOM_FULL');
-  assert.equal(await rooms.current(users[2]!.actor.id), null);
-  assert.deepEqual((await db.query('SELECT user_id,seat FROM room_members WHERE room_id=$1 ORDER BY seat', [roomId])).rows, membership);
-  await assertDistances();
-  const another = await outsider.request(3, { hwRequestCreateTable: { ...options, lat: 32, lon: 104 } }, 4);
-  const anotherCode = (another.frame.data.hwResponseCreateTable as any).tableInfo.roomId;
-  for (const path of paths) {
-    const wrongRoom = await outsider.request(path.command, { [path.field]: { roomId: roomCode, lat: 0, lon: 0 } }, path.response);
-    assert.equal(wrongRoom.extension?.error?.code, path.command === 47 ? 'ROOM_NOT_FOUND' : 'GPS_REQUIRED');
-    const ownRoom = await outsider.request(47, { hwRequestEnterTableFinish: { roomId: anotherCode } }, 48);
-    assert.equal(ownRoom.extension?.error, undefined);
-    await assertDistances();
-  }
-  assert.equal((await db.query('SELECT count(*)::int AS n FROM ledger_operations')).rows[0]!.n, 0);
-  assert.equal((await rooms.current(users[0]!.actor.id))!.feeCharged, false);
+  const opened = await create(a, uids[0]!, { baseBeans: '1', visibility: 'public' });
+  assert.equal(opened.result, 1);
+  assert.equal(opened.tableInfo.useCardType, 2);
+  const kept = await create(b, uids[1]!, { baseBeans: '1' });
+  assert.equal(kept.result, 1);
+  assert.equal(kept.tableInfo.useCardType, 1);
+  const stored = (await db.query('SELECT code,visibility,fee_mode FROM rooms ORDER BY code')).rows;
+  assert.deepEqual(Object.fromEntries(stored.map(room => [room.code, [room.visibility, room.fee_mode]])), {
+    [String(opened.tableInfo.roomId)]: ['public', 'aa'], [String(kept.tableInfo.roomId)]: ['private', 'owner'],
+  });
 });
 
 test('owner kick removes the seated target, clears votes and broadcasts the original notification', async t => {

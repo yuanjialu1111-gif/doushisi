@@ -138,6 +138,8 @@ export function displayName(key: string, region: RegionContext = {}, surface: 'r
 export function getRoomSpec(key: string, region: RegionContext = {}): RoomSpec {
   const variant = getVariant(key);
   const groups = structuredClone(variant.original.rule);
+  // 房内不再定位（R11 AC2）：开房选项不再有「开启GPS定位」。
+  delete groups.config_location;
   if (region.xianName?.includes('汶川') || region.xianName === '茂县') {
     groups.config_tingyong = { name: '听用', multiple: 0, maxCell: 3, param: 'hpToTingyong', config: [
       { name: '不打听用', value: 0, default: 0 }, { name: '白皮当听用', value: 1, default: 1 },

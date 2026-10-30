@@ -4,6 +4,15 @@ import { baseScoreDecimal, catalogue, displayName, getDefaultOptions, getRoomSpe
   getVariant, resolveVariantKey, ruleGaps, validateRoomOptions, originalVariants, RETAINED_GAME_IDS,
   RELEASE_EVIDENCE_STATUS, supportsNewRoom, QIONGLAI_OPTIONS } from '../src/index.js';
 
+test('R11 AC2: no room spec offers the original GPS option any more', () => {
+  for (const variant of catalogue) {
+    const spec = getRoomSpec(variant.key);
+    assert.equal(spec.groups.config_location, undefined, variant.key);
+    assert.ok(!spec.fields.some(field => field.key === 'openGps'), variant.key);
+  }
+  assert.throws(() => validateRoomOptions('4:0', { ...getDefaultOptions('4:0'), openGps: 1 }), /Unsupported option: openGps/);
+});
+
 test('retains exactly 21 regional games and preserves 28 original configurations as evidence', () => {
   assert.equal(catalogue.length, 21);
   assert.equal(originalVariants.length, 28);

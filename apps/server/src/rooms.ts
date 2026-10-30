@@ -45,7 +45,8 @@ export class RoomService extends EventEmitter {
     const spec = getRoomSpec(variantKey, region as never);
     const requestedBaseBeans = options.baseBeans;
     const requestedPlayerNum = options.playerNum;
-    const ruleOptions = Object.fromEntries(Object.entries(options).filter(([key]) => key !== 'baseBeans' &&
+    // 房内不再定位（R11）：老客户端、老模板带来的 openGps 一律忽略。
+    const ruleOptions = Object.fromEntries(Object.entries(options).filter(([key]) => key !== 'baseBeans' && key !== 'openGps' &&
       !(key === 'playerNum' && spec.unresolvedFields.includes('playerNum'))));
     const normalized = validateRoomOptions(variantKey, { ...getDefaultOptions(variantKey, region as never), ...ruleOptions }, region as never) as Record<string, any>;
     let playerNumSource: 'manual' | 'original';

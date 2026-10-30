@@ -450,6 +450,7 @@
       rules.playerNum = players;
       metadata.playerNum = players;
     }
+    if (rules.publicLobby) metadata.visibility = 'public';
     return { ok: true, metadata: Object.keys(metadata).length ? metadata : null };
   }
   function validateCreateRoom(controller) {
@@ -474,10 +475,11 @@
   function validateCreateRoomMetadata(metadata) {
     if (!metadata || typeof metadata !== 'object' || Array.isArray(metadata)) return null;
     var result = {}, keys = Object.keys(metadata);
-    for (var index = 0; index < keys.length; index++) if (keys[index] !== 'baseBeans' && keys[index] !== 'playerNum' && keys[index] !== 'qionglai') return null;
+    for (var index = 0; index < keys.length; index++) if (['baseBeans', 'playerNum', 'qionglai', 'visibility'].indexOf(keys[index]) < 0) return null;
     if (own(metadata, 'qionglai')) { if (!validQionglai(metadata.qionglai)) return null; result.qionglai = metadata.qionglai; }
     if (own(metadata, 'baseBeans')) { var base = positiveBaseBeans(metadata.baseBeans); if (base === null) return null; result.baseBeans = base; }
     if (own(metadata, 'playerNum')) { var players = playerNumber(metadata.playerNum); if (players === null) return null; result.playerNum = players; }
+    if (own(metadata, 'visibility')) { if (metadata.visibility !== 'public') return null; result.visibility = 'public'; }
     return Object.keys(result).length ? result : null;
   }
   function validQionglai(value) {
@@ -877,6 +879,33 @@
     var box = edit.views['root/editbox'];
     box.width = 340; box.setPosition(70, 25);
     box.children.forEach(function (child) { var widget = child.getComponent(cc.Widget); if (widget) widget.updateAlignment(); });
+  }
+  // 开房面板：「开启GPS定位」换成「公开到大厅」，放在原来的位置，汶川听用等按位置插入的行不错位（R3、R11）。
+  var PUBLIC_LOBBY_TIP = '公开后大厅里的人能直接入座，房费固定AA';
+  function withPublicLobbyOption(rule) {
+    var result = {}, placed = false;
+    var lobby = { name: '大厅:', multiple: 1, maxCell: 3, config: [{ name: '公开到大厅', value: 'publicLobby', default: 0, wenhao: PUBLIC_LOBBY_TIP }] };
+    Object.keys(rule || {}).forEach(function (key) {
+      if (key === 'config_location') { result.config_lobby = lobby; placed = true; } else result[key] = rule[key];
+    });
+    if (!placed) result.config_lobby = lobby;
+    return result;
+  }
+  // 勾了公开就把房费切到 AA；公开时再点「房主」也切回 AA，并提示原因。
+  function installPublicLobbyToggle() {
+    var Controller = cc.js.getClassByName('CreateRoomUIController');
+    if (!Controller || Controller.prototype._standalonePublicLobby) return;
+    Controller.prototype._standalonePublicLobby = true;
+    var onClickToggle = Controller.prototype.onClickToggle;
+    Controller.prototype.onClickToggle = function (toggle, key) {
+      var result = onClickToggle.apply(this, arguments);
+      var rules = this._rules || {}, aa = (this.toggles && this.toggles.useCardType || []).filter(function (item) { return item.node.groupIndex === 2; })[0];
+      if (rules.publicLobby && aa && (key === 'publicLobby' || key === 'useCardType' && rules.useCardType !== 2)) {
+        if (rules.useCardType !== 2) onClickToggle.call(this, aa.node, 'useCardType');
+        promptRoom(PUBLIC_LOBBY_TIP);
+      }
+      return result;
+    };
   }
   // 原版大厅弹出其他窗口时会暂停自己的定时钩子，所以窗口补丁直接挂在原版控制器的 loadUI / reLoad 后面。
   function afterLoadUI(className, patch) {
@@ -1410,6 +1439,9 @@
       Object.keys(app.gameconfig).forEach(function (key) {
         if (!retainedAreaTypes[key]) delete app.gameconfig[key];
       });
+      Object.keys(app.gameconfig).forEach(function (key) {
+        (app.gameconfig[key] || []).forEach(function (variant) { variant.rule = withPublicLobbyOption(variant.rule); });
+      });
       var qionglai = app.gameconfig[8] && app.gameconfig[8][0];
       if (qionglai) {
         var options = qionglai.rule.config_playmethod.config;
@@ -1489,6 +1521,9 @@
     },
     table: function (controller) {
       hide(controller.views, ['qifu-button', 'qifu-dikuang', 'buchongdou', 'invateBtn']);
+      // 牌桌不显示距离（R11 AC1）：原版进房时会重新打开定位按钮，透明度清零免得闪一下。
+      var locationButton = controller.views.locationbtn;
+      if (locationButton) { locationButton.opacity = 0; locationButton.active = false; }
       useBeansAtTable(controller);
       if (!controller._standaloneCurrencyNormalized) { normalizeCurrencyLabels(controller.node); controller._standaloneCurrencyNormalized = true; }
       if (window.StandaloneReplay && StandaloneReplay.active()) hide(controller.views, ['readyBtn', 'tg_bg', 'ntfOperate', 'sureTip', 'select', 'gy_btn_chat', 'menunode/gy_btn_tuoguan']);
@@ -1556,6 +1591,8 @@
         var preferred = cc.mm.framemodel.xianName === '邛崃' ? 8 : 4;
         controller.views['games/game_type_' + preferred].active = true;
       }
+      // 开房面板的类在大厅包里，大厅出来时已注册；要赶在面板第一次绑定按钮之前装上。
+      installPublicLobbyToggle();
       var create = cc.mm.uimanager.getWindow('CreateRoomUI');
       if (create) {
         hide(create.views, ['hall_room_center/left/createroom/dou-hall-pic-mianfei', 'hall_room_center/left/createroom/ad']);
