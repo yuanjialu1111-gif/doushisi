@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android" android:compileSdkVersion="32" android:compileSdkVersionCodename="12" android:installLocation="auto" package="net.doushisi.standalone" platformBuildVersionCode="32" platformBuildVersionName="12">
   <uses-feature android:glEsVersion="0x20000" />
   <uses-permission android:name="android.permission.INTERNET" />
@@ -17,5 +17,8 @@
         <category android:name="android.intent.category.LAUNCHER" />
       </intent-filter>
     </activity>
+    <provider android:authorities="net.doushisi.standalone.standalonemedia" android:exported="false" android:grantUriPermissions="true" android:name="android.support.v4.content.FileProvider">
+      <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/standalone_media_paths" />
+    </provider>
   </application>
 </manifest>

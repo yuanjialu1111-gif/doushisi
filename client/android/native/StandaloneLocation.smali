@@ -1,6 +1,7 @@
 .class public Lnet/doushisi/standalone/StandaloneLocation;
 .super Ljava/lang/Object;
 .implements Landroid/location/LocationListener;
+.implements Ljava/lang/Runnable;
 
 .field private static listener:Lnet/doushisi/standalone/StandaloneLocation;
 
@@ -16,6 +17,47 @@
     invoke-static {p0, v0}, Lnet/doushisi/standalone/StandaloneLocation;->startProvider(Landroid/content/Context;Ljava/lang/String;)V
     const-string v0, "network"
     invoke-static {p0, v0}, Lnet/doushisi/standalone/StandaloneLocation;->startProvider(Landroid/content/Context;Ljava/lang/String;)V
+    return-void
+.end method
+
+# Called by JS when the lobby opens (GL thread):
+#   jsb.reflection.callStaticMethod('net/doushisi/standalone/StandaloneLocation', 'requestPermission', '()V')
+# Hops to the UI thread and runs the patched AppActivity.requestLocation(), which asks for
+# coarse+fine location while coarse is not granted and otherwise starts the listeners.
+# A denial, a missing activity or any other failure is swallowed so the game keeps running;
+# coordinates then read back as "0.0".
+.method public static requestPermission()V
+    .locals 2
+    :try_start_0
+    invoke-static {}, Lorg/cocos2dx/lib/Cocos2dxActivity;->getContext()Landroid/content/Context;
+    move-result-object v0
+    instance-of v1, v0, Landroid/app/Activity;
+    if-eqz v1, :direct
+    check-cast v0, Landroid/app/Activity;
+    new-instance v1, Lnet/doushisi/standalone/StandaloneLocation;
+    invoke-direct {v1}, Lnet/doushisi/standalone/StandaloneLocation;-><init>()V
+    invoke-virtual {v0, v1}, Landroid/app/Activity;->runOnUiThread(Ljava/lang/Runnable;)V
+    return-void
+    :direct
+    invoke-static {}, Lorg/cocos2dx/javascript/AppActivity;->requestLocation()V
+    :try_end_0
+    .catch Ljava/lang/Throwable; {:try_start_0 .. :try_end_0} :failure
+    return-void
+    :failure
+    move-exception v0
+    return-void
+.end method
+
+# UI-thread half of requestPermission().
+.method public run()V
+    .locals 1
+    :try_start_0
+    invoke-static {}, Lorg/cocos2dx/javascript/AppActivity;->requestLocation()V
+    :try_end_0
+    .catch Ljava/lang/Throwable; {:try_start_0 .. :try_end_0} :failure
+    return-void
+    :failure
+    move-exception v0
     return-void
 .end method
 

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- FileProvider paths for StandaloneMedia camera shots: <cacheDir>/standalone-camera/capture.jpg -->
+<paths>
+    <cache-path name="standalone_camera" path="standalone-camera/" />
+</paths>
