@@ -3,7 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "files": ["dist", "migrations"],
+  "files": [
+    "dist",
+    "migrations"
+  ],
   "scripts": {
     "dev": "tsx src/main.ts",
     "preview": "tsx src/preview.ts",
@@ -16,8 +19,8 @@
     "verify:transport": "tsx tools/load-transport.ts"
   },
   "dependencies": {
-    "@dss/rules": "workspace:*",
     "@dss/protocol": "workspace:*",
+    "@dss/rules": "workspace:*",
     "@electric-sql/pglite": "^0.3.14",
     "@fastify/cors": "^11.0.1",
     "@fastify/rate-limit": "^10.3.0",
@@ -27,6 +30,7 @@
     "fastify": "^5.4.0",
     "pg": "^8.16.0",
     "protobufjs": "^7.5.4",
+    "sharp": "^0.34.5",
     "ws": "^8.18.3",
     "zod": "^3.25.0"
   },

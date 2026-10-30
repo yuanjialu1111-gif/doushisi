@@ -10,7 +10,7 @@ const dataDir = resolve(process.env.LOCAL_DATABASE_DIR ?? '.local/database');
 const db = await openDatabase(undefined, dataDir);
 try {
   await migrate(db);
-  const existing = await db.query('SELECT id FROM accounts LIMIT 1');
+  const existing = await db.query("SELECT id FROM accounts WHERE role <> 'system' LIMIT 1");
   if (existing.rows.length) throw new Error('Local setup requires an empty database. Existing accounts were not changed.');
   const auth = new AuthService(db);
   const ledger = new LedgerService(db);

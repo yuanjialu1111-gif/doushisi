@@ -49,7 +49,7 @@ export class AuthService {
     const user = result.rows[0];
     // Perform a scrypt derivation for unknown accounts too.
     const valid = await verifyPassword(password, user?.password_hash ?? `scrypt:${'0'.repeat(32)}:${'0'.repeat(128)}`);
-    requireCondition(user && valid && !user.disabled && (administrator ? user.role !== 'player' : user.role === 'player'), 'INVALID_CREDENTIALS', 'Invalid account or password.', 401);
+    requireCondition(user && valid && !user.disabled && (administrator ? user.role === 'beans_admin' || user.role === 'deal_admin' : user.role === 'player'), 'INVALID_CREDENTIALS', 'Invalid account or password.', 401);
     const token = randomBytes(32).toString('base64url');
     await this.db.query("INSERT INTO sessions (token_hash, user_id, expires_at) VALUES ($1,$2,now() + interval '12 hours')", [tokenHash(token), user.id]);
     return { token, user: { id: user.id, username: user.username, nickname: user.nickname, role: user.role } };

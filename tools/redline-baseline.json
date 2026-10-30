@@ -1,0 +1,10 @@
+{
+  "note": "只在 client-prepare.mjs 重新生成原版补丁后更新",
+  "bundles": {
+    "client/public/assets/dss/index.js": "cbc0cc0e891188a96cfd4256158dd50608b9223bf92a0f66051e54bc8fc9c90c",
+    "client/public/assets/hall/index.js": "a1f0e1d05f9dda414b18454c6cfe4679ee3bffe95bab9417c81479e2f950dcf2",
+    "client/public/assets/internal/index.js": "7797411ef5e6c439b3b13999c9ee94c2142d743021727044531da33109e917bf",
+    "client/public/assets/main/index.js": "415e38e15a1cabce5c7b4b38f1cca4e72f0076d51a9e2e73ff23a09958367080",
+    "client/public/assets/resources/index.js": "7797411ef5e6c439b3b13999c9ee94c2142d743021727044531da33109e917bf"
+  }
+}

@@ -39,7 +39,7 @@
 1. 不写真实密钥，签名钥匙不进源码目录。
 2. 不推送、不部署，用户说了才做；发布做成脚本由用户点运行。
 3. 不读线上玩家数据。
-4. 不手改 `client/public/assets/*/index.js`，改动一律走 `tools/client-prepare.mjs`。
+4. 不手改 `client/public/assets/*/index.js`。客户端改动一律在 `client/public/standalone.js` 运行时做（`client-prepare.mjs` 要的原版 APK 资源不在本机，10-30 核实）。
 5. 玩家照片必须去掉拍摄位置等附带信息。
 6. 停进程只用 `kill <PID>`。
 7. 不扩大范围。

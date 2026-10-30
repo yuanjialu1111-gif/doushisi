@@ -7,3 +7,4 @@ onlyBuiltDependencies:
 allowBuilds:
   esbuild: true
   protobufjs: true
+  sharp: false  # 用 @img/sharp-* 预编译包，不需要安装脚本

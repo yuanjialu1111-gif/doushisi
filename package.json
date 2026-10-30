@@ -13,6 +13,7 @@
     "build": "node tools/build.mjs",
     "test": "pnpm -r --if-present test",
     "typecheck": "pnpm -r --if-present typecheck",
+    "redline": "node tools/redline-scan.mjs",
     "admin:create": "pnpm --filter @dss/server admin:create",
     "local:setup": "pnpm --filter @dss/server local:setup",
     "release:check": "node tools/release-check.mjs",

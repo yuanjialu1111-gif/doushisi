@@ -1,8 +1,8 @@
 # 当前任务（2026-10-30，新会话追加；下方原交接说明未改动）
 
 - **任务**：大厅公开桌 + 首次上传头像昵称 + 附近桌子。
-- **状态**：需求简报已确认（10-30）；开发计划 `docs/plan/斗十四大厅-开发计划.md` 已写，等用户确认；没改任何代码。
-- **下一步**：用户确认计划和开工前 2 个问题（git init、安卓打包工具）后，从 M0 开始。
+- **状态**：简报、计划都已确认（10-30）；M0 底座完成（迁移 010、系统账号 `system-lobby`、sharp、敏感词表 `apps/server/data/sensitive-words.txt`、红线扫描 `pnpm redline`），服务端 710 个测试全过。
+- **下一步**：M1 资料与头像（R6–R9）：`profile.ts`、`avatars.ts`、6 处头像出口、接入层资料设置浮层。客户端改动只在 `standalone.js` 里做（原版 APK 资源不在本机，`client-prepare.mjs` 不能重跑）。
 - **关键文件**：`docs/requirements/斗十四大厅-需求简报.md`（R1–R11）、`DECISIONS.md`、方案图 https://claude.ai/artifact/TF467m5uNcJYC55RvjwQNe
 
 ---
