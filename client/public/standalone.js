@@ -709,6 +709,8 @@
     image.onerror = function () { URL.revokeObjectURL(url); toast('这张图片打不开，请换一张 JPG 或 PNG 照片。'); };
     image.src = url;
   }
+  // 新 APK 才有自带的选图、定位类（nativeApi >= 1）；旧 APK 里直接调会报错。
+  function hasNativeApi() { return cc.sys.isNative && !!config && config.nativeApi >= 1; }
   var imagePicked = null;
   window.StandaloneNative = window.StandaloneNative || {};
   window.StandaloneNative.onImage = function (base64, error) {
@@ -719,6 +721,7 @@
   };
   function pickImage(source, done) {
     if (cc.sys.isNative) {
+      if (!hasNativeApi()) return toast('当前版本还不能选照片，请更新 APP。');
       imagePicked = done;
       try { jsb.reflection.callStaticMethod('net/doushisi/standalone/StandaloneMedia', 'pick', '(Ljava/lang/String;)V', source); }
       catch (_) { imagePicked = null; toast('当前版本还不能选照片，请更新 APP。'); }
@@ -905,6 +908,12 @@
         promptRoom(PUBLIC_LOBBY_TIP);
       }
       return result;
+    };
+    // 房内不再定位（R11）：上次存下的开房选项里可能还有 openGps，原版会因此在网页上先要定位、还把经度读错（R10 AC4）。
+    var onClickCreateRoom = Controller.prototype.onClickCreateRoom;
+    Controller.prototype.onClickCreateRoom = function () {
+      if (this._rules) delete this._rules.openGps;
+      return onClickCreateRoom.apply(this, arguments);
     };
   }
   // 原版大厅弹出其他窗口时会暂停自己的定时钩子，所以窗口补丁直接挂在原版控制器的 loadUI / reLoad 后面。
@@ -1460,6 +1469,7 @@
       };
       app.gameserver.getVersionCode = function () { return 100; };
       app.gameserver.requestLocation = function () {
+        if (cc.sys.isNative && hasNativeApi()) return jsb.reflection.callStaticMethod('net/doushisi/standalone/StandaloneLocation', 'requestPermission', '()V');
         if (cc.sys.isNative) return jsb.reflection.callStaticMethod('org/cocos2dx/javascript/AppActivity', 'requestLocation', '()V');
         if (!navigator.geolocation) return;
         navigator.geolocation.getCurrentPosition(function (position) {
