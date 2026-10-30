@@ -13,6 +13,7 @@ import { PolicyService } from './policies.js';
 import { TRANSFER_ROUNDING_VERSION } from './transfers.js';
 import { engineLegalActions, finishInteractions, nextScheduledAt, planInteractions, requireLegalAction, validateObservedDecision, type InteractionState, type ScheduledEngineAction } from './engine-interactions.js';
 import { validateNextRoundContext } from './round-context.js';
+import { avatarUrl } from './avatars.js';
 
 export interface DissolveState {
   initiatorId: string;
@@ -130,7 +131,7 @@ export class RoomService extends EventEmitter {
     const found = await sql.query('SELECT * FROM rooms WHERE id=$1', [roomId]);
     requireCondition(found.rows[0], 'ROOM_NOT_FOUND', 'Room does not exist.', 404);
     const members = await sql.query(`SELECT m.user_id AS "userId",m.seat,m.ready,m.auto_play AS "autoPlay",
-      w.balance::text AS "beanBalance",COALESCE(t.room_bean_delta,0)::text AS "roomBeanDelta",a.username,a.nickname
+      w.balance::text AS "beanBalance",COALESCE(t.room_bean_delta,0)::text AS "roomBeanDelta",a.username,a.nickname,a.avatar_hash AS "avatarHash",a.avatar_status AS "avatarStatus",a.sex
       FROM room_members m
       JOIN accounts a ON a.id=m.user_id
       JOIN wallets w ON w.user_id=m.user_id
@@ -144,7 +145,8 @@ export class RoomService extends EventEmitter {
     const memberViews: Record<string, any>[] = members.rows.map(member => {
       const roomBeanDelta = money(member.roomBeanDelta);
       const roundBeanDelta = roundDeltas.get(member.userId) ?? '0';
-      return { ...member, beanBalance: money(member.beanBalance), roomBeanDelta, roundBeanDelta,
+      const { avatarHash, avatarStatus, ...rest } = member;
+      return { ...rest, avatarUrl: avatarUrl({ id: member.userId, avatarHash, avatarStatus }), beanBalance: money(member.beanBalance), roomBeanDelta, roundBeanDelta,
         // These aliases preserve existing callers and original-wire projections.
         score: roomBeanDelta, changeScore: roundBeanDelta };
     });

@@ -12,10 +12,12 @@ import type { RoomService, DissolveState } from './rooms.js';
 import { AppError, requireCondition } from './errors.js';
 import { Decimal, money } from './money.js';
 import { ReplayService } from './replays.js';
+import { avatarUrl, wireSex } from './avatars.js';
+import type { ProfileService } from './profile.js';
 
 export const ORIGINAL_WIRE_VERSION = 2;
 export const ORIGINAL_EXTENSION_FIELD = 60000;
-export const DEFAULT_AVATAR_URL = '/client/standalone/default-avatar.png';
+export { DEFAULT_AVATAR_URL } from './avatars.js';
 export interface DecimalField { path: (string | number)[]; value: string }
 export interface QionglaiWireOptions { version: typeof QIONGLAI_OPTION_VERSION; qlTianDiHu: 0 | 1; qlHongHeiHu: 0 | 1; qlHongHei50: 0 | 1 }
 export interface OriginalExtension {
@@ -76,6 +78,8 @@ export interface OriginalProtocolServices {
   policies: PolicyService;
   rooms: RoomService;
   replays?: ReplayService;
+  profiles?: ProfileService;
+  profileRequired?: boolean;
   markOnline(userId: string, socket: WebSocket): void;
 }
 
@@ -267,7 +271,7 @@ export async function registerOriginalProtocol(app: FastifyInstance, services: O
   async function userInfo(member: Record<string, any>, path: (string | number)[], fields: DecimalField[],
     display: { score?: string; changeScore?: string } = {}) {
     const user: Record<string, any> = { uid: await numericUid(member.userId), nick: member.nickname,
-      picUrl: DEFAULT_AVATAR_URL, seatIndex: member.seat, isReady: member.ready, online: isUserOnline(member.userId), sex: 0, headType: 0,
+      picUrl: member.avatarUrl ?? avatarUrl({ id: member.userId, avatarHash: member.avatarHash, avatarStatus: member.avatarStatus }), seatIndex: member.seat, isReady: member.ready, online: isUserOnline(member.userId), sex: wireSex(member.sex), headType: 0,
     };
     // Original protobuf names are retained only as a compatibility projection.  In the
     // standalone game a table score is the current bean balance and changeScore is the
@@ -310,7 +314,7 @@ export async function registerOriginalProtocol(app: FastifyInstance, services: O
     const room = (await db.query("SELECT r.code,r.state,q.id AS round_id,q.state_version,(SELECT COALESCE(MAX(e.sequence),0)::int FROM game_events e WHERE e.room_id=r.id) AS sequence FROM rooms r LEFT JOIN rounds q ON q.room_id=r.id AND q.state='playing' WHERE r.id=$1", [roomId])).rows[0];
     if (!room) return null;
     const members = (await db.query(`SELECT m.user_id AS "userId",m.seat,m.ready,m.auto_play AS "autoPlay",
-      COALESCE(t.room_bean_delta,0)::text AS score,w.balance::text AS "beanBalance",a.nickname
+      COALESCE(t.room_bean_delta,0)::text AS score,w.balance::text AS "beanBalance",a.nickname,a.avatar_hash AS "avatarHash",a.avatar_status AS "avatarStatus",a.sex
       FROM room_members m
       JOIN accounts a ON a.id=m.user_id
       JOIN wallets w ON w.user_id=m.user_id
@@ -514,7 +518,8 @@ export async function registerOriginalProtocol(app: FastifyInstance, services: O
         connection.roomOptions = undefined;
         connection.roomState = emptyRoomState();
       }
-      const reply: Record<string, any> = { state: true, uid, token, nick: actor.nickname, picUrl: DEFAULT_AVATAR_URL, sex: 0,
+      const look = (await db.query('SELECT avatar_hash AS "avatarHash",avatar_status AS "avatarStatus",sex FROM accounts WHERE id=$1', [actor.id])).rows[0] ?? {};
+      const reply: Record<string, any> = { state: true, uid, token, nick: actor.nickname, picUrl: avatarUrl({ id: actor.id, ...look }), sex: wireSex(look.sex),
         tableId: room ? Number(room.code) : 0, posType: 0, areaType: ids, ...connection.region,
         mustUpdate: false, isShowSmrz: false, isSmrz: false, winRate: '0%', headType: 0,
         showShouchong: false, showMonthcard: false, showYuandan: false, showChunjie: false, showZhaohuiHyhg: false,
@@ -618,6 +623,7 @@ export async function registerOriginalProtocol(app: FastifyInstance, services: O
           connection.send(MSGEvent.HWResponseRegionChoice, { result: 1, areaType: ids }); return;
         }
         case MSGEvent.HWRequestCreateTable: {
+          if (services.profileRequired) await services.profiles!.requireComplete(actor.id);
           requireCondition(body.roomType === undefined || body.roomType === 100, 'UNSUPPORTED_OPERATION', 'Only host-created friend rooms are available.');
           const key = resolveVariantKey(body.areaType, body);
           requireCondition(supportsNewRoom(key), 'GAME_REMOVED', messages.GAME_REMOVED!, 409);
@@ -660,6 +666,7 @@ export async function registerOriginalProtocol(app: FastifyInstance, services: O
           await queueRoomTask(target.id, async () => {
             const current = (await db.query("SELECT r.rules,EXISTS(SELECT 1 FROM room_members m WHERE m.room_id=r.id AND m.user_id=$2) AS member FROM rooms r WHERE r.id=$1 AND r.state <> 'closed'", [target.id, actor.id])).rows[0];
             requireCondition(current, 'ROOM_NOT_FOUND', 'Room does not exist.', 404);
+            if (services.profileRequired && !current.member) await services.profiles!.requireComplete(actor.id);
             const variant = (await db.query('SELECT variant_key,rule_version FROM rooms WHERE id=$1', [target.id])).rows[0]!;
             if (current.rules?.qionglai) requireCondition(connection.capabilities?.includes(QIONGLAI_OPTION_VERSION), 'CLIENT_UPGRADE_REQUIRED', messages.CLIENT_UPGRADE_REQUIRED!, 426);
             if (rooms.engines.has(variant.variant_key) && rooms.engines.get(variant.variant_key, variant.rule_version).interactions?.responseWindow) {
@@ -714,16 +721,16 @@ export async function registerOriginalProtocol(app: FastifyInstance, services: O
           connection.send(MSGEvent.HWResponseDissolveTable, { result: 1 }); await queueRoom(room.id); return;
         }
         case MSGEvent.HWRequestGetFriends: {
-          const rows = await db.query('SELECT a.id,a.nickname,f.first_room_id FROM friends f JOIN accounts a ON a.id=f.friend_id WHERE f.user_id=$1 ORDER BY f.last_played_at DESC LIMIT 200', [actor.id]);
+          const rows = await db.query('SELECT a.id,a.nickname,a.avatar_hash AS "avatarHash",a.avatar_status AS "avatarStatus",f.first_room_id FROM friends f JOIN accounts a ON a.id=f.friend_id WHERE f.user_id=$1 ORDER BY f.last_played_at DESC LIMIT 200', [actor.id]);
           const friends = [];
-          for (const friend of rows.rows) friends.push({ uid: await numericUid(friend.id), nick: friend.nickname, picUrl: DEFAULT_AVATAR_URL,
+          for (const friend of rows.rows) friends.push({ uid: await numericUid(friend.id), nick: friend.nickname, picUrl: avatarUrl(friend),
             recordId: await wireId('room', friend.first_room_id), online: isUserOnline(friend.id) ? '在线' : '离线中', source: '同桌对局', keZhaohui: false, headType: 0, maxGoldLevel: 0 });
           connection.send(MSGEvent.HWResponseGetFriends, { result: 1, friendAll: friends, gradeInfo: [] }); return;
         }
         case MSGEvent.HWRequestHeadInfo: {
-          const requested = body.uid && body.uid !== connection.uid ? (await db.query("SELECT a.id,a.nickname FROM original_protocol_ids p JOIN accounts a ON a.id=p.entity_id WHERE p.entity_kind='user' AND p.wire_id=$1 AND EXISTS(SELECT 1 FROM room_members m JOIN room_members mine ON mine.room_id=m.room_id WHERE m.user_id=a.id AND mine.user_id=$2)", [Number(body.uid), actor.id])).rows[0] : actor;
+          const requested = body.uid && body.uid !== connection.uid ? (await db.query("SELECT a.id,a.nickname,a.avatar_hash AS \"avatarHash\",a.avatar_status AS \"avatarStatus\" FROM original_protocol_ids p JOIN accounts a ON a.id=p.entity_id WHERE p.entity_kind='user' AND p.wire_id=$1 AND EXISTS(SELECT 1 FROM room_members m JOIN room_members mine ON mine.room_id=m.room_id WHERE m.user_id=a.id AND mine.user_id=$2)", [Number(body.uid), actor.id])).rows[0] : (await db.query('SELECT id,nickname,avatar_hash AS "avatarHash",avatar_status AS "avatarStatus" FROM accounts WHERE id=$1', [actor.id])).rows[0];
           requireCondition(requested, 'USER_NOT_FOUND', 'User not found.', 404);
-          const reply: Record<string, any> = { result: 1, uid: await numericUid(requested.id), nick: requested.nickname, picUrl: DEFAULT_AVATAR_URL, headList: [], headType: 0, winRate: '0%' };
+          const reply: Record<string, any> = { result: 1, uid: await numericUid(requested.id), nick: requested.nickname, picUrl: avatarUrl(requested), headList: [], headType: 0, winRate: '0%' };
           const fields: DecimalField[] = [];
           if (requested.id === actor.id) exactField(reply, 'goldNum', await ledger.balance(actor.id), ['hwResponseHeadInfo'], fields);
           connection.send(MSGEvent.HWResponseHeadInfo, reply, fields); return;
@@ -734,7 +741,7 @@ export async function registerOriginalProtocol(app: FastifyInstance, services: O
           for (const room of found.rows) {
             if (body.areaType && Number(room.variant_key.split(':')[0]) !== body.areaType && !(body.areaType === 6 && room.variant_key === '101:0')) continue;
             const members = await db.query(`SELECT m.user_id AS "userId",m.seat,
-              COALESCE(t.room_bean_delta,0)::text AS score,w.balance::text AS "beanBalance",a.nickname
+              COALESCE(t.room_bean_delta,0)::text AS score,w.balance::text AS "beanBalance",a.nickname,a.avatar_hash AS "avatarHash",a.avatar_status AS "avatarStatus",a.sex
               FROM room_members m
               JOIN accounts a ON a.id=m.user_id
               JOIN wallets w ON w.user_id=m.user_id

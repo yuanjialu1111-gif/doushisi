@@ -11,6 +11,7 @@ import { finishInteractions, planInteractions, requireLegalAction, validateObser
 import { money, internalMoney, addMoney } from './money.js';
 import { validateNextRoundContext } from './round-context.js';
 import type { OriginalExtension } from './original-wire.js';
+import { avatarUrl, wireSex } from './avatars.js';
 
 export interface OriginalReplayPacket { command: number; body: Record<string, unknown>; decimalFields: { path: (string | number)[]; value: string }[]; roomOptions?: OriginalExtension['roomOptions'] }
 export interface OriginalReplayFrame { index: number; sequence: string; stateVersion: number; at: string; autoPlay: boolean; snapshot: OriginalReplayPacket; packets: OriginalReplayPacket[] }
@@ -210,7 +211,7 @@ export class ReplayService {
     requireCondition(Number(rawBytes) <= 64 * 1024 * 1024, 'REPLAY_TOO_LARGE', 'The original replay archive exceeds its verification budget.', 409);
     const info = (await this.db.query('SELECT r.*,q.number,q.end_reason FROM rounds q JOIN rooms r ON r.id=q.room_id WHERE q.id=$1 AND q.room_id=$2', [roundId, roomId])).rows[0]!;
     const adapter = this.engines.get(info.variant_key, info.rule_version).original!;
-    const members = (await this.db.query('SELECT m.user_id,m.seat,a.nickname FROM room_members m JOIN accounts a ON a.id=m.user_id WHERE m.room_id=$1 ORDER BY m.seat', [roomId])).rows;
+    const members = (await this.db.query('SELECT m.user_id,m.seat,a.nickname,a.avatar_hash AS "avatarHash",a.avatar_status AS "avatarStatus",a.sex FROM room_members m JOIN accounts a ON a.id=m.user_id WHERE m.room_id=$1 ORDER BY m.seat', [roomId])).rows;
     for (const member of members) {
       const existing = (await this.db.query("SELECT wire_id FROM original_protocol_ids WHERE entity_kind='user' AND entity_id=$1", [member.user_id])).rows[0];
       member.wireId = String(existing?.wire_id ?? (await this.db.query("INSERT INTO original_protocol_ids(entity_kind,entity_id) VALUES('user',$1) ON CONFLICT(entity_kind,entity_id) DO UPDATE SET entity_id=EXCLUDED.entity_id RETURNING wire_id", [member.user_id])).rows[0]!.wire_id);
@@ -231,8 +232,8 @@ export class ReplayService {
       const users = members.map((member, index) => {
         fields.push({ path: ['hwResponseEnterTableFinish', 'userInfo', index, 'score'], value: addMoney(priorScores.get(member.user_id)!, earned.get(member.user_id)!) });
         fields.push({ path: ['hwResponseEnterTableFinish', 'userInfo', index, 'changeScore'], value: earned.get(member.user_id)! });
-        return { uid: member.wireId, nick: member.nickname, picUrl: '/client/standalone/default-avatar.png', seatIndex: member.seat,
-          score: '0', changeScore: '0', isReady: true, online: false, sex: 0, headType: 0 };
+        return { uid: member.wireId, nick: member.nickname, picUrl: avatarUrl({ id: member.user_id, avatarHash: member.avatarHash, avatarStatus: member.avatarStatus }), seatIndex: member.seat,
+          score: '0', changeScore: '0', isReady: true, online: false, sex: wireSex(member.sex), headType: 0 };
       });
       const snapshot = this.originalPacket({ command: 48, body: { ...game.body, result: 1, tableInfo: table, userInfo: users,
         seatIndex: members.find(member => member.user_id === actor.id)!.seat, round: info.number, showPipeiPic: false, pipeiCd: 0,
