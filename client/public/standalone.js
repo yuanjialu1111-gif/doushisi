@@ -1051,7 +1051,9 @@
       clearInterval(lobby.timer);
       lobby.timer = setInterval(function () {
         if (!cc.isValid(controller.node)) return clearInterval(lobby.timer);
-        if (controller.node.activeInHierarchy) lobbyRefresh(controller, false);
+        if (!controller.node.activeInHierarchy) return;
+        fitLobby(lobby);
+        lobbyRefresh(controller, false);
       }, 2000);
       lobbyRefresh(controller, true);
     }
@@ -1070,18 +1072,22 @@
       if (!cc.isValid(controller.node)) return;
       lobby.frames = frames;
       lobby.tab = 'all';
+      // 桌卡区按 16:9 下的宽度排版；窗口更窄时原版会把这块区域压窄，整体等比缩小免得右边被切掉。
+      lobby.box = new cc.Node('standaloneLobbyBox'); lobby.root.addChild(lobby.box);
+      lobby.bottom = ['left/quick_start', 'left/joinbtn', 'left/createroom'].map(function (name) { return controller.views[name]; }).filter(Boolean)
+        .map(function (node) { return { node: node, x: node.x, scale: node.scale }; });
       lobby.tabs = [['all', '全部', -455], ['nearby', '附近', -315]].map(function (entry) {
         var node = new cc.Node('standaloneLobbyTab');
         var sprite = node.addComponent(cc.Sprite); sprite.sizeMode = cc.Sprite.SizeMode.CUSTOM;
-        node.setContentSize(132, 62); node.setPosition(entry[2], 262); lobby.root.addChild(node);
+        node.setContentSize(132, 62); node.setPosition(entry[2], 262); lobby.box.addChild(node);
         node.addComponent(cc.Button).transition = cc.Button.Transition.SCALE;
         var label = lobbyLabel(node, entry[1], 0, 6, 26, cc.color(255, 255, 255), 0.5, true);
         cc.mm.uitools.addBtnLister(node, function () { lobby.tab = entry[0]; renderLobby(controller); }, controller);
         return { key: entry[0], node: node, sprite: sprite, label: label };
       });
-      lobby.count = lobbyLabel(lobby.root, '', 520, 262, 22, cc.color(255, 255, 255), 1);
+      lobby.count = lobbyLabel(lobby.box, '', 520, 262, 22, cc.color(255, 255, 255), 1);
       var scrollNode = new cc.Node('standaloneLobbyTables');
-      scrollNode.setContentSize(1050, 470); scrollNode.setPosition(0, -12); lobby.root.addChild(scrollNode);
+      scrollNode.setContentSize(1050, 470); scrollNode.setPosition(0, -12); lobby.box.addChild(scrollNode);
       var view = new cc.Node('view');
       view.setContentSize(1050, 470); view.addComponent(cc.Mask); scrollNode.addChild(view);
       var content = new cc.Node('content');
@@ -1093,10 +1099,16 @@
       var emptyPanel = new cc.Node('standaloneLobbyEmpty');
       var emptyBg = emptyPanel.addComponent(cc.Sprite);
       emptyBg.spriteFrame = frames.card; emptyBg.type = cc.Sprite.Type.SLICED; emptyBg.sizeMode = cc.Sprite.SizeMode.CUSTOM;
-      emptyPanel.setContentSize(640, 120); emptyPanel.setPosition(0, 40); lobby.root.addChild(emptyPanel);
+      emptyPanel.setContentSize(640, 120); emptyPanel.setPosition(0, 40); lobby.box.addChild(emptyPanel);
       lobby.empty = lobbyLabel(emptyPanel, '', 0, 0, 26, cc.color(122, 58, 0), 0.5, true);
       poll();
     });
+  }
+  function fitLobby(lobby) {
+    if (!lobby.box) return;
+    var k = Math.min(1, lobby.root.width / 1063);
+    lobby.box.scale = k;
+    lobby.bottom.forEach(function (item) { item.node.x = item.x * k; item.node.scale = item.scale * k; });
   }
   function lobbyRefresh(controller, reset) {
     var lobby = controller._standaloneLobby;
@@ -1123,6 +1135,7 @@
   }
   function renderLobby(controller) {
     var lobby = controller._standaloneLobby, data = lobby.data || { tables: [], variants: [], hasLocation: false };
+    fitLobby(lobby);
     if (!data.hasLocation && lobby.tab === 'nearby') lobby.tab = 'all';
     lobby.tabs.forEach(function (tab) {
       var on = tab.key === lobby.tab;
