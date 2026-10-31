@@ -5,7 +5,8 @@
 - **待确认 16–19（10-31 已处理）**：16 好友申请加固定附言（迁移 013，接入层选择窗，本机浏览器走查过）；17A 不改；18、19 用户定保持现状。
 - **已发布**：10-31 用户运行发布，407883f 上了测试服 108（批次 20261031T132526Z，自检 9 项全过，网关已补 /api/social/）。回滚：`bash tools/release-test-server.sh --rollback 20261031T132526Z`。APK 没换，接入层走热更新。
 - **热更新没生效（10-31 真机）**：手机拿到清单却没下载脚本，推断 3 秒超时太短。`assets/main.js` 改成等 8 秒，失败时带 `?fallback=<原因>&from=<内置版本>` 再请求一次清单（看 nginx 访问日志就知道卡在哪）；自测 324 项过。
-- **下一步**：用户打 APK 4.0 版本号 6（`node tools/android-build.mjs ... --version-code 6`）→ `--apk` 换下载包 → 覆盖安装真机验收。
+- **APK 6 已上**：10-31 4.0（版本号 6，同一签名可覆盖装）已换到下载页，旧包备份 release-backups/apk-20261031T133758Z。
+- **下一步**：真机验收第二轮；以后热更新失败看 nginx 访问日志里的 `?fallback=`。
 - **关键文件**：`docs/plan/验收清单.md`（第二轮一节：S1–S7 每条 AC 的证据）、`docs/plan/斗十四第二轮-开发计划.md`、`docs/plan/待确认.md`。
 - **注意**：改 standalone.js 后跑 `node tools/android-native-adapter.mjs` 和 `node tools/client-adapter-test.mjs`（18 项）；新函数先 grep 有没有重名；PGlite 只有一个连接，事务里调别的服务要把 tx 传进去；加迁移要同步改 `apps/server/test/database.test.ts` 的版本列表（M3 漏过，M7 补上）。
 
