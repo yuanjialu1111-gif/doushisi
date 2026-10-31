@@ -52,3 +52,10 @@
 - **做法**：打包后在本机解开，把 `node_modules` 链回源码目录，加载一次 `apps/server/dist/app.js`。缺文件在本机就停下，不上传。
 - **证据**：10-31 第一次发布漏了 `apps/server/data/sensitive-words.txt`，到服务器预装后才报 ENOENT（还没切换，线上没受影响）。加上本机试加载后，故意去掉这个目录会在本机停下。
 - **边界**：只能发现模块加载时就读的文件；请求时才读的文件，靠服务器上换目录后的自检兜底。
+
+## Apktool 3 的 versionCode 不能带引号
+
+- **场景**：打包脚本改 `apktool.yml` 里的版本号后再用 Apktool 3.0.3 回包。
+- **做法**：`versionCode` 写成不带引号的整数；`versionName` 带不带引号都行。
+- **证据**：10-31 用户打包时回包报 `NumberFormatException: For input string: "'5'"`。Apktool 3.0.3 自己解包写的是 `versionCode: 4`；同一份解包结果手改测试：`'5'` 回包失败，`5` 成功，`versionName: '4.1'` 也能成功。自测原来断言的是 Apktool 2 的带引号写法，所以没发现。
+- **边界**：只核对了 3.0.3（`tools/android-tools-install.sh` 固定的版本）。

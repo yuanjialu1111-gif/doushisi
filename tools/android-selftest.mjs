@@ -1191,7 +1191,10 @@ await section('8. android-build helpers and the JS <-> native contract', () => {
   const fromManifest = readVersion('apkFileName: x.apk\n', decodedManifest);
   check('readVersion falls back to the manifest', fromManifest.code === 120 && fromManifest.name === '1.2.0' && fromManifest.inYml === false, JSON.stringify(fromManifest));
   const applied = applyVersion(yml, decodedManifest, { code: 121, name: '1.2.1' });
-  check('applyVersion updates apktool.yml and manifest', applied.yml.includes("versionCode: '121'") && applied.yml.includes("versionName: '1.2.1'") && applied.xml.includes('android:versionCode="121"') && applied.xml.includes('android:versionName="1.2.1"'));
+  check('applyVersion updates apktool.yml and manifest', applied.yml.includes("versionCode: 121\n") && applied.yml.includes("versionName: '1.2.1'") && applied.xml.includes('android:versionCode="121"') && applied.xml.includes('android:versionName="1.2.1"'));
+  // Apktool 3.0.3 writes `versionCode: 4` unquoted and fails to rebuild from `versionCode: '5'` (10-31).
+  const apktool3 = applyVersion("versionInfo:\n  versionCode: 4\n  versionName: 4.0\n", '<manifest>', { code: 5 });
+  check('applyVersion keeps versionCode a bare integer for Apktool 3', apktool3.yml === "versionInfo:\n  versionCode: 5\n  versionName: 4.0\n", JSON.stringify(apktool3.yml));
   const options = parseArguments(['--api-base', API, '--version-code=121', '--version-name', '1.2.1', '--expect-cert', 'AB:'.repeat(31) + 'AB']);
   check('parseArguments', options.apiBase === API && options.versionCode === 121 && options.versionName === '1.2.1' && options.expectCert === 'ab'.repeat(32) && options.keyAlias === 'doushisi');
   check('parseArguments rejects bad input', throwsMatching(() => parseArguments(['--version-code', '0']), /version-code/) && throwsMatching(() => parseArguments(['--expect-cert', 'zz']), /expect-cert/)

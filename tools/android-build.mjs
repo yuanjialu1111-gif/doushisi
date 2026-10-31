@@ -224,7 +224,8 @@ export function readVersion(apktoolYml, manifest) {
 export function applyVersion(apktoolYml, manifest, { code, name }) {
   let yml = apktoolYml;
   let xml = manifest;
-  if (/^\s*versionCode:/m.test(yml)) yml = yml.replace(/^(\s*versionCode:\s*).*$/m, `$1'${code}'`);
+  // Apktool 3 reads versionCode as a bare integer and rejects '5' (NumberFormatException); versionName may stay quoted.
+  if (/^\s*versionCode:/m.test(yml)) yml = yml.replace(/^(\s*versionCode:\s*).*$/m, `$1${code}`);
   if (name !== undefined && /^\s*versionName:/m.test(yml)) yml = yml.replace(/^(\s*versionName:\s*).*$/m, `$1'${name}'`);
   xml = xml.replace(/(<manifest\b[^>]*\sandroid:versionCode=")[^"]*(")/, `$1${code}$2`);
   if (name !== undefined) xml = xml.replace(/(<manifest\b[^>]*\sandroid:versionName=")[^"]*(")/, `$1${name}$2`);
