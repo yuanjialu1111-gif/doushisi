@@ -92,7 +92,7 @@ download() {
   actual="$(sha256_of "$destination.part")"
   if [ "$actual" != "$expected" ]; then
     rm -f "$destination.part"
-    die "$(basename "$destination") 校验失败：应为 $expected，实际 $actual"
+    die "$(basename "$destination") 校验失败：应为 ${expected}，实际 $actual"
   fi
   mv "$destination.part" "$destination"
   info "SHA-256 通过：$(basename "$destination")"
@@ -140,7 +140,7 @@ if [ -f "$BUILD_TOOLS/lib/apksigner.jar" ]; then
   info "build-tools $BUILD_TOOLS_VERSION 已安装"
 else
   [ -t 0 ] || die "安装 build-tools 需要你在终端里亲自同意 Android SDK 许可，请在终端里直接运行本脚本。"
-  info "安装 build-tools $BUILD_TOOLS_VERSION（sdkmanager 会显示 Google 的许可条款，阅读后输入 y 同意）"
+  info "安装 build-tools ${BUILD_TOOLS_VERSION}（sdkmanager 会显示 Google 的许可条款，阅读后输入 y 同意）"
   JAVA_HOME="$JAVA_HOME_DIR" ANDROID_USER_HOME="$ROOT/android-user-home" \
     "$SDKMANAGER" --sdk_root="$SDK_ROOT" "build-tools;$BUILD_TOOLS_VERSION"
   [ -f "$BUILD_TOOLS/lib/apksigner.jar" ] || die "build-tools 没装上（许可未同意或下载失败），可再次运行本脚本。"
@@ -175,7 +175,7 @@ fi
 
 cat <<EOF
 
-安装完成（$ARCH）：$ROOT
+安装完成（${ARCH}）：$ROOT
   Java       $JAVA_VERSION
   apktool    ${APKTOOL_REPORTED:-$APKTOOL_VERSION}
   apksigner  $APKSIGNER_REPORTED

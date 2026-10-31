@@ -73,13 +73,13 @@ listing="$(DOUSHISI_KEYSTORE_PASSWORD="$password" "$KEYTOOL" -list -v -keystore 
 unset password
 digest="$(printf '%s\n' "$listing" | awk -F': ' '/SHA256:/ {print $2; exit}' | tr -d ':[:space:]' | tr 'A-F' 'a-f')"
 unset listing
-[ "${#digest}" -eq 64 ] || die "钥匙已生成（$KEYSTORE），但读不到证书指纹。"
+[ "${#digest}" -eq 64 ] || die "钥匙已生成（${KEYSTORE}），但读不到证书指纹。"
 printf '%s\n' "$digest" > "$CERT_FILE"
 chmod 600 "$CERT_FILE"
 
 cat <<EOF
 签名钥匙已生成：$KEYSTORE
-证书 SHA-256：  $digest（已存到 $CERT_FILE，打包时自动核对）
+证书 SHA-256：  ${digest}（已存到 ${CERT_FILE}，打包时自动核对）
 请马上备份：把这个 .jks 文件和密码分开保存（例如密码放密码管理器，.jks 放加密 U 盘）。
 钥匙或密码丢了，已装的 APP 就只能卸载重装。不要把它放进源码目录。
 EOF
