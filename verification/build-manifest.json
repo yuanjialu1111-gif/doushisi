@@ -1,8 +1,8 @@
 {
   "version": 1,
-  "builtAt": "2026-10-30T23:53:46.744Z",
+  "builtAt": "2026-10-31T12:33:20.869Z",
   "sources": {
-    "sha256": "24fbb5c7b732f31a36a55f8e8ffe1c2cb7c74888ec15f1f3a209538261988a81",
+    "sha256": "16fdcea01f696569156334834186b0604b9f30b7c77cb64f46f46cad63b678e9",
     "files": [
       {
         "path": "apps/admin/index.html",
@@ -14,11 +14,11 @@
       },
       {
         "path": "apps/admin/src/App.tsx",
-        "sha256": "0353ffa3d8ec6e621f9d511065f2f283b550ba1f8274b2b3c797fd7cabc5800d"
+        "sha256": "e98e722a74b4c206d2f5e140c0b3c3b755d191694d9988e161ca372a71652332"
       },
       {
         "path": "apps/admin/src/api.ts",
-        "sha256": "5f0a757cd7cac3c1c555094c1a774384d915b351e49ce01808960d5c463045e4"
+        "sha256": "961628391344e2e03fc48dbc7f9c954e61e6f17973e3d8a5fe1acc33036a9a9c"
       },
       {
         "path": "apps/admin/src/main.tsx",
@@ -26,7 +26,7 @@
       },
       {
         "path": "apps/admin/src/styles.css",
-        "sha256": "e17b766f4365165ab51ce01a8a18edbb2def8d219f08b7682bc9beaf87088ec1"
+        "sha256": "588766e69afb0202affad830e530605add76a1812a35fa1dcca573873bcf59a1"
       },
       {
         "path": "apps/admin/tsconfig.json",
@@ -77,12 +77,20 @@
         "sha256": "0f059a0937e0e2e2460b69eceaed6e185d135e971b0e757ed4c4822d2a575f5b"
       },
       {
+        "path": "apps/server/migrations/011-social-medals.sql",
+        "sha256": "37c9ddbc556c6abfe171714bb6f3cb1409d032c07d07c3230656201a287185b6"
+      },
+      {
+        "path": "apps/server/migrations/012-friend-source.sql",
+        "sha256": "584f488f2ac9296e6cde0cbc664bed5bc9a56decf697155da1fd4c60b6513ec2"
+      },
+      {
         "path": "apps/server/package.json",
         "sha256": "25eda800c56e666ebab8badb8acbefd7be9cb49b589fcd705eacdd1f2b78e924"
       },
       {
         "path": "apps/server/src/app.ts",
-        "sha256": "5a4048b05290451afe0e4544b45ef167f3f8444d09dba8b26135df37d954ef0a"
+        "sha256": "20a8c381ff847d4dfb37d9cecc0e70351d4d118d3728d3e0ce07b91461fe2976"
       },
       {
         "path": "apps/server/src/auth.ts",
@@ -278,7 +286,7 @@
       },
       {
         "path": "apps/server/src/lobby.ts",
-        "sha256": "767604301f170b02b72ab0a4ae1a24fd5ebb582ba92aaf1294f98ecca856025b"
+        "sha256": "f21ac8602bff1e1e5c69acbc171a1b9096f925a84488bc351f9f68ad76a24423"
       },
       {
         "path": "apps/server/src/local-backups.ts",
@@ -302,7 +310,7 @@
       },
       {
         "path": "apps/server/src/migrate.ts",
-        "sha256": "fbd7a8730324237c2e3f954cf18b875ff94312d1f1bf149064b22c3f0d1a8186"
+        "sha256": "ec5a760f6f742d8abcb43cff4dbcab1d36a2885be04243f8e8d371104fcbe7f9"
       },
       {
         "path": "apps/server/src/money.ts",
@@ -310,7 +318,7 @@
       },
       {
         "path": "apps/server/src/original-wire.ts",
-        "sha256": "c3a5ee5f49471c68ccedbfa80ea96ab0364ad53c1d2e68dbf937f70db5e24f1e"
+        "sha256": "6904a916feb6c4692978605a52e46e22c078de09facad01cfe4c004450510ccc"
       },
       {
         "path": "apps/server/src/policies.ts",
@@ -342,7 +350,7 @@
       },
       {
         "path": "apps/server/src/rooms.ts",
-        "sha256": "cd0d439ba05fb77faff52cb59f82c0b7417ebb7b3fe166a0b8aed0e67ba60f77"
+        "sha256": "677716e2c63eb7c4c8c22705f11c8bcdcbbd0fb22b376c253c131a3636d4df21"
       },
       {
         "path": "apps/server/src/round-context.ts",
@@ -351,6 +359,18 @@
       {
         "path": "apps/server/src/runtime-engines.ts",
         "sha256": "d018bc77f3c21144194b55b0b959f0ad8671a14cc4d82aa4287d20e4c0bdf344"
+      },
+      {
+        "path": "apps/server/src/settings.ts",
+        "sha256": "913d0318d0e5110036be85f877ef0eba716d0c8b2b9ba240c4fb10fbc620d4fe"
+      },
+      {
+        "path": "apps/server/src/social.ts",
+        "sha256": "9651aef133bca9914211ef5f2def76a404e920bcbd1d1c951686e588516a7590"
+      },
+      {
+        "path": "apps/server/src/stats.ts",
+        "sha256": "c38cafab22f9257c38449766a9e98eccb84fcfa21ea8d2f8eb0db3231088dc82"
       },
       {
         "path": "apps/server/src/transfers.ts",
@@ -402,7 +422,7 @@
       },
       {
         "path": "packages/rules/src/edition.ts",
-        "sha256": "25e6c01a57fb28affa41935e487ddc5e184f3552192ee0494095bd65b5836b8f"
+        "sha256": "41a6f131d3d6a572a23d517237a771de29fa563b723e8f1b6af8a0435ed0929f"
       },
       {
         "path": "packages/rules/src/index.ts",
@@ -451,23 +471,23 @@
     ]
   },
   "binaries": {
-    "sha256": "595674bfccd2906be7cdfaea098558f87f6131f50dd3a2b6c7ff569626dcdd35",
+    "sha256": "d10b8e6001db9b8eb5f7a83d77681d259c31a2370dae06d8fc80068f0f997a2f",
     "files": [
       {
-        "path": "apps/admin/dist/assets/index-CD9Yp__T.css",
-        "sha256": "c7fd307ce6c130ac6b23e3654b62bbe09b41853682580ab508c548ba489c613f"
+        "path": "apps/admin/dist/assets/index-DHg5FXwW.css",
+        "sha256": "2a8086016890b52d2c9e03a9a29e1a1605512f6d7b1a932bbba92941755fbee1"
       },
       {
-        "path": "apps/admin/dist/assets/index-D85DKeux.js",
-        "sha256": "59cf22c9d1592fc0b9c6633cc0aa25736862e6109f52c7d5f1023ed895c1299c"
+        "path": "apps/admin/dist/assets/index-DZWpvSmx.js",
+        "sha256": "76305160597b43b3b4fbe828cb062eea8c3a81e4f9ccad66bb6054d90c89269c"
       },
       {
         "path": "apps/admin/dist/index.html",
-        "sha256": "02fbb637d8423f1a75a320b7ecf75bde5f3f86cc471aa7b37a6639e17078b19d"
+        "sha256": "0797c6f85c9e82a6ff8326421eb02fa62df45596045fedb3a2097e793a84f726"
       },
       {
         "path": "apps/server/dist/app.js",
-        "sha256": "076d64f7272c4ca6ae914c1a5e3ecc0adbac12bc5c7d697d12595e3003ee6bff"
+        "sha256": "0aec7ea1daa8546a85269c9e7012eb868a53a3c33efb6ea2af331ae3302b2749"
       },
       {
         "path": "apps/server/dist/auth.js",
@@ -663,7 +683,7 @@
       },
       {
         "path": "apps/server/dist/lobby.js",
-        "sha256": "52a348d73f00b06ad51c5d08f688a11e43fd58d66d967e0937c5b6318b81c16d"
+        "sha256": "d0fe89afc520a9771e3203e416e5c41da04ba6ff52412da98a7e74b21322d537"
       },
       {
         "path": "apps/server/dist/local-backups.js",
@@ -687,7 +707,7 @@
       },
       {
         "path": "apps/server/dist/migrate.js",
-        "sha256": "2530b87749aa5c16dcd37c5afff21842b194b302532eef84f8a23c46e513fed1"
+        "sha256": "1dcdd911563933cd25db7f5f7757a7434f02b43680e7e4e5b001bafa2b335565"
       },
       {
         "path": "apps/server/dist/money.js",
@@ -695,7 +715,7 @@
       },
       {
         "path": "apps/server/dist/original-wire.js",
-        "sha256": "b64c6c87ac65dfa6af97f842c53a6a753a3c8122653d67f9522a28940ec7217a"
+        "sha256": "1bd6158ce654b39e359f6543dc40ab01eb10214c5157e5cfbc3278089b4e9639"
       },
       {
         "path": "apps/server/dist/policies.js",
@@ -727,7 +747,7 @@
       },
       {
         "path": "apps/server/dist/rooms.js",
-        "sha256": "6d0ccf12694e347fb21654a5a469bf8d58ac45abbcf9e3e0b3bf3baaacc00882"
+        "sha256": "c9e1f65bd2e10643a3636d20171db4d0bdd18554a18e7dc9cbd136ae0d29fec1"
       },
       {
         "path": "apps/server/dist/round-context.js",
@@ -736,6 +756,18 @@
       {
         "path": "apps/server/dist/runtime-engines.js",
         "sha256": "b5278a1d312f69f77408db49f64e7a647ebf1dab00cb1a1be0d74f9bd3f4cdb5"
+      },
+      {
+        "path": "apps/server/dist/settings.js",
+        "sha256": "f329ebcead9aebec3661ce47e14922f1407c609acb640bc51e18e99ea44c4dcd"
+      },
+      {
+        "path": "apps/server/dist/social.js",
+        "sha256": "046d9ba13448c05c15319934f183a845705a3bb8c89bbaa752ff3189c87c1dca"
+      },
+      {
+        "path": "apps/server/dist/stats.js",
+        "sha256": "1a61c9f434a91431af9965e03a139c2f1a3608ebe8f7e22cc914e72b6abe50cf"
       },
       {
         "path": "apps/server/dist/transfers.js",
@@ -787,11 +819,11 @@
       },
       {
         "path": "packages/rules/dist/edition.d.ts",
-        "sha256": "8d5a0fc5f358a42ec6c4e25b89c4562381b409d86cc0ae02559dfc27f6fbc8b7"
+        "sha256": "1d8b55cd67620c65b1f1661bfdbbe511d91eecd24d143414009c935a9cb80ddb"
       },
       {
         "path": "packages/rules/dist/edition.js",
-        "sha256": "31df23738e547e6faf4ecbedee949eef557720a62b763e8c7c62bb5b5e2ea54d"
+        "sha256": "a38c5927aee7c9c5dc043c3ef9ef09affccf07aa6b58ce2875ba0ee38d431ee6"
       },
       {
         "path": "packages/rules/dist/index.d.ts",

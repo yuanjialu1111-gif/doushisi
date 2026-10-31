@@ -1,9 +1,10 @@
-# 当前任务（2026-10-31 第二轮：计划已确认，连续开发中）
+# 当前任务（2026-10-31 第二轮：M0–M7 已全部做完，等用户验收）
 
 - **任务**：去掉地区只留新津斗十四、大厅桌 A2 样式、好友（找朋友 / 申请 / 私聊 / 邀请入座）、「好友约局」改「进入大厅」、设置弹框位置、个人资料（真实数据 + 勋章）、新加 8 个互动表情。
-- **状态**：用户授权「架构做好直接开始干，回来后希望全面完成」——M0–M7 连续做，不逐个停。已在本机提交：M0 38d223d、M1 60728eb、M2 4f0ceed、M3 dff2030、M4 7ae79de（私聊与邀请）、M5（个人资料：`apps/server/src/stats.ts` 战绩和勋章、`GET /api/me/profile-stats`、原协议个人信息回包带真实对局数/胜局/胜率；资料页头像框一栏换成原版「成就墙」+ 6 枚原版勋章，圆圈里摆最高一枚；4:3 屏整体缩放放得下关闭键）。没有推送、没有部署。
-- **下一步**：M6 互动表情 13–20（`tools/extra-art.mjs` 画 8 张 → PNG；服务端编号放宽到 2–20，只转发给声明支持的连接；面板接在原 12 个后面 + cc.tween 飞行动画），然后 M7 全量检查 + 验收清单 + 交付汇报（附 8 张表情图）。
-- **注意**：改 standalone.js 后跑 `node tools/android-native-adapter.mjs` 和 `node tools/client-adapter-test.mjs`（18 项）；新函数先 grep 有没有重名（M4 踩过 roomCode 重名）；PGlite 只有一个连接，事务里调别的服务要把 tx 传进去（M5 `settings.get(tx)` 踩过卡死）。本机自检脚本在会话草稿目录 `scratchpad/qa/`（m4lib.mjs 能按文字找节点用真鼠标点）。
+- **状态**：M0–M7 都已在本机提交（main）：M0 38d223d、M1 60728eb、M2 4f0ceed、M3 dff2030、M4 7ae79de、M5 c19378e、M6 e64a878（互动表情 13–20：`tools/extra-art.mjs` 画图，`client/public/extra/emotes/`；服务端只转发给登录时声明 `extra-emotes-v1` 的连接；牌桌上看别人资料的对局数/胜局/胜率改成真实值），M7 收尾提交。全量测试、typecheck、build、红线扫描、安卓离线自测 301 项、接入层测试 18 项都通过。**没有推送、没有部署。**
+- **下一步**：等用户验收、回复待确认 16–19 条（`docs/plan/待确认.md`）；要上测试服时由用户运行 `bash tools/release-test-server.sh`。
+- **关键文件**：`docs/plan/验收清单.md`（第二轮一节：S1–S7 每条 AC 的证据）、`docs/plan/斗十四第二轮-开发计划.md`、`docs/plan/待确认.md`。
+- **注意**：改 standalone.js 后跑 `node tools/android-native-adapter.mjs` 和 `node tools/client-adapter-test.mjs`（18 项）；新函数先 grep 有没有重名；PGlite 只有一个连接，事务里调别的服务要把 tx 传进去；加迁移要同步改 `apps/server/test/database.test.ts` 的版本列表（M3 漏过，M7 补上）。
 
 # 上一轮任务（2026-10-30）
 
