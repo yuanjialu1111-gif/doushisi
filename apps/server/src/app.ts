@@ -134,7 +134,12 @@ export async function createApp(db: Database, options: {
     const user = await actor(request, 'player');
     return profiles.update(user, z.object({ nickname: z.string().max(40).optional(), sex: z.number().int().optional() }).strict().parse(request.body));
   });
-  app.post('/api/me/avatar', { bodyLimit: MAX_AVATAR_UPLOAD, config: { rateLimit: { max: 20, timeWindow: '10 minutes' } } }, async request => {
+  // 公网网关会去掉来源地址，服务端看到的都是 127.0.0.1，所以头像上传按账号限次；
+  // 没登录或令牌无效的请求合用一个按地址的额度，换假令牌也绕不过去（DEC-20261030-头像限次按账号）。
+  const perAccount = async (request: { headers: { authorization?: string }; ip: string }) => {
+    try { return `account:${(await actor(request)).id}`; } catch { return `ip:${request.ip}`; }
+  };
+  app.post('/api/me/avatar', { bodyLimit: MAX_AVATAR_UPLOAD, config: { rateLimit: { max: 20, timeWindow: '10 minutes', keyGenerator: perAccount } } }, async request => {
     const user = await actor(request, 'player');
     requireCondition(Buffer.isBuffer(request.body), 'AVATAR_NOT_IMAGE', '只支持 JPG、PNG、WebP 图片。', 415);
     return profiles.setAvatar(user, request.body);

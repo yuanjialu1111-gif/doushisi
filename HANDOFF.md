@@ -6,7 +6,7 @@
   1. 用户运行发布脚本。
   2. 用 `--api-base https://108.186.180.130` 打 APK。
   3. 用 `--apk` 换下载包，真机测。
-  - 待确认第 4 条（头像上传限次全体共用）建议在发布前改。
+  - 待确认第 4 条已按 B 改完（头像上传按账号限次），会随这次发布一起上线。
 - **关键文件**：`tools/release-test-server.sh`（用法写在文件头）、`docs/plan/验收清单.md`（AC→证据）、`.planning/2026-10-30-lobby/progress-android.md`（安卓打包命令和约定）。
 - **注意**：改 `client/public/standalone.js` 后要跑 `node tools/android-native-adapter.mjs`，重新生成 `client/public/native/`。
 

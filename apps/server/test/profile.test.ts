@@ -162,6 +162,23 @@ test('R9 AC4: oversize or non-image uploads explain why and keep the previous av
   } finally { await ctx.app.close(); }
 });
 
+test('R9: upload limits count per account, so players behind the public gateway (all 127.0.0.1) do not share one quota', async () => {
+  const ctx = await setup();
+  try {
+    const first = await ctx.player('avatar_limit_first');
+    const second = await ctx.player('avatar_limit_second');
+    // 第一个人用满 10 分钟 20 次（传文本会被拒收，但照样计次），第二个人仍然能传。
+    for (let i = 0; i < 20; i++) assert.equal((await ctx.upload(first.headers, Buffer.from('x'), 'text/plain')).statusCode, 415);
+    assert.equal((await ctx.upload(first.headers, await photo('#cc3333'))).statusCode, 429);
+    assert.equal((await ctx.upload(second.headers, await photo('#33aa66'))).statusCode, 200);
+    // 每次换一个假令牌也绕不过去：没登录的请求合用一个额度。
+    const forged = (n: number) => ({ authorization: `Bearer ${'f'.repeat(40)}${n}` });
+    for (let i = 0; i < 20; i++) assert.equal((await ctx.upload(forged(i), Buffer.from('x'))).statusCode, 401);
+    assert.equal((await ctx.upload(forged(99), Buffer.from('x'))).statusCode, 429);
+    assert.equal((await ctx.upload(second.headers, await photo('#3366cc'))).statusCode, 200);
+  } finally { await ctx.app.close(); }
+});
+
 test('R9 AC2/AC3: admins can reject avatars and nicknames, with an audit trail and a forced redo', async () => {
   const ctx = await setup();
   try {
