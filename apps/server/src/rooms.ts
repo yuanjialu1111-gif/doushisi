@@ -441,6 +441,15 @@ export class RoomService extends EventEmitter {
     return applied;
   }
 
+  /** 原版可胡提示：本人当前在打的这局还差哪几张能胡（E7）；不在局里或玩法不支持就空。 */
+  async originalJiaoTishi(userId: string) {
+    const found = (await this.db.query(`SELECT r.variant_key,r.rule_version,q.snapshot FROM rooms r JOIN room_members m ON m.room_id=r.id
+      JOIN rounds q ON q.room_id=r.id AND q.state='playing' WHERE m.user_id=$1 AND r.state='playing' LIMIT 1`, [userId])).rows[0];
+    if (!found) return [];
+    const engine = this.engines.get(found.variant_key, found.rule_version);
+    return engine.original?.jiaoTishi?.(found.snapshot, userId) ?? [];
+  }
+
   async setAutoPlay(actor: Actor, roomId: string, enabled: boolean, commandId: string) {
     requireRole(actor, 'player');
     requireCondition(typeof enabled === 'boolean', 'INVALID_AUTOPLAY', 'Autoplay must be a boolean.');

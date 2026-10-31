@@ -283,9 +283,9 @@ export async function registerOriginalProtocol(app: FastifyInstance, services: O
     }
   }
 
-  interface RoomProjection { code: number; state: string; members: Record<string, any>[]; dissolve: DissolveState | null; cursor: NonNullable<OriginalExtension['roomState']>; sequence: number }
+  interface RoomProjection { code: number; state: string; members: Record<string, any>[]; dissolve: DissolveState | null; cursor: NonNullable<OriginalExtension['roomState']>; sequence: number; completed: boolean }
   async function roomProjection(roomId: string): Promise<RoomProjection | null> {
-    const room = (await db.query("SELECT r.code,r.state,q.id AS round_id,q.state_version,(SELECT COALESCE(MAX(e.sequence),0)::int FROM game_events e WHERE e.room_id=r.id) AS sequence FROM rooms r LEFT JOIN rounds q ON q.room_id=r.id AND q.state='playing' WHERE r.id=$1", [roomId])).rows[0];
+    const room = (await db.query("SELECT r.code,r.state,r.current_round,r.rounds,q.id AS round_id,q.state_version,(SELECT COALESCE(MAX(e.sequence),0)::int FROM game_events e WHERE e.room_id=r.id) AS sequence,(SELECT l.end_reason FROM rounds l WHERE l.room_id=r.id ORDER BY l.number DESC LIMIT 1) AS last_end FROM rooms r LEFT JOIN rounds q ON q.room_id=r.id AND q.state='playing' WHERE r.id=$1", [roomId])).rows[0];
     if (!room) return null;
     const members = (await db.query(`SELECT m.user_id AS "userId",m.seat,m.ready,m.auto_play AS "autoPlay",
       COALESCE(t.room_bean_delta,0)::text AS score,w.balance::text AS "beanBalance",a.nickname,a.avatar_hash AS "avatarHash",a.avatar_status AS "avatarStatus",a.sex
@@ -296,7 +296,9 @@ export async function registerOriginalProtocol(app: FastifyInstance, services: O
       WHERE m.room_id=$1 ORDER BY m.seat`, [roomId])).rows;
     let dissolve = await rooms.dissolveState(roomId);
     if (dissolve && dissolve.expiresAt <= Date.now()) { await rooms.expireDissolve(roomId); dissolve = null; }
-    return { code: Number(room.code), state: room.state, members, dissolve, sequence: room.sequence,
+    // 打满局数正常收桌：牌桌留着小结算和「查看总结算」，不直接回大厅（第三轮 R5）。
+    const completed = room.state === 'closed' && room.current_round >= room.rounds && room.last_end === 'completed';
+    return { code: Number(room.code), state: room.state, members, dissolve, sequence: room.sequence, completed,
       cursor: room.state === 'closed' ? emptyRoomState() : { roomId, roundId: room.round_id ?? null, stateVersion: room.state_version ?? null } };
   }
   async function dissolveInfo(room: RoomProjection): Promise<Record<string, unknown> | undefined> {
@@ -315,6 +317,19 @@ export async function registerOriginalProtocol(app: FastifyInstance, services: O
       timer.unref(); voteTimers.set(roomId, timer);
     }
   }
+  /** 引擎只知道账号 id；结算窗要昵称、原版数字 uid，总结算的 score 是这桌累计（changeScore 仍是这局输赢）。 */
+  async function gameOverForWire(packet: Record<string, any>, room: RoomProjection): Promise<Record<string, any>> {
+    const body = structuredClone(packet.body ?? {});
+    const decimalFields: DecimalField[] = (packet.decimalFields ?? []).map((field: DecimalField) => ({ ...field, path: [...field.path] }));
+    for (const [index, info] of (body.userScoreInfo ?? []).entries()) {
+      const member = room.members.find(item => item.userId === info.uid);
+      info.nick = member?.nickname ?? '';
+      info.uid = Number(await numericUid(info.uid));
+      const total = decimalFields.find(field => field.path.join('.') === `hwNotifyGameOver.userScoreInfo.${index}.score`);
+      if (total && member) { total.value = member.score; info.score = member.score; }
+    }
+    return { ...packet, body, decimalFields };
+  }
   async function syncRoom(roomId: string): Promise<void> {
     if (shuttingDown) return;
     const watchers = roomConnections(roomId);
@@ -332,7 +347,8 @@ export async function registerOriginalProtocol(app: FastifyInstance, services: O
           requireCondition(Object.entries(MSGEvent).some(([name, command]) => command === packet.command && (name.startsWith('HWNotify') || name.startsWith('HWNottify'))),
             'INVALID_ORIGINAL_PROJECTION', 'An engine notification must use an original server notification command.', 500);
           peer.roomState = payload.originalRoomState;
-          peer.send(packet.command, packet.body, packet.decimalFields, undefined, undefined, undefined, packet.decisionId);
+          const shown = packet.command === MSGEvent.HWNotifyGameOver ? await gameOverForWire(packet, current) : packet;
+          peer.send(shown.command, shown.body, shown.decimalFields, undefined, undefined, undefined, shown.decisionId);
         }
         peer.sequence = sequence;
       }
@@ -340,7 +356,7 @@ export async function registerOriginalProtocol(app: FastifyInstance, services: O
     projections.set(roomId, current); armVoteTimer(roomId, current.dissolve);
     for (const peer of watchers) peer.roomState = current.members.some(member => member.userId === peer.actor?.id) ? current.cursor : emptyRoomState();
     if (current.state === 'closed') {
-      for (const peer of watchers) { peer.send(MSGEvent.HWNotifyDissolvedTable, { roomId: current.code, result: true, dating: true }); peer.roomId = undefined; }
+      for (const peer of watchers) { peer.send(MSGEvent.HWNotifyDissolvedTable, { roomId: current.code, result: true, dating: !current.completed }); peer.roomId = undefined; }
       projections.delete(roomId); return;
     }
     if (previous?.dissolve && (!current.dissolve || previous.dissolve.expiresAt !== current.dissolve.expiresAt)) {
@@ -569,6 +585,10 @@ export async function registerOriginalProtocol(app: FastifyInstance, services: O
           await refreshCursor();
           connection.send(responseCommands.get(command)!, reply.body, reply.decimalFields, undefined, { commandId: metadata.commandId });
           await queueRoom(metadata.roomId); return;
+        }
+        case MSGEvent.HWRequestJiaoTishi: {
+          const huInfo = await rooms.originalJiaoTishi(actor.id);
+          connection.send(MSGEvent.HWResponseJiaoTishi, { status: huInfo.length ? 1 : 0, huInfo }); return;
         }
         case MSGEvent.HWRequestAuto:
         case MSGEvent.HWRequestCancelAuto: {

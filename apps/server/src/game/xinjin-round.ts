@@ -19,7 +19,9 @@ type Move = { type: 'begin' | 'draw' | 'hu' } | { type: 'discard' | 'declare'; c
   | { type: 'tou' | 'gang' | 'peng' | 'chi'; cardIds: string[] } | { type: 'ba'; cardId: string; meldIndex: number };
 export type XinjinAction = (Move | { type: 'respond'; choiceId: string | null }) & { decisionId: string };
 interface Outcome { reason: 'hu' | 'draw'; winners: { userId: string; win: Win }[];
-  payments: ReturnType<typeof roundTransfers>; nextRoundContext: RoundContext }
+  payments: ReturnType<typeof roundTransfers>; nextRoundContext: RoundContext;
+  /** 胡的那张和来源（小结算标胡牌、分点炮还是自摸），发布前的老局没有。 */
+  sourceCardId?: string | null; sourceKind?: Source['kind'] | null; sourceUserId?: string | null }
 export interface XinjinRound {
   version: typeof XINJIN_INDEPENDENT_VERSION; number: number; rules: Record<string, unknown>;
   players: Player[]; cards: CardState; dealerId: string; dealerRun: number; activeId: string;
@@ -75,25 +77,32 @@ function winning(state: XinjinRound, id: string, source: Source, external: boole
   const result = evaluateXinjinWin(current, { ...facts(state, id, source), baoJiao: declared !== null }, state.rules);
   return result.status === 'winning' ? result : null;
 }
-function declarationFaces(state: XinjinRound, id: string, discardId: string, bonusIds: readonly string[] = ids(state, bonusZone(id))): number[] | null {
+/** 少一张的手（打出 discardId 之后，或已经打完）还差哪几张能胡：牌面、番数、自己看不到的还剩几张。 */
+function waitDetails(state: XinjinRound, id: string, discardId: string | null, bonusIds: readonly string[] = ids(state, bonusZone(id))) {
   const current = hand(state, id);
-  if (current.concealed.length !== fullSize(state, id) || !current.concealed.some(card => card.id === discardId)) return null;
-  current.concealed = current.concealed.filter(card => card.id !== discardId);
+  if (discardId !== null) {
+    if (current.concealed.length !== fullSize(state, id) || !current.concealed.some(card => card.id === discardId)) return null;
+    current.concealed = current.concealed.filter(card => card.id !== discardId);
+  } else if (current.concealed.length !== fullSize(state, id) - 1) return null;
   current.bonus = bonusIds.map(cardId => physical(state, cardId));
   const known = [...current.concealed, ...current.melds.flatMap(meld => meld.cards), ...current.bonus];
   const nextId = cycle(state, id)[0]!;
-  const waits: number[] = [];
+  const waits: { code: number; fan: number; left: number }[] = [];
   for (const entry of xinjinPackSpecification(state.rules.wangNum as number)) {
-    if (isSpecial(entry.code) || known.filter(card => card.code === entry.code).length >= entry.count) continue;
+    const held = known.filter(card => card.code === entry.code).length;
+    if (isSpecial(entry.code) || held >= entry.count || waits.some(wait => wait.code === entry.code)) continue;
     let cardId = 'xj-wait-' + entry.code;
     while (known.some(card => card.id === cardId)) cardId += '_';
     const result = evaluateXinjinWin({ ...current, concealed: [...current.concealed, { id: cardId, code: entry.code }] },
       { winnerSeat: player(state, id).seat, dealerSeat: player(state, state.dealerId).seat, source: 'flip',
         sourceSeat: player(state, nextId).seat, incomingCardId: cardId, discardCount: Number(state.rules.__discards ?? 0) },
       { ...state.rules, __baoJiao: false });
-    if (result.status === 'winning') waits.push(entry.code);
+    if (result.status === 'winning') waits.push({ code: entry.code, fan: result.cappedFan, left: entry.count - held });
   }
-  return waits.length ? [...new Set(waits)] : null;
+  return waits.length ? waits : null;
+}
+function declarationFaces(state: XinjinRound, id: string, discardId: string, bonusIds: readonly string[] = ids(state, bonusZone(id))): number[] | null {
+  return waitDetails(state, id, discardId, bonusIds)?.map(wait => wait.code) ?? null;
 }
 function stage(state: XinjinRound, phase: XinjinRound['phase'], activeId: string, source: Source | null = null) {
   state.phase = phase; state.activeId = activeId; state.source = source; state.claims = null; state.serial++;
@@ -124,7 +133,9 @@ function paymentsFor(state: XinjinRound, winners: Outcome['winners']) {
 function finish(state: XinjinRound, reason: Outcome['reason'], winners: Outcome['winners'], events: XinjinEvent[]) {
   const payments = winners.length ? paymentsFor(state, winners) : roundTransfers([], state.players.map(item => item.userId));
   const dealerId = reason === 'hu' ? winners[0]!.userId : state.dealerId;
-  state.outcome = { reason, winners, payments, nextRoundContext: continuation(state, dealerId) };
+  state.outcome = { reason, winners, payments, nextRoundContext: continuation(state, dealerId),
+    sourceCardId: reason === 'hu' ? state.source?.cardId ?? null : null, sourceKind: reason === 'hu' ? state.source?.kind ?? null : null,
+    sourceUserId: reason === 'hu' ? state.source?.userId ?? null : null };
   stage(state, 'finished', state.activeId);
   events.push({ type: 'round-ended', reason, winnerIds: reason === 'hu' ? winners.map(winner => winner.userId) : [],
     postings: payments.postings });
@@ -393,7 +404,7 @@ export function xinjinTimedAction(state: XinjinRound, id: string) {
     : actions.find(action => action.type === 'begin' || action.type === 'draw') ??
       (v2 ? autoDiscard(state, id, actions) : undefined) ?? actions.find(action => action.type === 'discard');
   // v2 每步 15 秒（E8）；v1 老桌照旧。
-  return { userId: id, decisionId: decision(state), delayMs: v2 || state.phase === 'response' ? 15000 : 30000, action: hu ?? fallback! };
+  return { userId: id, decisionId: decision(state), delayMs: xinjinTurnSeconds(state) * 1000, action: hu ?? fallback! };
 }
 /** 托管打牌：先打凑不成 14、也没有同点的牌，同等情况下先打红点少的。 */
 function autoDiscard(state: XinjinRound, id: string, actions: XinjinAction[]) {
@@ -406,4 +417,44 @@ function autoDiscard(state: XinjinRound, id: string, actions: XinjinAction[]) {
   };
   return actions.filter(action => action.type === 'discard')
     .sort((a, b) => score((a as { cardId: string }).cardId) - score((b as { cardId: string }).cardId))[0];
+}
+
+/** 原版番型编号（ENCardType）：全红 6、全黑 7、天胡 2、地胡 3、报叫 11。 */
+const CARD_TYPES: Partial<Record<string, number>> = { quanHong: 6, quanHei: 7, tianHu: 2, diHu: 3, baoJiao: 11 };
+/** 手里加摆出的牌的红点、黑点（J/Q/K 各 1 点，鬼不算），牌桌底部和小结算显示（E3）。 */
+export function xinjinPoints(state: XinjinRound, id: string) {
+  const current = hand(state, id);
+  const ordinary = [...current.concealed, ...current.melds.flatMap(meld => meld.cards)].filter(card => !isSpecial(card.code));
+  const isRed = (code: number) => [1, 3].includes(Math.floor(code / 100));
+  const sum = (list: typeof ordinary) => list.reduce((total, card) => total + (ordinaryRank(card.code) >= 11 ? 1 : ordinaryRank(card.code)), 0);
+  return { red: sum(ordinary.filter(card => isRed(card.code))), black: sum(ordinary.filter(card => !isRed(card.code))) };
+}
+/** 小结算每家的番型和红黑点；没胡的人也算出红黑点给大家看。 */
+export function xinjinSettlementBrand(state: XinjinRound, id: string) {
+  const winner = state.outcome?.winners.find(item => item.userId === id);
+  if (!winner) { const points = xinjinPoints(state, id); return { cardType: [], fanNum: 0, pointNum: points.red, blackPoint: points.black }; }
+  return { cardType: winner.win.items.flatMap(item => CARD_TYPES[item.pattern] ? [CARD_TYPES[item.pattern]!] : []),
+    fanNum: winner.win.cappedFan, pointNum: winner.win.redPoints, blackPoint: winner.win.blackPoints };
+}
+
+/** 原版可胡提示（E7）：出牌时每张能打的牌打出去后胡哪几张、各几番、还剩几张；chuCard 为 0 表示当前这手（报叫后）。 */
+export function xinjinJiaoTishi(state: XinjinRound, id: string) {
+  const huInfo = (waits: ReturnType<typeof waitDetails>) => (waits ?? []).map(wait => ({ huCard: wait.code, num: wait.left, fanNum: wait.fan }));
+  if (state.phase === 'finished' || !state.players.some(item => item.userId === id)) return [];
+  if (!xinjinLegalActions(state, id).some(action => action.type === 'discard' || action.type === 'declare')) {
+    const waits = waitDetails(state, id, null);
+    return waits ? [{ chuCard: 0, huInfo: huInfo(waits) }] : [];
+  }
+  const tips: { chuCard: number; huInfo: { huCard: number; num: number; fanNum: number }[] }[] = [];
+  for (const card of cards(state, handZone(id))) {
+    if (tips.some(tip => tip.chuCard === card.code)) continue;
+    const waits = waitDetails(state, id, card.id);
+    if (waits) tips.push({ chuCard: card.code, huInfo: huInfo(waits) });
+  }
+  return tips;
+}
+
+/** 出牌、要牌的时限：v2 一律 15 秒；老桌出牌 30 秒、要牌 15 秒。 */
+export function xinjinTurnSeconds(state: XinjinRound) {
+  return isXinjinV2(state.rules) || state.phase === 'response' ? 15 : 30;
 }

@@ -5,7 +5,7 @@ import { requireCondition } from '../errors.js';
 import { selectDeal, type FrozenPolicy } from '../policies.js';
 import { createRoundOriginalAdapter } from './round-original.js';
 import { createXinjinCardState } from './xinjin-pack.js';
-import { applyXinjinAction, assertXinjinOptionsSupported, createXinjinRound, viewXinjinRound, xinjinLegalActions,
+import { applyXinjinAction, assertXinjinOptionsSupported, createXinjinRound, viewXinjinRound, xinjinLegalActions, xinjinJiaoTishi, xinjinTurnSeconds, xinjinPoints, xinjinSettlementBrand,
   xinjinTimedAction, type XinjinAction, type XinjinEvent, type XinjinRound } from './xinjin-round.js';
 
 export const XINJIN_ENGINE_VERSION = XINJIN_INDEPENDENT_VERSION;
@@ -111,5 +111,9 @@ export function createXinjinEngine(referenceDigest: string, random: (max: number
       label: 'Xinjin',
       decisionPrefix: 'xj',
       legalActions: (snapshot, userId) => xinjinLegalActions(core(snapshot), userId),
+      settlement: (snapshot, userId) => xinjinSettlementBrand(core(snapshot), userId),
+      points: (snapshot, userId) => xinjinPoints(core(snapshot), userId),
+      jiaoTishi: (snapshot, userId) => xinjinJiaoTishi(core(snapshot), userId),
+      turnSeconds: snapshot => xinjinTurnSeconds(core(snapshot)),
     }) };
 }

@@ -61,6 +61,8 @@ export interface EngineOriginalAdapter {
   enter(snapshot: unknown, userId: string): EngineOriginalBody;
   /** Original animation flow first, then candidate operations. Never include another player's hidden cards. */
   notifications(snapshot: unknown, events: readonly unknown[], userId: string, phase: 'start' | 'action'): EngineOriginalPacket[];
+  /** 原版可胡提示（HWRequestJiaoTishi）：当前这手还差哪几张能胡；没有就空。 */
+  jiaoTishi?(snapshot: unknown, userId: string): { huCard: number; num: number; fanNum: number }[];
 }
 export interface OriginalActionContext { command: 23 | 53; body: Record<string, unknown>; decisionId?: string }
 

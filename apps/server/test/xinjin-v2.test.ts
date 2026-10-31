@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import { freezeXinjinOptions, getDefaultOptions, XINJIN_INDEPENDENT_VERSION, XINJIN_V2_OPTIONS } from '@dss/rules';
 import { evaluateXinjinWin, type XinjinHand, type XinjinWinContext } from '../src/game/xinjin-win.js';
 import type { EngineResult, RoundInput } from '../src/engines.js';
+import { createXinjinEngine } from '../src/game/xinjin-engine.js';
+import { MSGEvent } from '@dss/protocol';
 import { assertCardState } from '../src/game/cards.js';
 import { createXinjinCardState, xinjinPackSpecification } from '../src/game/xinjin-pack.js';
 import { applyXinjinAction, assertXinjinRound, createXinjinRound, viewXinjinRound, xinjinLegalActions,
@@ -140,6 +142,18 @@ test('v2 一张牌只让下家胡，点炮放牌人包三家，托管先打不�
   assert.equal(next.outcome!.winners[0]!.win.scoreUnits, '8');
   const postings = Object.fromEntries(next.outcome!.payments.postings.map(posting => [posting.userId, Number(posting.amount)]));
   assert.deepEqual(postings, { a: -2400, b: 2400, c: 0, d: 0 });
+  // 原版小结算：先播胡，再弹每家手牌、胡的那张、番型（接地 3）、番数和红点。
+  const adapter = createXinjinEngine('v2-settle', () => 0).original!;
+  const packets = adapter.notifications({ ...next, deal: {} }, [{ type: 'round-ended' }], 'c', 'action');
+  assert.deepEqual(packets.map(packet => packet.command), [MSGEvent.HWNotifyActionFlow, MSGEvent.HWNotifyGameOver]);
+  assert.equal((packets[0]!.body as any).action.seatIndex, 2);
+  const over = packets[1]!.body as any;
+  assert.equal(over.round, 1); assert.equal(over.allRound, 4); assert.equal(over.isHuang, false);
+  const winner = over.smallResult.userBrand.find((brand: any) => brand.seatIndex === 2);
+  assert.equal(winner.huCard, 310); assert.equal(winner.tilesOnHand.length, 8); assert.ok(winner.tilesOnHand.includes(310));
+  assert.deepEqual(winner.cardType, [3]); assert.equal(winner.fanNum, 3); assert.equal(winner.pointNum, 30);
+  const loser = over.smallResult.userBrand.find((brand: any) => brand.seatIndex === 3);
+  assert.equal(loser.huCard, 0); assert.equal(loser.fanNum, 0); assert.equal(loser.pointNum, 17);
 });
 
 test('v2 偷出三张后摸到第四张可以巴杠', () => {

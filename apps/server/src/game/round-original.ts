@@ -17,7 +17,9 @@ interface RoundState {
   players: RoundPlayer[];
   cards: { pack: { id: string; code: number }[]; zones: { id: string; cards: string[] }[] };
   claims: { id: string; offers: { id: string; userId: string; action: unknown }[] } | null;
-  outcome?: { reason: string; payments: { postings: { userId: string; amount: string }[] } } | null;
+  outcome?: { reason: string; payments: { postings: { userId: string; amount: string }[] };
+    winners?: { userId: string }[]; sourceCardId?: string | null } | null;
+  rules?: Record<string, unknown>;
   startEvents?: unknown[];
 }
 type Move = Record<string, unknown> & { type: string; cardId?: string; cardIds?: string[]; value?: number; decisionId?: string };
@@ -25,11 +27,20 @@ interface Decoded {
   type: 'original'; actType: number; colType: number; destCard: number; cards: number[]; decisionId?: string;
 }
 
+/** 原版小结算（dss_settle_UI）里每家的番型、番数和红黑点；只有提供它的玩法才弹小结算。 */
+export interface RoundBrand { cardType: number[]; fanNum: number; pointNum: number; blackPoint: number }
 export interface RoundAdapterOptions {
   label: string;
   decisionPrefix: string;
   legalActions(state: unknown, userId: string): Move[];
   supportsPiao?: boolean;
+  settlement?(state: unknown, userId: string): RoundBrand;
+  /** 当前手牌的红点、黑点；只发给本人，别人的手牌红点不外露。 */
+  points?(state: unknown, userId: string): { red: number; black: number };
+  /** 每张能打的牌打出去后能胡哪些（chuCard 0 是当前这手），出牌选项带上，原版亮可胡提示（E7）。 */
+  jiaoTishi?(state: unknown, userId: string): { chuCard: number; huInfo: { huCard: number; num: number; fanNum: number }[] }[];
+  /** 牌桌上倒计时显示的秒数（原版读 autoIntoSecond，0 就显示 0），和托管超时一致（E8）。 */
+  turnSeconds?(state: unknown): number;
 }
 
 export function createRoundOriginalAdapter(options: RoundAdapterOptions): EngineOriginalAdapter {
@@ -43,6 +54,12 @@ export function createRoundOriginalAdapter(options: RoundAdapterOptions): Engine
   const seatOf = (s: RoundState, userId: string) => s.players.find(player => player.userId === userId)!.seat;
   const codeFor = (s: RoundState, id: string) => physical(s, id).code;
   const decisionFor = (s: RoundState) => `${options.decisionPrefix}:${s.number}:${s.serial}`;
+  /** 原版客户端从动作、发牌、进桌里读红点、黑点更新底部显示（发牌消息里红点叫 pointNum）；不是本人就给 0。 */
+  const pointsFor = (s: RoundState, actorId: string, viewerId: string) => {
+    if (!options.points || actorId !== viewerId) return { redPoint: 0, blackPoint: 0 };
+    const points = options.points(s, viewerId);
+    return { redPoint: points.red, blackPoint: points.black };
+  };
 
   function column(s: RoundState, userId: string, action: Move) {
     if (action.type === 'discard' || action.type === 'declare') return {
@@ -106,7 +123,36 @@ export function createRoundOriginalAdapter(options: RoundAdapterOptions): Engine
       const col = column(s, userId, action);
       if (col) result.push(col);
     }
+    // 原版每个出牌选项都会重置提示表，所以每个都带完整的一份。
+    const tips = options.jiaoTishi ? options.jiaoTishi(s, userId).filter(tip => tip.chuCard !== 0) : [];
+    if (tips.length) for (const item of result) if (item.actType === ACT.discard) item.jiaoTishi = tips;
     return result;
+  }
+
+  function meldColumns(s: RoundState, player: RoundPlayer) {
+    return player.melds.map((meld, index) => ({
+      id: player.seat * 10 + index + 1, seatIndex: player.seat,
+      actType: meld.kind === 'gang' || meld.kind === 'ba' ? ACT.gang : meld.kind === 'peng' ? ACT.peng : meld.kind === 'tou' ? ACT.tou : ACT.chi,
+      colType: meld.kind === 'ba' ? COL.gangBa : meld.kind === 'gang' ? COL.gangMing : meld.kind === 'peng' ? COL.peng : meld.kind === 'tou' ? COL.tou : COL.chi,
+      cards: meld.cardIds.map(id => codeFor(s, id)),
+    }));
+  }
+
+  /** 每局小结算：手牌（赢家带胡的那张）、摆出的牌、鬼、番型、番数、红黑点（E2）。昵称由连接层按房间成员补上。 */
+  function smallResult(s: RoundState) {
+    const outcome = s.outcome!;
+    const winners = new Set((outcome.winners ?? []).map(winner => winner.userId));
+    const huCard = outcome.sourceCardId ? codeFor(s, outcome.sourceCardId) : 0;
+    return { resetCard: [], resetCardNum: 0, huType: 0, userBrand: outcome.payments.postings.map(posting => {
+      const player = s.players.find(item => item.userId === posting.userId)!;
+      const hand = ids(s, `hand:${player.userId}`).map(id => codeFor(s, id));
+      const won = winners.has(player.userId);
+      const brand = options.settlement!(s, player.userId);
+      return { seatIndex: player.seat, tilesOnHand: won && huCard ? [...hand, huCard] : hand, chuList: [],
+        protectCards: ids(s, `bonus:${player.userId}`).map(id => codeFor(s, id)), baijiaoCard: [], huCard: won ? huCard : 0,
+        colInfo: meldColumns(s, player), destIndex: 0, cardType: brand.cardType, fanNum: brand.fanNum, huOrder: won ? 1 : 0,
+        pointNum: brand.pointNum, baoTing: false, blackPoint: brand.blackPoint, scoreInfo: [], chaoGuoFanNum: 0 };
+    }) };
   }
 
   function gameOver(s: RoundState): EngineOriginalBody {
@@ -115,7 +161,9 @@ export function createRoundOriginalAdapter(options: RoundAdapterOptions): Engine
       userScoreInfo: outcome.payments.postings.map(posting => ({
         uid: posting.userId, nick: posting.userId, seatIndex: seatOf(s, posting.userId),
         score: posting.amount, changeScore: posting.amount,
-      })), smallResult: null, bigResult: [] },
+      })), smallResult: options.settlement ? smallResult(s) : null, bigResult: [],
+      ...(options.settlement ? { isHuang: outcome.reason !== 'hu', round: s.number, allRound: Number(s.rules?.gameNum ?? 0),
+        dealerSeat: seatOf(s, s.dealerId), xiaoSeat: 0 } : {}) },
     decimalFields: outcome.payments.postings.flatMap((posting, index) => [
       { path: ['hwNotifyGameOver', 'userScoreInfo', index, 'score'], value: posting.amount },
       { path: ['hwNotifyGameOver', 'userScoreInfo', index, 'changeScore'], value: posting.amount },
@@ -142,7 +190,7 @@ export function createRoundOriginalAdapter(options: RoundAdapterOptions): Engine
             cards: meld.cardIds.map(id => codeFor(s, id)),
           })),
           protectCards: ids(s, `bonus:${player.userId}`).map(id => codeFor(s, id)),
-          redPoint: 0, blackPoint: 0, auto: false, isPiao: player.piao === 1,
+          ...pointsFor(s, player.userId, userId), auto: false, isPiao: player.piao === 1,
         })),
         cardInfo: [],
       } } };
@@ -179,21 +227,43 @@ export function createRoundOriginalAdapter(options: RoundAdapterOptions): Engine
       return match;
     },
     response() { return { body: { result: 1 } }; },
+    ...(options.jiaoTishi ? { jiaoTishi: (snapshot: unknown, userId: string) =>
+      options.jiaoTishi!(state(snapshot), userId).find(tip => tip.chuCard === 0)?.huInfo ?? [] } : {}),
     enter(snapshot, userId) { return enterBody(snapshot, userId); },
     notifications(snapshot, events, userId, phase): EngineOriginalPacket[] {
       const s = state(snapshot);
       if (phase === 'start') return [{ command: MSGEvent.HWNotifyGameStart,
         body: (enterBody(snapshot, userId).body as { gameStart: Record<string, unknown> }).gameStart }];
       const packets: EngineOriginalPacket[] = [];
-      const visible = events.length ? events : s.startEvents ?? [];
-      for (const raw of visible as { type: string; [key: string]: unknown }[]) {
-        if (raw.type === 'round-ended') { packets.push({ command: MSGEvent.HWNotifyGameOver, ...gameOver(s) }); continue; }
+      const visible = (events.length ? events : s.startEvents ?? []) as { type: string; [key: string]: unknown }[];
+      // 某一刻的鬼牌区：最终的鬼减去本批之后才摸到的鬼。
+      const protectAt = (playerId: string, index: number) => {
+        const codes = ids(s, `bonus:${playerId}`).map(id => codeFor(s, id));
+        for (const later of visible.slice(index + 1)) if (later.type === 'bonus' && later.userId === playerId) {
+          const at = codes.indexOf((later.card as { code: number }).code); if (at >= 0) codes.splice(at, 1);
+        }
+        return codes;
+      };
+      for (const [index, raw] of visible.entries()) {
+        if (raw.type === 'round-ended') {
+          // 先播原版「胡」动作，再弹结算（E1）；原版结算窗自己会等 1.5 秒或番型特效播完。
+          if (options.settlement) for (const winner of s.outcome?.winners ?? []) packets.push({ command: MSGEvent.HWNotifyActionFlow, body: { action: {
+            seatIndex: seatOf(s, winner.userId), actType: ACT.hu, destCard: s.outcome?.sourceCardId ? codeFor(s, s.outcome.sourceCardId) : 0,
+            destCardIsOwn: userId === winner.userId, leftCardNum: ids(s, 'deck').length,
+            tilesOnHandNum: ids(s, `hand:${winner.userId}`).length, huNumber: 1,
+            // 原版按胡动作的番型播特效：全红→红胡、全黑→黑胡、天胡、地胡。
+            cardType: options.settlement!(s, winner.userId).cardType } } });
+          packets.push({ command: MSGEvent.HWNotifyGameOver, ...gameOver(s) }); continue;
+        }
         if (raw.type === 'discard') {
           const card = raw.card as { code: number };
+          // 报叫：先播原版报叫（语音、火焰、「报」字），再照常出牌（E6）。
+          if (raw.declared) packets.push({ command: MSGEvent.HWNotifyActionFlow, body: { action: {
+            seatIndex: seatOf(s, String(raw.userId)), actType: ACT.declare, destCard: card.code, destCardIsOwn: userId === raw.userId } } });
           packets.push({ command: MSGEvent.HWNotifyActionFlow, body: { action: {
             seatIndex: seatOf(s, String(raw.userId)), actType: ACT.discard, destCard: card.code,
             destCardIsOwn: userId === raw.userId, leftCardNum: ids(s, 'deck').length,
-            tilesOnHandNum: ids(s, `hand:${raw.userId}`).length - 1,
+            tilesOnHandNum: ids(s, `hand:${raw.userId}`).length - 1, ...pointsFor(s, String(raw.userId), userId),
           } } });
           continue;
         }
@@ -208,7 +278,9 @@ export function createRoundOriginalAdapter(options: RoundAdapterOptions): Engine
             seatIndex: seatOf(s, meld.userId), actType, destCard: codes[0] ?? 0,
             colInfo: [{ seatIndex: seatOf(s, meld.userId), actType, colType, cards: codes,
               destCard: codes[0] ?? 0, destCardIsOwn: userId === meld.userId }],
-            tilesOnHandNum: ids(s, `hand:${meld.userId}`).length,
+            tilesOnHandNum: ids(s, `hand:${meld.userId}`).length, ...pointsFor(s, meld.userId, userId),
+            // 原版偷、杠动作都会用 protectCard 覆盖鬼牌区，要带上已有的鬼。
+            ...(actType === ACT.tou || actType === ACT.gang ? { protectCard: protectAt(meld.userId, index), useCard: [] } : {}),
           } } });
           continue;
         }
@@ -218,17 +290,23 @@ export function createRoundOriginalAdapter(options: RoundAdapterOptions): Engine
             seatIndex: seatOf(s, String(raw.userId)),
             value: Number((raw.card as { code?: number } | undefined)?.code ?? 0),
             isFanPai: raw.type === 'flip', leftCardNum: ids(s, 'deck').length,
-            tilesOnHandNum: ids(s, `hand:${raw.userId}`).length, pointNum: 0, blackPoint: 0, isShangShou: false } });
+            tilesOnHandNum: ids(s, `hand:${raw.userId}`).length, pointNum: pointsFor(s, String(raw.userId), userId).redPoint,
+            blackPoint: pointsFor(s, String(raw.userId), userId).blackPoint, isShangShou: false } });
         }
         if (raw.type === 'bonus') packets.push({ command: MSGEvent.HWNotifyPlayerDealCard, body: {
           seatIndex: seatOf(s, String(raw.userId)), value: (raw.card as { code: number }).code,
           isFanPai: false, leftCardNum: ids(s, 'deck').length,
           tilesOnHandNum: ids(s, `hand:${raw.userId}`).length, isShangShou: false } });
+        // 摸到鬼：原版「偷」动作把它从手里挪到鬼牌区，播偷字横幅和语音（E4）。
+        if (raw.type === 'bonus') packets.push({ command: MSGEvent.HWNotifyActionFlow, body: { action: {
+          seatIndex: seatOf(s, String(raw.userId)), actType: ACT.tou, destCard: (raw.card as { code: number }).code,
+          destCardIsOwn: userId === raw.userId, protectCard: protectAt(String(raw.userId), index),
+          useCard: [(raw.card as { code: number }).code], colInfo: [], leftCardNum: ids(s, 'deck').length } } });
       }
       const own = choices(s, userId);
       if (own.length) packets.push({ command: MSGEvent.HWNotifySeatOperationChoice, body: { choices: own } });
       if (s.phase !== 'finished' && s.activeId !== userId) packets.push({ command: MSGEvent.HWNotifyNextOperation,
-        body: { seatIndex: seatOf(s, s.activeId), leftCardNum: ids(s, 'deck').length, autoIntoSecond: 0 } });
+        body: { seatIndex: seatOf(s, s.activeId), leftCardNum: ids(s, 'deck').length, autoIntoSecond: options.turnSeconds?.(s) ?? 0 } });
       return packets;
     },
   };
