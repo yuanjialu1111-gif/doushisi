@@ -13,3 +13,6 @@ playwright-report/
 .claude/settings.local.json
 *.apk
 *.idsig
+
+# 打包时生成的安卓配置（接口地址等），留在本机给 local-evidence 读
+client/android/native-config.json
