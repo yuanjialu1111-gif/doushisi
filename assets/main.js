@@ -128,7 +128,7 @@ window.boot = function () {
 //   bundled-adapter   -> {"version":n,"sha256":"..."} of assets/standalone-native.js
 //   acceptance        -> acceptance adapter (acceptance builds only) or nothing
 //
-// Start-up: GET <apiBase>/client/native/manifest.json within 3 s
+// Start-up: GET <apiBase>/client/native/manifest.json within 8 s
 //   { "version": n, "sha256": "<64 hex>", "path": "/client/native/standalone-native.js" }
 // When the server copy is newer than the bundled one, use the verified cache under
 // jsb.fileUtils.getWritablePath() or download it (sha256 checked in pure JS, JSB has no
@@ -138,7 +138,8 @@ window.boot = function () {
 window.StandaloneNativeBoot = (function () {
     'use strict';
     var MANIFEST_PATH = '/client/native/manifest.json';
-    var MANIFEST_TIMEOUT_MS = 3000;
+    // 10-31 真机：手机走代理连美西，3 秒内拿不到清单就退回内置版，放宽到 8 秒。
+    var MANIFEST_TIMEOUT_MS = 8000;
     var SCRIPT_TIMEOUT_MS = 6000;
     var SCRIPT_PATH = /^\/client\/native\/[A-Za-z0-9][A-Za-z0-9._-]*\.js$/;
     var SHA256_HEX = /^[0-9a-f]{64}$/;
@@ -330,6 +331,16 @@ window.StandaloneNativeBoot = (function () {
             if (finished) return;
             require('standalone-native.js');
             finish({ kind: 'bundled', version: bundled ? bundled.version : 0, sha256: bundled ? bundled.sha256 : '', reason: reason });
+            report(reason);
+        }
+        // 热更新没成功时，把原因带在一次清单请求上发给服务器（只进访问日志，不等回应），方便查卡在哪一步。
+        function report(reason) {
+            if (!base || base.indexOf('https://') !== 0 || !/^(manifest-|script-|sha256-|hot-)/.test(reason)) return;
+            try {
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET', base + MANIFEST_PATH + '?fallback=' + encodeURIComponent(reason) + '&from=' + (bundled ? bundled.version : 0), true);
+                xhr.send();
+            } catch (_) {}
         }
         function useHot(code, manifest, kind) {
             if (finished) return;

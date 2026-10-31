@@ -4,7 +4,8 @@
 - **状态**：M0–M7 都已在本机提交（main）：M0 38d223d、M1 60728eb、M2 4f0ceed、M3 dff2030、M4 7ae79de、M5 c19378e、M6 e64a878（互动表情 13–20：`tools/extra-art.mjs` 画图，`client/public/extra/emotes/`；服务端只转发给登录时声明 `extra-emotes-v1` 的连接；牌桌上看别人资料的对局数/胜局/胜率改成真实值），M7 收尾提交。全量测试、typecheck、build、红线扫描、安卓离线自测 301 项、接入层测试 18 项都通过。**没有推送、没有部署。**
 - **待确认 16–19（10-31 已处理）**：16 好友申请加固定附言（迁移 013，接入层选择窗，本机浏览器走查过）；17A 不改；18、19 用户定保持现状。
 - **已发布**：10-31 用户运行发布，407883f 上了测试服 108（批次 20261031T132526Z，自检 9 项全过，网关已补 /api/social/）。回滚：`bash tools/release-test-server.sh --rollback 20261031T132526Z`。APK 没换，接入层走热更新。
-- **下一步**：真机验收；热更新能不能让已装的 4.0 拿到第二轮界面，要真机确认，不行就重打 APK。
+- **热更新没生效（10-31 真机）**：手机拿到清单却没下载脚本，推断 3 秒超时太短。`assets/main.js` 改成等 8 秒，失败时带 `?fallback=<原因>&from=<内置版本>` 再请求一次清单（看 nginx 访问日志就知道卡在哪）；自测 324 项过。
+- **下一步**：用户打 APK 4.0 版本号 6（`node tools/android-build.mjs ... --version-code 6`）→ `--apk` 换下载包 → 覆盖安装真机验收。
 - **关键文件**：`docs/plan/验收清单.md`（第二轮一节：S1–S7 每条 AC 的证据）、`docs/plan/斗十四第二轮-开发计划.md`、`docs/plan/待确认.md`。
 - **注意**：改 standalone.js 后跑 `node tools/android-native-adapter.mjs` 和 `node tools/client-adapter-test.mjs`（18 项）；新函数先 grep 有没有重名；PGlite 只有一个连接，事务里调别的服务要把 tx 传进去；加迁移要同步改 `apps/server/test/database.test.ts` 的版本列表（M3 漏过，M7 补上）。
 

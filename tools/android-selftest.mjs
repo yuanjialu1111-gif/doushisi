@@ -217,7 +217,13 @@ function expectBoot(name, result, expected) {
   const { source } = result;
   if (expected.kind) check(`${name}: kind=${expected.kind}`, source.kind === expected.kind, JSON.stringify(source));
   if (expected.reason !== undefined) check(`${name}: reason=${expected.reason || '(none)'}`, source.reason === expected.reason, JSON.stringify(source));
-  if (expected.requests !== undefined) check(`${name}: ${expected.requests} request(s)`, result.requests.length === expected.requests, result.requests.join(' '));
+  // 热更新失败时加载器会多发一条 ?fallback=<原因> 的清单请求（只为进访问日志），不算进加载流程的请求数。
+  const reports = result.requests.filter(url => url.includes('?fallback='));
+  const loads = result.requests.filter(url => !url.includes('?fallback='));
+  if (expected.requests !== undefined) check(`${name}: ${expected.requests} request(s)`, loads.length === expected.requests, result.requests.join(' '));
+  const shouldReport = source.kind === 'bundled' && /^(manifest-|script-|sha256-|hot-)/.test(source.reason || '');
+  check(`${name}: ${shouldReport ? 'reports fallback reason once' : 'no fallback report'}`, shouldReport
+    ? reports.length === 1 && reports[0].includes('?fallback=' + encodeURIComponent(source.reason) + '&from=') : reports.length === 0, reports.join(' '));
   check(`${name}: boot() runs exactly once`, result.bootCalls === 1, String(result.bootCalls));
   check(`${name}: isolateStorage() once`, result.win.__isolated === 1, String(result.win.__isolated));
   const bundledRuns = result.required.filter(name => name === 'standalone-native.js').length;
@@ -250,9 +256,9 @@ await section('2. Hot-update loader (simulated JSB)', () => {
     { name: 'server version not newer', routes: { [MANIFEST_ROUTE]: { status: 200, body: manifestFor(HOT_CODE, 100) } }, expect: { kind: 'bundled', reason: 'server-older', requests: 1 } },
     { name: 'downloaded bytes fail sha256', routes: { [MANIFEST_ROUTE]: okManifest, [SCRIPT_ROUTE]: { status: 200, body: HOT_CODE + ' ' } }, expect: { kind: 'bundled', reason: 'sha256-mismatch', requests: 2 },
       more: r => [['nothing cached', !r.files.has(CACHE_JS)]] },
-    { name: 'manifest late (5 s)', routes: { [MANIFEST_ROUTE]: { ...okManifest, delay: 5000 } }, expect: { kind: 'bundled', reason: 'manifest-timeout', requests: 1 },
-      more: r => [['boots at 3000 ms', r.bootAt === 3000], ['request aborted', r.aborted >= 1]] },
-    { name: 'manifest never answers', routes: { [MANIFEST_ROUTE]: { never: true } }, expect: { kind: 'bundled', reason: 'manifest-timeout', requests: 1 }, more: r => [['boots at 3000 ms', r.bootAt === 3000]] },
+    { name: 'manifest late (9 s)', routes: { [MANIFEST_ROUTE]: { ...okManifest, delay: 9000 } }, expect: { kind: 'bundled', reason: 'manifest-timeout', requests: 1 },
+      more: r => [['boots at 8000 ms', r.bootAt === 8000], ['request aborted', r.aborted >= 1]] },
+    { name: 'manifest never answers', routes: { [MANIFEST_ROUTE]: { never: true } }, expect: { kind: 'bundled', reason: 'manifest-timeout', requests: 1 }, more: r => [['boots at 8000 ms', r.bootAt === 8000]] },
     { name: 'manifest network error', routes: { [MANIFEST_ROUTE]: { error: 'network' } }, expect: { kind: 'bundled', reason: 'manifest-network' } },
     { name: 'manifest 404', routes: {}, expect: { kind: 'bundled', reason: 'manifest-http-404' } },
     { name: 'manifest not JSON', routes: { [MANIFEST_ROUTE]: { status: 200, body: '<html>' } }, expect: { kind: 'bundled', reason: 'manifest-invalid' } },
@@ -266,7 +272,7 @@ await section('2. Hot-update loader (simulated JSB)', () => {
     { name: 'cached script throws', files: { [CACHE_JS]: THROWING_CODE, [CACHE_META]: '{}' }, routes: { [MANIFEST_ROUTE]: { status: 200, body: manifestFor(THROWING_CODE) } }, expect: { kind: 'bundled', reason: 'hot-error', requests: 1 },
       more: r => [['cache dropped', !r.files.has(CACHE_JS) && !r.files.has(CACHE_META)]] },
     { name: 'cache not writable', writeOk: false, routes: { [MANIFEST_ROUTE]: okManifest, [SCRIPT_ROUTE]: hotScript }, expect: { kind: 'hot', requests: 2 }, more: r => [['nothing cached', !r.files.has(CACHE_JS)]] },
-    { name: 'slowest successful start', routes: { [MANIFEST_ROUTE]: { ...okManifest, delay: 2999 }, [SCRIPT_ROUTE]: { ...hotScript, delay: 5999 } }, expect: { kind: 'hot' }, more: r => [['boots at 8998 ms', r.bootAt === 8998]] },
+    { name: 'slowest successful start', routes: { [MANIFEST_ROUTE]: { ...okManifest, delay: 7999 }, [SCRIPT_ROUTE]: { ...hotScript, delay: 5999 } }, expect: { kind: 'hot' }, more: r => [['boots at 13998 ms', r.bootAt === 13998]] },
   ];
   for (const scenario of scenarios) {
     const result = simulateBoot(script, scenario);
