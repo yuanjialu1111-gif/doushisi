@@ -1,6 +1,6 @@
 import { randomInt, randomUUID } from 'node:crypto';
 import { EventEmitter } from 'node:events';
-import { catalogue, supportsNewRoom, freezeQionglaiOptions, freezeYaanOptions, freezeXinjinOptions, freezeAnyueOptions, freezePujiangOptions, freezeAbaOptions, freezeScoreRegionOptions, freezeIndependentApproval, getVariant, validateRoomOptions, getDefaultOptions, getRoomSpec, baseScoreDecimal } from '@dss/rules';
+import { catalogue, supportsNewRoom, freezeQionglaiOptions, freezeYaanOptions, freezeXinjinOptions, XINJIN_V2_OPTIONS, freezeAnyueOptions, freezePujiangOptions, freezeAbaOptions, freezeScoreRegionOptions, freezeIndependentApproval, getVariant, validateRoomOptions, getDefaultOptions, getRoomSpec, baseScoreDecimal } from '@dss/rules';
 import { encodeFrame, expectedBodyField, MSGEvent } from '@dss/protocol';
 import type { Database, Sql } from './database.js';
 import { requireRole, type Actor } from './auth.js';
@@ -51,6 +51,8 @@ export class RoomService extends EventEmitter {
     const ruleOptions = Object.fromEntries(Object.entries(options).filter(([key]) => key !== 'baseBeans' && key !== 'openGps' &&
       !(key === 'playerNum' && spec.unresolvedFields.includes('playerNum'))));
     const normalized = validateRoomOptions(variantKey, { ...getDefaultOptions(variantKey, region as never), ...ruleOptions }, region as never) as Record<string, any>;
+    // 新津 v2 玩法固定（DEC-20261031-第三轮规则v2）：番和封顶不再由开房选项决定。
+    if (variantKey === '4:0') Object.assign(normalized, XINJIN_V2_OPTIONS);
     let playerNumSource: 'manual' | 'original';
     if (spec.unresolvedFields.includes('playerNum')) {
       requireCondition(typeof requestedPlayerNum === 'number' && [2, 3, 4].includes(requestedPlayerNum), 'RULE_DEFAULT_NOT_VERIFIED', 'A player count of 2, 3 or 4 is required.', 409);

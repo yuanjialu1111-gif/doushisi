@@ -9,7 +9,7 @@ import { openClaims, projectClaims, resolveClaims, submitClaim, type ClaimWindow
 import { ordinaryMeldCandidates, ordinaryRank } from './ordinary-melds.js';
 import { declaredWaitMatches, sameDeclaredWaits } from './declared-waits.js';
 import { createXinjinCardState, xinjinPackSpecification } from './xinjin-pack.js';
-import { evaluateXinjinWin, type XinjinHand, type XinjinWin, type XinjinWinContext } from './xinjin-win.js';
+import { evaluateXinjinWin, isXinjinV2, type XinjinHand, type XinjinWin, type XinjinWinContext } from './xinjin-win.js';
 
 type Win = Extract<XinjinWin, { status: 'winning' }>;
 type Meld = { kind: 'chi' | 'peng' | 'gang' | 'ba' | 'tou'; cardIds: string[] };
@@ -107,13 +107,16 @@ function continuation(state: XinjinRound, dealerId: string): RoundContext {
 }
 function paymentsFor(state: XinjinRound, winners: Outcome['winners']) {
   const members = state.players.map(item => item.userId);
+  const v2 = isXinjinV2(state.rules);
   const transfers = winners.flatMap((winner, winnerIndex) => {
     const payers = state.source?.kind === 'discard'
       ? [state.source.userId] : members.filter(id => id !== winner.userId);
+    // v2 点炮（含接地）放牌人一人包三家：份数 ×（人数 − 1）；翻牌、自摸其他人各付一份。
+    const shares = v2 && state.source?.kind === 'discard' ? BigInt(members.length - 1) : 1n;
     return payers.filter(id => id !== winner.userId).map((payerId, payIndex) => ({
       id: `xinjin:${winnerIndex}:${payIndex}`, payerId, payeeId: winner.userId,
       ...baseTimesRatio(state.rules.baseBeans as string,
-        BigInt(winner.win.scoreUnits)),
+        BigInt(winner.win.scoreUnits) * shares),
     }));
   });
   return roundTransfers(transfers, members);
@@ -146,16 +149,24 @@ function replenish(state: XinjinRound, id: string, target: number, events: Xinji
 }
 function ownMelds(state: XinjinRound, id: string): Move[] {
   const current = player(state, id), currentCards = cards(state, handZone(id));
-  if ((current.declaredWaits ?? null) !== null || current.melds.length >= 3) return [];
-  return ordinaryMeldCandidates(currentCards, ['peng', 'gang']).map(meld => ({
+  if ((current.declaredWaits ?? null) !== null) return [];
+  // v2 巴杠：已经碰或偷出的三张，手里摸到第四张可以补上去。
+  const ba: Move[] = !isXinjinV2(state.rules) ? [] : current.melds.flatMap((meld, meldIndex) => {
+    if (meld.kind !== 'peng' && meld.kind !== 'tou') return [];
+    const rank = ordinaryRank(physical(state, meld.cardIds[0]!).code);
+    return currentCards.filter(card => !isSpecial(card.code) && ordinaryRank(card.code) === rank)
+      .map(card => ({ type: 'ba' as const, cardId: card.id, meldIndex }));
+  });
+  if (current.melds.length >= 3) return ba;
+  return [...ordinaryMeldCandidates(currentCards, ['peng', 'gang']).map(meld => ({
     type: meld.kind === 'peng' ? 'tou' as const : 'gang' as const, cardIds: [...meld.cardIds],
-  }));
+  })), ...ba];
 }
 function offers(state: XinjinRound, source: Source): ClaimOffer[] {
   const result: ClaimOffer[] = [];
   const incoming = physical(state, source.cardId!);
   const add = (userId: string, action: Move, priority: number) => result.push({
-    id: `${decision(state)}:${result.length}`, userId, action, priority, simultaneous: action.type === 'hu',
+    id: `${decision(state)}:${result.length}`, userId, action, priority, simultaneous: action.type === 'hu' && !isXinjinV2(state.rules),
   });
   const nextSeat = cycle(state, source.userId)[0]!;
   for (const id of cycle(state, source.userId)) {
@@ -173,7 +184,10 @@ function offers(state: XinjinRound, source: Source): ClaimOffer[] {
 }
 function openResponse(state: XinjinRound, source: Source, events: XinjinEvent[]) {
   stage(state, 'response', source.userId, source);
-  state.claims = openClaims(decision(state), cycle(state, source.userId), offers(state, source));
+  // v2 一张牌只让一家胡：从放牌人下家依次找；翻出来的牌从翻牌人自己算起。
+  const order = cycle(state, source.userId);
+  const tieOrder = isXinjinV2(state.rules) && source.kind === 'flip' ? [source.userId, ...order.slice(0, -1)] : order;
+  state.claims = openClaims(decision(state), tieOrder, offers(state, source));
   if (!state.claims.offers.length) {
     move(state, 'table', 'discards', [source.cardId!]);
     stage(state, 'draw', cycle(state, source.userId)[0]!);
@@ -183,7 +197,9 @@ function performMeld(state: XinjinRound, id: string, action: Move, external: boo
   const current = player(state, id);
   const resume = external ? 'discard' as const : state.phase as 'draw' | 'discard';
   const incomingId = external ? state.source!.cardId! : null;
+  let changed = current.melds.length;
   if (action.type === 'ba') {
+    changed = action.meldIndex;
     const meld = current.melds[action.meldIndex]!;
     meld.kind = 'ba'; meld.cardIds.push(action.cardId);
     move(state, handZone(id), meldZone(id), [action.cardId]);
@@ -196,7 +212,9 @@ function performMeld(state: XinjinRound, id: string, action: Move, external: boo
     const fromHand = selected.filter(cardId => cardId !== incomingId);
     if (fromHand.length) move(state, handZone(id), meldZone(id), fromHand);
   }
-  events.push({ type: 'meld', userId: id, kind: action.type, cards: current.melds.at(-1)!.cardIds.map(cardId => physical(state, cardId)) });
+  const meld = current.melds[Math.min(changed, current.melds.length - 1)]!;
+  events.push({ type: 'meld', userId: id, kind: action.type, cards: meld.cardIds.map(cardId => physical(state, cardId)),
+    ...(action.type === 'ba' ? { meldIndex: changed, addedCardId: action.cardId } : {}) });
   const replacement = replenish(state, id, fullSize(state, id) - (resume === 'draw' ? 1 : 0), events);
   if (state.phase === 'finished') return;
   stage(state, resume, id, replacement && resume === 'discard' ? { kind: 'replacement', userId: id, cardId: replacement } : null);
@@ -370,8 +388,22 @@ export function xinjinTimedAction(state: XinjinRound, id: string) {
   if (!actions.length) return null;
   const hu = state.phase === 'response' ? actions.find(action => action.type === 'respond' && action.choiceId !== null &&
     (state.claims!.offers.find(offer => offer.id === action.choiceId)!.action as Move).type === 'hu') : actions.find(action => action.type === 'hu');
+  const v2 = isXinjinV2(state.rules);
   const fallback = state.phase === 'response' ? actions.find(action => action.type === 'respond' && action.choiceId === null)
     : actions.find(action => action.type === 'begin' || action.type === 'draw') ??
-      actions.find(action => action.type === 'discard');
-  return { userId: id, decisionId: decision(state), delayMs: state.phase === 'response' ? 15000 : 30000, action: hu ?? fallback! };
+      (v2 ? autoDiscard(state, id, actions) : undefined) ?? actions.find(action => action.type === 'discard');
+  // v2 每步 15 秒（E8）；v1 老桌照旧。
+  return { userId: id, decisionId: decision(state), delayMs: v2 || state.phase === 'response' ? 15000 : 30000, action: hu ?? fallback! };
+}
+/** 托管打牌：先打凑不成 14、也没有同点的牌，同等情况下先打红点少的。 */
+function autoDiscard(state: XinjinRound, id: string, actions: XinjinAction[]) {
+  const handCards = cards(state, handZone(id));
+  const score = (cardId: string) => {
+    const card = physical(state, cardId), rank = ordinaryRank(card.code);
+    const paired = handCards.some(other => other.id !== cardId && (ordinaryRank(other.code) + rank === 14 || ordinaryRank(other.code) === rank));
+    const redPoint = [1, 3].includes(Math.floor(card.code / 100)) ? (rank >= 11 ? 1 : rank) : 0;
+    return (paired ? 100 : 0) + redPoint;
+  };
+  return actions.filter(action => action.type === 'discard')
+    .sort((a, b) => score((a as { cardId: string }).cardId) - score((b as { cardId: string }).cardId))[0];
 }

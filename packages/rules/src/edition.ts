@@ -41,6 +41,17 @@ export const XINJIN_WANG_COUNTS: readonly number[] = Object.freeze([3, 5, 6, 9])
 export const XINJIN_INDEPENDENT_FANS = Object.freeze({
   qiToWang: 1, baoJiao: 1, diHu: 3, tianHu: 3, anDui: 3, qia20: 1,
   longDui: 4, xiaoHu: 3, qia40: 2, qia50: 3, siGuiYi: 1,
+  // v2（DEC-20261031-第三轮规则v2）：鬼每张 1、碰（含偷出的三张）每组 1、杠（含巴杠）每组 2、全红 3、全黑 3。
+  gui: 1, peng: 1, gang: 2, quanHong: 3, quanHei: 3,
+});
+/** 新津 v2 计分：跟头翻 2^番、5 番封顶，门槛按人数，点炮包三家，只一家胡。 */
+export const XINJIN_SCORING_V2 = 'v2';
+export const XINJIN_V2_MAX_FAN = 5;
+export const xinjinRedGate = (playerNum: unknown): number => playerNum === 4 ? 20 : 25;
+/** v2 固定玩法：报叫留动作不加番，天走、接地开，其余 v1 番关，7 不偷。 */
+export const XINJIN_V2_OPTIONS = Object.freeze({
+  maxFan: 5, chengFan: 1, qiToWang: 0, baoJiao: 1, diHu: 1, tianHu: 1, anDui: 0, qia20: 0,
+  longDui: 0, xiaoHu: 0, qia40: 0, qia50: 0, siGuiYi: 0,
 });
 export function freezeXinjinOptions(options: Record<string, unknown>) {
   return {
@@ -49,7 +60,8 @@ export function freezeXinjinOptions(options: Record<string, unknown>) {
     wangNum: options.wangNum,
     ziChi: options.ziChi,
     status: 'independent-definition-authorized',
-    source: 'docs/rules/XINJIN-INDEPENDENT.md:2026-09-24',
+    source: 'docs/rules/XINJIN-INDEPENDENT.md:2026-10-31',
+    scoring: XINJIN_SCORING_V2,
   };
 }
 export const ANYUE_INDEPENDENT_VERSION = 'anyue-independent-v1';

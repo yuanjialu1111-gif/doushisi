@@ -1,4 +1,4 @@
-import { XINJIN_INDEPENDENT_FANS, XINJIN_INDEPENDENT_VERSION } from '@dss/rules';
+import { XINJIN_INDEPENDENT_FANS, XINJIN_INDEPENDENT_VERSION, XINJIN_SCORING_V2, XINJIN_V2_MAX_FAN, xinjinRedGate } from '@dss/rules';
 import { requireCondition } from '../errors.js';
 import type { PhysicalCard } from './cards.js';
 import { decomposeCards } from './combinations.js';
@@ -22,6 +22,9 @@ const enabled = (value: unknown) => value === 1 || value === true;
 const red = (code: number) => [1, 3].includes(Math.floor(code / 100));
 const point = (code: number) => { const rank = ordinaryRank(code); return rank >= 11 ? 1 : rank; };
 const seat = (value: number | null): value is number => Number.isInteger(value) && value! >= 1 && value! <= 4;
+/** 桌规则里冻结了 v2 才按 v2 算；发布前开的老桌没有这个字段，照 v1 打完。 */
+export const isXinjinV2 = (rules: Readonly<Record<string, unknown>>) =>
+  (rules.xinjin as Record<string, unknown> | undefined)?.scoring === XINJIN_SCORING_V2;
 
 function validate(hand: XinjinHand, context: XinjinWinContext, rules: Readonly<Record<string, unknown>>) {
   const metadata = rules.xinjin as Record<string, unknown> | undefined;
@@ -60,6 +63,7 @@ export function evaluateXinjinWin(hand: XinjinHand, context: XinjinWinContext, r
   const fail = (reason: Extract<XinjinWin, { status: 'not-winning' }>['reason']): XinjinWin =>
     ({ version: XINJIN_INDEPENDENT_VERSION, status: 'not-winning', reason, redPoints, blackPoints });
   if (hand.concealed.some(card => special(card.code))) return fail('special-card-in-hand');
+  if (isXinjinV2(rules)) return evaluateV2(hand, context, rules, ordinary, redPoints, blackPoints, fail);
   const candidates = ordinaryMeldCandidates(hand.concealed, ['chi']);
   const decompositions = decomposeCards(hand.concealed.map(card => card.id), candidates, 4 - hand.melds.length);
   const byRank = new Map<number, PhysicalCard[]>();
@@ -114,4 +118,34 @@ export function evaluateXinjinWin(hand: XinjinHand, context: XinjinWinContext, r
   }
   alternatives.sort((a, b) => b.cappedFan - a.cappedFan || b.totalFan - a.totalFan || a.structure.localeCompare(b.structure));
   return alternatives[0] ?? fail('minimum-fan');
+}
+
+/** v2：门槛 4 人红 20、3 人和 2 人红 25；全红、全黑、天走、接地不看门槛；跟头翻 5 番封顶。 */
+function evaluateV2(hand: XinjinHand, context: XinjinWinContext, rules: Readonly<Record<string, unknown>>, ordinary: PhysicalCard[],
+  redPoints: number, blackPoints: number, fail: (reason: 'shape' | 'points') => XinjinWin): XinjinWin {
+  // 手里的三张、四张要先偷出来才算，暗手只按两张凑 14 拆。
+  const candidates = ordinaryMeldCandidates(hand.concealed, ['chi']);
+  const decompositions = decomposeCards(hand.concealed.map(card => card.id), candidates, 4 - hand.melds.length);
+  if (!decompositions.length) return fail('shape');
+  const quanHong = ordinary.length > 0 && ordinary.every(card => red(card.code));
+  const quanHei = ordinary.length > 0 && ordinary.every(card => !red(card.code));
+  const tianHu = context.source === 'original-hand';
+  const diHu = context.source === 'discard' && context.discardCount === 1;
+  if (redPoints < xinjinRedGate(rules.playerNum) && !quanHong && !quanHei && !tianHu && !diHu) return fail('points');
+  const items: XinjinWinItem[] = [];
+  const add = (pattern: keyof typeof XINJIN_INDEPENDENT_FANS, count = 1) => {
+    if (count) items.push({ pattern, count, fan: XINJIN_INDEPENDENT_FANS[pattern] * count });
+  };
+  add('gui', hand.bonus.filter(card => special(card.code)).length);
+  add('peng', hand.melds.filter(meld => meld.kind === 'peng' || meld.kind === 'tou').length);
+  add('gang', hand.melds.filter(meld => meld.kind === 'gang' || meld.kind === 'ba').length);
+  if (quanHong) add('quanHong');
+  if (quanHei) add('quanHei');
+  if (tianHu) add('tianHu');
+  if (diHu) add('diHu');
+  const totalFan = items.reduce((sum, item) => sum + item.fan, 0);
+  const cappedFan = Math.min(XINJIN_V2_MAX_FAN, totalFan);
+  return { version: XINJIN_INDEPENDENT_VERSION, status: 'winning', structure: 'ordinary', items, totalFan, cappedFan,
+    scoreUnits: (2n ** BigInt(cappedFan)).toString(), redPoints, blackPoints,
+    concealedGroups: decompositions[0]!.map(id => [...candidates.find(candidate => candidate.id === id)!.cardIds]) };
 }
