@@ -3,8 +3,7 @@
 - **任务**：大厅公开桌 + 首次上传头像昵称 + 附近桌子（R1–R11）。
 - **状态**：M0–M6 都已在本机提交（main，没有推送，也没有部署）。全量测试 750 项通过，typecheck、build、红线扫描都通过；安卓离线自测 300 项通过。逐页自检时修了大厅在 16:10 和 4:3 窗口下被切的问题。待确认 3 条用户回「1B 2B 3B」，已改完并复测（退大厅桌回列表、公开房房主查门槛、接入层测试 18 项全过）。安卓工具链和签名钥匙用户已装好。后端已发布到测试服 108：1a90325，批次 20261031T035621Z，8 项自检全过，发布后服务没有报错（DEC-20261030-测试服发布）。回滚命令：`bash tools/release-test-server.sh --rollback 20261031T035621Z`。
 - **下一步**：
-  1. 用户用 `--api-base https://108.186.180.130` 打 APK。
-  2. 用 `--apk` 换下载包，真机测（新签名，测试机先卸载旧版）。
+  1. 真机测：10-31 已换上新 APK（4.0 版本号 5，新签名，连 108），下载地址 `https://108.186.180.130/doushisi.apk`，测试机先卸载旧版。旧包备份在服务器 `/opt/doushisi/release-backups/apk-20261031T043329Z/`。
 - **关键文件**：`tools/release-test-server.sh`（用法写在文件头）、`docs/plan/验收清单.md`（AC→证据）、`.planning/2026-10-30-lobby/progress-android.md`（安卓打包命令和约定）。
 - **注意**：改 `client/public/standalone.js` 后要跑 `node tools/android-native-adapter.mjs`，重新生成 `client/public/native/`。
 
