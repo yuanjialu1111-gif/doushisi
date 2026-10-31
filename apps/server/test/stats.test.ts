@@ -119,9 +119,9 @@ test('S6 profile stats and medals', async t => {
     assert.equal(view.medals[4].lit, false);
   });
 
-  await t.test('S6-AC1 the original login and head-info replies carry the real win rate', async () => {
+  await t.test('S6-AC1 the original login, head-info and table seat replies carry the real win rate', async () => {
     const [f, g] = [await player('stats_f'), await player('stats_g')];
-    await play([f, g], ['0.1', '-0.1', '-0.1']);
+    const room = await play([f, g], ['0.1', '-0.1', '-0.1']);
     const address = (await created.app.listen({ host: '127.0.0.1', port: 0 })).replace('http', 'ws') + '/ws/original';
     const socket = new WebSocket(address);
     const inbox: DecodedFrame[] = [];
@@ -137,6 +137,10 @@ test('S6 profile stats and medals', async t => {
       assert.equal(login.winRate, '33%');
       const head = (await request(MSGEvent.HWRequestHeadInfo, { hwRequestHeadInfo: {} }, MSGEvent.HWResponseHeadInfo)).hwResponseHeadInfo;
       assert.deepEqual([head.gameNum, head.winNum, head.winRate], [3, 1, '33%']);
+      // 牌桌上点别人头像：原版直接读 UserInfo 的这三个字段。
+      const table = (await request(MSGEvent.HWRequestEnterTableFinish, { hwRequestEnterTableFinish: { roomId: room.code } }, MSGEvent.HWResponseEnterTableFinish)).hwResponseEnterTableFinish;
+      assert.deepEqual(table.userInfo.map((user: any) => [user.nick, user.gameNum, user.winNum, user.winRate]).sort(),
+        [['stats_f', 3, 1, '33%'], ['stats_g', 3, 2, '67%']]);
     } finally { socket.close(); await once(socket, 'close'); }
   });
 });

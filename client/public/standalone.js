@@ -1568,6 +1568,82 @@
       });
     });
   }
+  // 第二轮 S7：互动表情 13–20（点赞、鼓掌、烟花、比心、666、敬茶、催一下、慢慢来），
+  // 图是 tools/extra-art.mjs 画的，从服务器取；动画用 cc.tween 写，不走原版 prefab/com_prop_。
+  var EXTRA_EMOTE_FIRST = 13, EXTRA_EMOTE_LAST = 20, EXTRA_EMOTE_DIR = '/client/extra/emotes/';
+  var extraEmoteFrames = {};
+  function extraEmoteFrame(id, done) {
+    if (extraEmoteFrames[id]) return done(extraEmoteFrames[id]);
+    cc.assetManager.loadRemote(apiOrigin + EXTRA_EMOTE_DIR + id + '.png', { ext: '.png' }, function (error, texture) {
+      if (error || !texture) return;
+      extraEmoteFrames[id] = extraEmoteFrames[id] || new cc.SpriteFrame(texture);
+      done(extraEmoteFrames[id]);
+    });
+  }
+  // 牌桌上点别人头像的资料窗：原 11 个按钮 btn_1–btn_11（编号 = 尾号 + 1，即 2–12）后面接 8 个，
+  // 横向滚动照原版。原版 addEvent 在 onLoad 里已经跑完，新按钮自己挂点击，仍走原版 onClickItemBtn。
+  function patchInteractionPanel(info) {
+    var content = info.views && info.views['root/items/view/content'];
+    var sample = content && content.getChildByName('btn_11');
+    if (!sample || info._standaloneExtraEmotes) return;
+    info._standaloneExtraEmotes = true;
+    for (var id = EXTRA_EMOTE_FIRST; id <= EXTRA_EMOTE_LAST; id++) (function (id) {
+      var item = cc.instantiate(sample);
+      item.name = 'btn_' + (id - 1);
+      content.addChild(item);
+      var icon = item.getChildByName('btn_0'), sprite = icon.getComponent(cc.Sprite);
+      sprite.spriteFrame = null;
+      extraEmoteFrame(id, function (frame) {
+        if (!cc.isValid(icon)) return;
+        sprite.sizeMode = cc.Sprite.SizeMode.CUSTOM;
+        sprite.spriteFrame = frame;
+        icon.setContentSize(76, 76);
+      });
+      cc.mm.uitools.addBtnLister(item, info.onClickItemBtn.bind(info), info);
+    })(id);
+    var layout = content.getComponent(cc.Layout);
+    if (layout) layout.updateLayout();
+  }
+  // 收到 13–20：从发的人头像飞到对方头像，放大、抖两下、停一会儿淡出。12 以内照原版。
+  function patchTableEmotes(table) {
+    if (table._standaloneExtraEmotes || typeof table._moveEffect !== 'function') return;
+    table._standaloneExtraEmotes = true;
+    var original = table._moveEffect;
+    table._moveEffect = function (from, to, id) {
+      if (id >= EXTRA_EMOTE_FIRST && id <= EXTRA_EMOTE_LAST) return playExtraEmote(this, from, to, id);
+      return original.apply(this, arguments);
+    };
+  }
+  function playExtraEmote(table, from, to, id) {
+    var start = table.views['palyers/pos' + from], end = table.views['palyers/pos' + to];
+    if (!start || !end) return;
+    extraEmoteFrame(id, function (frame) {
+      if (!cc.isValid(table.node, true) || !cc.isValid(start) || !cc.isValid(end)) return;
+      var node = new cc.Node('standaloneEmote' + id), sprite = node.addComponent(cc.Sprite);
+      sprite.sizeMode = cc.Sprite.SizeMode.CUSTOM;
+      sprite.spriteFrame = frame;
+      node.setContentSize(120, 120);
+      // 自己的头像贴着屏幕下沿，放大后会被裁掉：落点离屏幕边至少留出放大后的半个图。
+      var screen = cc.Canvas.instance.node, margin = 82;
+      var place = function (seat, clamp) {
+        var world = seat.parent.convertToWorldSpaceAR(seat.getPosition());
+        if (clamp) world = cc.v2(Math.max(margin, Math.min(screen.width - margin, world.x)), Math.max(margin, Math.min(screen.height - margin, world.y)));
+        return table.node.convertToNodeSpaceAR(world);
+      };
+      node.setPosition(place(start, false));
+      node.scale = 0.55;
+      table.node.addChild(node);
+      var target = place(end, true);
+      cc.tween(node)
+        .to(0.5, { x: target.x, y: target.y, scale: 0.85 }, { easing: 'quadOut' })
+        .to(0.16, { scale: 1.3 }, { easing: 'backOut' })
+        .to(0.06, { angle: 12 }).to(0.1, { angle: -12 }).to(0.1, { angle: 10 }).to(0.1, { angle: -8 }).to(0.06, { angle: 0 })
+        .delay(0.6)
+        .to(0.3, { opacity: 0, scale: 1.5 })
+        .call(function () { node.destroy(); })
+        .start();
+    });
+  }
   // 「更多」小窗按旧的底部按钮排法摆在固定位置；商城、邮件藏掉后「更多」挪到了最右边，
   // 所以每次弹出前把小窗的箭头对准「更多」。最右边的分隔线后面已经没有按钮，也藏掉。
   var HALL_MENU_ARROW = 17; // 箭头尖离小窗右边的距离，按设计分辨率量
@@ -2791,7 +2867,7 @@
       return { roomId: wireCursor.roomId, roundId: wireCursor.roundId, stateVersion: wireCursor.stateVersion };
     },
     appendWireRequest: function (body, command) {
-      var extension = { version: 2, decimalFields: [], capabilities: ['decision-window-v1', edition.qionglaiVersion] };
+      var extension = { version: 2, decimalFields: [], capabilities: ['decision-window-v1', edition.qionglaiVersion, 'extra-emotes-v1'] };
       if (command === 3 && wireCreateRoom) {
         var createRoom = validateCreateRoomMetadata(wireCreateRoom);
         wireCreateRoom = null;
@@ -3024,6 +3100,7 @@
       hookCreateRoomRequest(app);
       afterLoadUI('HallPersonUIController', patchPersonWindow);
       afterLoadUI('CommonEditUIController', patchNicknameWindow);
+      afterLoadUI('CommonPlayerInfoController', patchInteractionPanel);
       var loadRemote = app.uitools.loadRemote;
       app.uitools.loadRemote = function (url, target) {
         if (url && url.charAt(0) === '/' && url.charAt(1) !== '/') url = apiOrigin + url;
@@ -3076,6 +3153,7 @@
       // 原版邀请键（复制分享文字）藏起来，同一位置换成「邀请好友」抽屉（第二轮 S4）。
       social.table = controller;
       installSocial();
+      patchTableEmotes(controller);
       // 牌桌不显示距离（R11 AC1）：原版进房时会重新打开定位按钮，透明度清零免得闪一下。
       var locationButton = controller.views.locationbtn;
       if (locationButton) { locationButton.opacity = 0; locationButton.active = false; }

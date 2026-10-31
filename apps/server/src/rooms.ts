@@ -638,7 +638,8 @@ export class RoomService extends EventEmitter {
     if (content.message !== undefined) requireCondition(typeof content.message === 'string' && content.message.length > 0 && content.message.length <= 120, 'INVALID_CHAT', 'Invalid room chat message.');
     if (content.faceId !== undefined) requireCondition(Number.isInteger(content.faceId) && content.faceId >= 0 && content.faceId <= 14, 'INVALID_CHAT', 'Invalid original expression identifier.');
     if (content.quickVoiceId !== undefined) requireCondition(Number.isInteger(content.quickVoiceId) && content.quickVoiceId >= 0 && content.quickVoiceId <= 11, 'INVALID_CHAT', 'Invalid original quick voice identifier.');
-    if (content.mutualFaceId !== undefined) requireCondition(Number.isInteger(content.mutualFaceId) && content.mutualFaceId >= 2 && content.mutualFaceId <= 12 && Number.isInteger(content.targetSeat), 'INVALID_CHAT', 'Invalid original interaction.');
+    // 2–12 是原版互动表情，13–20 是第二轮新增的 8 个（S7）。
+    if (content.mutualFaceId !== undefined) requireCondition(Number.isInteger(content.mutualFaceId) && content.mutualFaceId >= 2 && content.mutualFaceId <= 20 && Number.isInteger(content.targetSeat), 'INVALID_CHAT', 'Invalid original interaction.');
     else requireCondition(content.targetSeat === undefined, 'INVALID_CHAT', 'A target seat requires an interaction.');
     const room = await this.view(roomId, actor.id);
     requireCondition(room.state !== 'closed', 'ROOM_CLOSED', 'Room is closed.', 409);

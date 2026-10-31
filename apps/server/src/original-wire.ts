@@ -54,11 +54,14 @@ const roomOptionsSchema = z.object({
   playerNumSource: z.enum(['manual', 'original']),
   qionglai: qionglaiSchema.optional(),
 }).strict();
+/** 第二轮 S7：新接入层登录时带这个标记，才能发、才会收 13–20 号互动表情。 */
+export const EXTRA_EMOTES_VERSION = 'extra-emotes-v1';
+export const isExtraEmote = (id: unknown) => typeof id === 'number' && id >= 13;
 const extensionSchema = z.object({ version: z.literal(2),
   decimalFields: z.array(z.object({ path: z.array(z.union([z.string().max(100), z.number().int().nonnegative()])).min(2).max(16), value: z.string().regex(/^-?\d+(?:\.\d{1,12})?$/) }).strict()).max(10000),
   request: requestSchema.optional(),
   createRoom: createRoomSchema.optional(),
-  capabilities: z.array(z.enum(['decision-window-v1', QIONGLAI_OPTION_VERSION])).max(2).optional(),
+  capabilities: z.array(z.enum(['decision-window-v1', QIONGLAI_OPTION_VERSION, EXTRA_EMOTES_VERSION])).max(3).optional(),
   decisionId: decisionIdSchema.nullable().optional(),
   roomOptions: roomOptionsSchema.optional(),
   roomState: z.object({ roomId: z.string().uuid().nullable(), roundId: z.string().uuid().nullable(), stateVersion: stateVersionSchema.nullable() }).strict().optional(),
@@ -241,6 +244,9 @@ export async function registerOriginalProtocol(app: FastifyInstance, services: O
       // 没飘时原版发 -1；缺省成 0 会让客户端以为已开局，开局前只给「解散」不给「退出」。
       piaoNum: -1,
     };
+    // S6：牌桌上点别人头像看到的对局数、总胜局、胜率（原版直接读 UserInfo 这三个字段，不发就显示 undefined）。
+    const played = await services.stats?.stats(member.userId);
+    if (played) Object.assign(user, { gameNum: played.rounds, winNum: played.wins, winRate: played.winRate });
     // Original protobuf names are retained only as a compatibility projection.  In the
     // standalone game a table score is the current bean balance and changeScore is the
     // current round's bean delta; neither represents another currency.
@@ -764,13 +770,19 @@ export async function registerOriginalProtocol(app: FastifyInstance, services: O
             message = { ctype: 2, message: `res_dss_chat_${id}` };
           } else if (body.ctype === 3) {
             requireCondition(Number.isInteger(body.mutualFaceId) && Number.isInteger(body.mutualFaceToUid), 'INVALID_CHAT', 'An interaction and target seat are required.');
+            requireCondition(!isExtraEmote(body.mutualFaceId) || connection.capabilities?.includes(EXTRA_EMOTES_VERSION), 'INVALID_CHAT', 'This client does not support the new interactions.');
             content = { mutualFaceId: body.mutualFaceId, targetSeat: body.mutualFaceToUid };
             message = { ctype: 3, mutualFaceId: body.mutualFaceId, mutualFaceToUid: body.mutualFaceToUid };
           } else throw new AppError('UNSUPPORTED_OPERATION', 'Only original quick phrases, expressions and interactions are enabled.', 403);
           await rooms.chat(actor, room.id, content);
           message.uid = connection.uid;
           connection.send(MSGEvent.HWResponseChat, { result: 1 });
-          for (const member of room.members) for (const peer of online.get(member.userId) ?? []) peer.send(MSGEvent.HWNotifyChat, message); return;
+          // S7-AC3：旧客户端不认识 13–20，收不到这类互动表情。
+          const extra = message.ctype === 3 && isExtraEmote(message.mutualFaceId);
+          for (const member of room.members) for (const peer of online.get(member.userId) ?? []) {
+            if (!extra || peer.capabilities?.includes(EXTRA_EMOTES_VERSION)) peer.send(MSGEvent.HWNotifyChat, message);
+          }
+          return;
         }
         case MSGEvent.HWRequestNotice: connection.send(MSGEvent.HWResponseNotice, { result: 1, noticeInfos: [] }); return;
         case MSGEvent.HWRequestShowList: connection.send(MSGEvent.HWResponseShowList, { result: 1, showInfo: [] }); return;
