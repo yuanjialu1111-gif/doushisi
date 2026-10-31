@@ -220,9 +220,10 @@ export class LobbyService {
 
   async tables(userId: string, variant?: string, since?: string) {
     const rows = (await this.db.query(`SELECT r.id,r.code,r.variant_key,r.rules,r.player_count,r.rounds,r.current_round,r.state,r.created_at,
-      r.lobby_template_id,t.threshold_multiplier,t.sort_order,m.seat,a.id AS user_id,a.nickname,a.avatar_hash AS "avatarHash",a.avatar_status AS "avatarStatus"
+      r.lobby_template_id,t.threshold_multiplier,t.sort_order,m.seat,a.id AS user_id,a.nickname,a.avatar_hash AS "avatarHash",a.avatar_status AS "avatarStatus",a.sex,p.wire_id AS uid
       FROM rooms r LEFT JOIN lobby_templates t ON t.id=r.lobby_template_id
       LEFT JOIN room_members m ON m.room_id=r.id LEFT JOIN accounts a ON a.id=m.user_id
+      LEFT JOIN original_protocol_ids p ON p.entity_kind='user' AND p.entity_id=a.id
       WHERE r.visibility='public' AND r.state <> 'closed' AND ($1::text IS NULL OR r.variant_key=$1) AND r.variant_key=ANY($2::text[])
       ORDER BY r.created_at,r.id,m.seat`, [variant ?? null, VISIBLE_VARIANT_KEYS])).rows;
     const me = this.location(userId);
@@ -239,7 +240,9 @@ export class LobbyService {
         byRoom.set(row.id, table);
       }
       if (row.user_id) {
-        table.seats.push({ seat: row.seat, nickname: row.nickname, avatarUrl: avatarUrl({ id: row.user_id, avatarHash: row.avatarHash, avatarStatus: row.avatarStatus }) });
+        // 点头像看的信息卡：昵称 + 性别（1 男 2 女 0 没设）+ 对外的数字 ID（S2-AC2）。
+        table.seats.push({ seat: row.seat, nickname: row.nickname, avatarUrl: avatarUrl({ id: row.user_id, avatarHash: row.avatarHash, avatarStatus: row.avatarStatus }),
+          sex: row.sex ?? 0, uid: row.uid === null || row.uid === undefined ? null : String(row.uid) });
         const there = row.user_id === userId ? null : this.location(row.user_id);
         if (me && there) table.nearestKm = Math.min(table.nearestKm, distanceKm(me, there));
       }
@@ -247,7 +250,7 @@ export class LobbyService {
     const all = [...byRoom.values()];
     const open = (table: any) => table.state === 'waiting' && table.seats.length < table.playerCount ? 0 : 1;
     all.sort((a, b) => open(a) - open(b) || b.seats.length - a.seats.length || a.sortOrder - b.sortOrder || a.createdAt - b.createdAt);
-    // 附近只放有人坐、且桌上有人报了位置的桌；只给档位和名次，不给米数和坐标（R10 AC1、AC2）。
+    // 有人坐、且桌上有人报了位置的桌都带档位（「全部」里每张桌也显示，S2-AC3），「附近」按名次排；只给档位和名次，不给米数和坐标（R10 AC1、AC2）。
     const near = all.filter(table => table.seats.length && Number.isFinite(table.nearestKm)).sort((a, b) => a.nearestKm - b.nearestKm);
     near.forEach((table, index) => { table.nearby = { band: BANDS.find(([km]) => table.nearestKm <= km)?.[1] ?? '更远', rank: index + 1 }; });
     const tables = all.slice(0, 200).map(({ sortOrder, createdAt, nearestKm, ...table }) => table);

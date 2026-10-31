@@ -979,30 +979,111 @@
     if (!locationTimer) locationTimer = setInterval(reportLocation, 120000);
   }
 
-  // 大厅（R1、R2、R4、R5）：「好友约局」打开原版娱乐场窗口，中间的场次卡换成公开桌，左边玩法列表当筛选。
+  // 大厅（R1、R2、R4、R5；第二轮 S2 换成 A2 样式）：「好友约局」打开原版娱乐场窗口，中间换成公开桌。
+  // 界面只露一个玩法时收起左边玩法列表、桌卡铺满整屏；多于一种时左边列表仍当筛选。
   var LOBBY_ALL = '全部玩法';
-  var lobbyFrames = null, lobbyFramesQueue = null;
-  function withLobbyFrames(done) {
-    if (lobbyFrames) return done(lobbyFrames);
-    if (lobbyFramesQueue) return lobbyFramesQueue.push(done);
-    var bundle = cc.assetManager.getBundle('hall');
-    if (!bundle) return;
-    lobbyFramesQueue = [done];
-    bundle.load(['res/nt/chaungjianfangjain/diban', 'res/nt/map/doushisi-ditu-button-yeqian-xuanzhong', 'res/nt/map/doushisi-ditu-button-yeqian-weixuanzhong'], cc.SpriteFrame, function (error, frames) {
-      var queue = lobbyFramesQueue; lobbyFramesQueue = null;
-      if (error) return toast('大厅界面加载失败，请稍后再试。');
-      lobbyFrames = { card: frames[0], tabOn: frames[1], tabOff: frames[2] };
-      queue.forEach(function (callback) { callback(lobbyFrames); });
-    });
-  }
+  var LOBBY_CARD_HEIGHT = 248, LOBBY_GAP_X = 22, LOBBY_GAP_Y = 16, LOBBY_SEAT = 66;
   function lobbyLabel(parent, text, x, y, size, color, anchorX, bold) {
     var label = kitLabel(parent, text, x, y, size, color, anchorX);
     label.enableBold = !!bold;
     return label;
   }
-  function shortName(text, length) {
+  function rgb(hex, alpha) {
+    var value = parseInt(hex.slice(1), 16);
+    return cc.color(value >> 16, value >> 8 & 255, value & 255, alpha === undefined ? 255 : Math.round(alpha * 255));
+  }
+  function lobbyPen(parent, name, x, y) {
+    var node = new cc.Node(name);
+    node.setPosition(x || 0, y || 0); parent.addChild(node);
+    return node.addComponent(cc.Graphics);
+  }
+  function fillRound(pen, x, y, width, height, radius, color) {
+    pen.fillColor = color; pen.roundRect(x, y, width, height, radius); pen.fill();
+  }
+  function strokeRound(pen, x, y, width, height, radius, color, lineWidth) {
+    pen.lineWidth = lineWidth; pen.strokeColor = color; pen.roundRect(x, y, width, height, radius); pen.stroke();
+  }
+  // Graphics 没有虚线：沿圆角矩形取点，画 6 空 4 分段描边。
+  function dashedRound(pen, x, y, width, height, radius, color, lineWidth) {
+    var points = [], corners = [[x + width - radius, y + height - radius, 0], [x + radius, y + height - radius, 90], [x + radius, y + radius, 180], [x + width - radius, y + radius, 270]];
+    corners.forEach(function (corner) {
+      for (var step = 0; step <= 6; step++) {
+        var angle = (corner[2] + step * 15) * Math.PI / 180;
+        points.push([corner[0] + Math.cos(angle) * radius, corner[1] + Math.sin(angle) * radius]);
+      }
+    });
+    points.push(points[0]);
+    pen.lineWidth = lineWidth; pen.strokeColor = color;
+    var drawing = true, rest = 6;
+    for (var index = 1; index < points.length; index++) {
+      var from = points[index - 1], dx = points[index][0] - from[0], dy = points[index][1] - from[1];
+      var length = Math.sqrt(dx * dx + dy * dy), done = 0;
+      while (done < length) {
+        var piece = Math.min(rest, length - done);
+        if (drawing) {
+          pen.moveTo(from[0] + dx * done / length, from[1] + dy * done / length);
+          pen.lineTo(from[0] + dx * (done + piece) / length, from[1] + dy * (done + piece) / length);
+        }
+        done += piece; rest -= piece;
+        if (rest <= 0) { drawing = !drawing; rest = drawing ? 6 : 4; }
+      }
+    }
+    pen.stroke();
+  }
+  // cc.Mask 只有矩形和椭圆两种形状；圆角方头像用矩形遮罩，把遮罩画成圆角矩形。要在节点挂上场景前调用。
+  function roundMask(node, radius) {
+    var mask = node.addComponent(cc.Mask);
+    mask._updateGraphics = function () {
+      if (!this.enabledInHierarchy) return;
+      var size = this.node._contentSize, anchor = this.node._anchorPoint, pen = this._graphics;
+      pen.clear(false);
+      pen.roundRect(-size.width * anchor.x, -size.height * anchor.y, size.width, size.height, radius);
+      if (cc.game.renderType === cc.game.RENDER_TYPE_CANVAS) pen.stroke(); else pen.fill();
+      this.setVertsDirty();
+    };
+    mask.type = cc.Mask.Type.RECT;
+    return mask;
+  }
+  function roundAvatar(parent, x, y, size, radius, url) {
+    var clip = new cc.Node('standaloneRoundAvatar');
+    clip.setContentSize(size, size); clip.setPosition(x, y);
+    roundMask(clip, radius);
+    var placeholder = lobbyPen(clip, 'placeholder');
+    placeholder.fillColor = cc.color(255, 255, 255, 90); placeholder.rect(-size / 2, -size / 2, size, size); placeholder.fill();
+    var picture = new cc.Node('picture');
+    picture.setContentSize(size, size); clip.addChild(picture);
+    var sprite = picture.addComponent(cc.Sprite); sprite.sizeMode = cc.Sprite.SizeMode.CUSTOM; sprite.trim = false;
+    parent.addChild(clip);
+    loadAvatar(url || DEFAULT_AVATAR, picture, size);
+    return clip;
+  }
+  function labelWidth(label) {
+    if (label._forceUpdateRenderData) label._forceUpdateRenderData();
+    return label.node.width;
+  }
+  // 圆角小标签（状态、距离、性别）。left/top 是标签左上角；anchorX 为 1 时 left 当右边缘用。
+  function lobbyPill(parent, text, left, top, size, background, color, anchorX, icon) {
+    var pen = lobbyPen(parent, 'standalonePill');
+    var label = lobbyLabel(pen.node, text, 0, 0, size, color, 0, true);
+    var height = size + 8, padding = size * 0.7, iconWidth = icon ? size : 0;
+    var width = labelWidth(label) + padding * 2 + iconWidth;
+    var x = anchorX === 1 ? left - width : left;
+    pen.node.setPosition(x, top - height / 2);
+    fillRound(pen, 0, -height / 2, width, height, height / 2, background);
+    label.node.x = padding + iconWidth;
+    if (icon) icon(pen, padding + size * 0.4, 0, size, color);
+    return pen.node;
+  }
+  function pinIcon(pen, x, y, size, color) {
+    var radius = size * 0.36, top = y + size * 0.12;
+    pen.fillColor = color;
+    pen.circle(x, top, radius); pen.fill();
+    pen.moveTo(x - radius * 0.86, top - radius * 0.5); pen.lineTo(x, y - size * 0.5); pen.lineTo(x + radius * 0.86, top - radius * 0.5); pen.close(); pen.fill();
+    pen.fillColor = rgb('#ffffff'); pen.circle(x, top, radius * 0.4); pen.fill();
+  }
+  function seatName(text) {
     text = String(text || '');
-    return text.length > length ? text.substring(0, length) + '..' : text;
+    return text.length > 3 ? text.substring(0, 3) + '…' : text;
   }
   function openLobby(hall) {
     hall.hideView();
@@ -1060,6 +1141,7 @@
     var lobby = controller._standaloneLobby || (controller._standaloneLobby = {});
     startLocationReports();
     hide(controller.views, ['games/qiehuan']);
+    closeLobbyPlayer(lobby);
     // 每 2 秒问一次有没有变化。用普通定时器：窗口复用时原版会停掉组件定时器，
     // 浏览器窗口被遮挡时游戏帧也会降频；大厅不显示或已销毁就不发请求。
     function poll() {
@@ -1067,63 +1149,83 @@
       lobby.timer = setInterval(function () {
         if (!cc.isValid(controller.node)) return clearInterval(lobby.timer);
         if (!controller.node.activeInHierarchy) return;
-        fitLobby(lobby);
+        if (layoutLobby(controller)) renderLobby(controller);
         lobbyRefresh(controller, false);
       }, 2000);
       lobbyRefresh(controller, true);
     }
-    if (lobby.root) { if (lobby.content) poll(); return; }
+    if (lobby.box) { poll(); return; }
     if (!controller.views || !controller.views.left) return;
     hide(controller.views, ['fireReward', 'games/label', 'left/gamaname', 'left/select_1', 'left/select_2', 'left/select_3', 'left/select_4', 'left/select_5', 'backBtn/yulechang-yuke']);
-    lobby.root = controller.views.left;
-    var title = lobbyLabel(controller.views.backBtn, '大厅', 30, 0, 36, cc.color(255, 255, 255), 0.5, true);
+    var title = lobbyLabel(controller.views.backBtn, '大厅', 30, 0, 36, rgb('#ffffff'), 0.5, true);
     var outline = title.node.addComponent(cc.LabelOutline); outline.color = cc.color(32, 86, 168); outline.width = 2;
     var quick = controller.views['left/quick_start'];
-    quick.active = true; quick.scale = 1; quick.setPosition(-245, -306);
+    quick.active = true;
     controller.views['left/quick_start/label'].getComponent(cc.Label).string = '快速开始';
     quick.off('click');
     cc.mm.uitools.addBtnLister(quick, function () { lobbyQuickStart(controller); }, controller);
-    withLobbyFrames(function (frames) {
-      if (!cc.isValid(controller.node)) return;
-      lobby.frames = frames;
-      lobby.tab = 'all';
-      // 桌卡区按 16:9 下的宽度排版；窗口更窄时原版会把这块区域压窄，整体等比缩小免得右边被切掉。
-      lobby.box = new cc.Node('standaloneLobbyBox'); lobby.root.addChild(lobby.box);
-      lobby.bottom = ['left/quick_start', 'left/joinbtn', 'left/createroom'].map(function (name) { return controller.views[name]; }).filter(Boolean)
-        .map(function (node) { return { node: node, x: node.x, scale: node.scale }; });
-      lobby.tabs = [['all', '全部', -455], ['nearby', '附近', -315]].map(function (entry) {
-        var node = new cc.Node('standaloneLobbyTab');
-        var sprite = node.addComponent(cc.Sprite); sprite.sizeMode = cc.Sprite.SizeMode.CUSTOM;
-        node.setContentSize(132, 62); node.setPosition(entry[2], 262); lobby.box.addChild(node);
-        node.addComponent(cc.Button).transition = cc.Button.Transition.SCALE;
-        var label = lobbyLabel(node, entry[1], 0, 6, 26, cc.color(255, 255, 255), 0.5, true);
-        cc.mm.uitools.addBtnLister(node, function () { lobby.tab = entry[0]; renderLobby(controller); }, controller);
-        return { key: entry[0], node: node, sprite: sprite, label: label };
-      });
-      lobby.count = lobbyLabel(lobby.box, '', 520, 262, 22, cc.color(255, 255, 255), 1);
-      var scrollNode = new cc.Node('standaloneLobbyTables');
-      scrollNode.setContentSize(1050, 470); scrollNode.setPosition(0, -12); lobby.box.addChild(scrollNode);
-      var view = new cc.Node('view');
-      view.setContentSize(1050, 470); view.addComponent(cc.Mask); scrollNode.addChild(view);
-      var content = new cc.Node('content');
-      content.anchorY = 1; content.setContentSize(1050, 470); content.setPosition(0, 235); view.addChild(content);
-      var scroll = scrollNode.addComponent(cc.ScrollView);
-      scroll.content = content; scroll.horizontal = false; scroll.vertical = true; scroll.inertia = true; scroll.elastic = true; scroll.brake = 0.75;
-      lobby.content = content; lobby.cards = {};
-      // 空状态放在和桌卡同款的底板上，雪景背景上也看得清。
-      var emptyPanel = new cc.Node('standaloneLobbyEmpty');
-      var emptyBg = emptyPanel.addComponent(cc.Sprite);
-      emptyBg.spriteFrame = frames.card; emptyBg.type = cc.Sprite.Type.SLICED; emptyBg.sizeMode = cc.Sprite.SizeMode.CUSTOM;
-      emptyPanel.setContentSize(640, 120); emptyPanel.setPosition(0, 40); lobby.box.addChild(emptyPanel);
-      lobby.empty = lobbyLabel(emptyPanel, '', 0, 0, 26, cc.color(122, 58, 0), 0.5, true);
-      poll();
+    lobby.tab = 'all';
+    // 桌卡区挂在整个窗口上，按窗口宽度排版（layoutLobby），不再跟着原版右侧区域缩放。
+    lobby.box = new cc.Node('standaloneLobbyBox'); controller.node.addChild(lobby.box);
+    lobby.tabs = [['all', '全部'], ['nearby', '附近']].map(function (entry) {
+      var pen = lobbyPen(lobby.box, 'standaloneLobbyTab');
+      pen.node.setContentSize(122, 52);
+      pen.node.addComponent(cc.Button).transition = cc.Button.Transition.SCALE;
+      var label = lobbyLabel(pen.node, entry[1], 0, 0, 25, rgb('#ffffff'), 0.5, true);
+      cc.mm.uitools.addBtnLister(pen.node, function () { lobby.tab = entry[0]; closeLobbyPlayer(lobby); renderLobby(controller); }, controller);
+      return { key: entry[0], node: pen.node, pen: pen, label: label };
     });
+    lobby.count = lobbyLabel(lobby.box, '', 0, 0, 24, rgb('#ffffff'), 1, true);
+    var countOutline = lobby.count.node.addComponent(cc.LabelOutline); countOutline.color = cc.color(20, 30, 60, 120); countOutline.width = 2;
+    var scrollNode = new cc.Node('standaloneLobbyTables'); lobby.box.addChild(scrollNode);
+    var view = new cc.Node('view'); view.addComponent(cc.Mask); scrollNode.addChild(view);
+    var content = new cc.Node('content'); content.anchorY = 1; view.addChild(content);
+    var scroll = scrollNode.addComponent(cc.ScrollView);
+    scroll.content = content; scroll.horizontal = false; scroll.vertical = true; scroll.inertia = true; scroll.elastic = true; scroll.brake = 0.75;
+    lobby.scroll = scrollNode; lobby.view = view; lobby.content = content; lobby.cards = {};
+    // 空状态放在深色玻璃底板上，雪景背景上也看得清。
+    var emptyPen = lobbyPen(lobby.box, 'standaloneLobbyEmpty', 0, 40);
+    fillRound(emptyPen, -320, -60, 640, 120, 24, cc.color(20, 30, 60, 150));
+    strokeRound(emptyPen, -320, -60, 640, 120, 24, cc.color(255, 255, 255, 107), 1.5);
+    lobby.empty = lobbyLabel(emptyPen.node, '', 0, 0, 26, rgb('#ffffff'), 0.5, true);
+    // 底部三个按钮搬进桌卡区，压在桌卡上面，跟着窗口宽度居中。
+    lobby.bottom = ['left/quick_start', 'left/joinbtn', 'left/createroom'].map(function (name) { return controller.views[name]; }).filter(Boolean);
+    lobby.bottom.forEach(function (node) { node.parent = lobby.box; });
+    layoutLobby(controller);
+    poll();
   }
-  function fitLobby(lobby) {
-    if (!lobby.box) return;
-    var k = Math.min(1, lobby.root.width / 1063);
-    lobby.box.scale = k;
-    lobby.bottom.forEach(function (item) { item.node.x = item.x * k; item.node.scale = item.scale * k; });
+  // 按窗口宽度排：一屏两排，每排能放下几张宽 290 以上的桌卡就放几张（16:9 四张，16:10、4:3 三张）。
+  // 返回 true 表示列数或卡宽变了，要重画桌卡。
+  function layoutLobby(controller) {
+    var lobby = controller._standaloneLobby, width = controller.node.width, half = width / 2;
+    if (!lobby || !lobby.box) return false;
+    var buttons = controller._gameBtns || [], single = buttons.length < 2;
+    if (controller.views.games) controller.views.games.active = !single;
+    var left = single ? -half + 40 : -half + 290, right = half - 40, areaWidth = right - left;
+    var columns = Math.max(2, Math.min(5, Math.floor((areaWidth + LOBBY_GAP_X) / (290 + LOBBY_GAP_X))));
+    var cardWidth = Math.floor((areaWidth - LOBBY_GAP_X * (columns - 1)) / columns);
+    var center = (left + right) / 2, top = 375 - 108, bottom = -375 + 130;
+    // 大厅顶栏的豆子框离右边约 340、宽约 160；4:3 这类窄屏把两个标签缩窄并贴近返回键，不压到它。
+    var tabWidth = Math.max(96, Math.min(122, Math.floor((width - 500 - 268 - 24) / 2))), tabLeft = tabWidth < 122 ? -half + 268 : -half + 290;
+    lobby.tabs.forEach(function (tab, index) {
+      tab.width = tabWidth; tab.node.setContentSize(tabWidth, 52);
+      tab.node.setPosition(tabLeft + tabWidth / 2 + index * (tabWidth + 12), 326);
+    });
+    lobby.count.node.setPosition(right, 326);
+    lobby.scroll.setContentSize(areaWidth, top - bottom); lobby.scroll.setPosition(center, (top + bottom) / 2);
+    lobby.view.setContentSize(areaWidth, top - bottom);
+    lobby.content.width = areaWidth; lobby.content.y = (top - bottom) / 2;
+    lobby.empty.node.parent.x = center;
+    // 按钮原图宽 339、245、245，间隔 34；放不下时一起缩小。
+    var widths = [339, 245, 245], total = 339 + 245 + 245 + 34 * 2, scale = Math.min(1, (areaWidth - 20) / total), x = center - total * scale / 2;
+    lobby.bottom.forEach(function (node, index) {
+      node.scale = scale;
+      node.setPosition(x + widths[index] * scale / 2, -295);
+      x += (widths[index] + 34) * scale;
+    });
+    var changed = lobby.columns !== columns || lobby.cardWidth !== cardWidth;
+    lobby.columns = columns; lobby.cardWidth = cardWidth; lobby.areaWidth = areaWidth;
+    return changed;
   }
   function lobbyRefresh(controller, reset) {
     var lobby = controller._standaloneLobby;
@@ -1148,16 +1250,27 @@
       renderLobby(controller);
     });
   }
+  function drawLobbyTab(tab, on) {
+    var pen = tab.pen, width = tab.width || 122, half = width / 2;
+    pen.clear();
+    if (on) {
+      fillRound(pen, -half, -30, width, 52, 14, rgb('#c97a10'));
+      fillRound(pen, -half, -26, width, 52, 14, rgb('#ffb21f'));
+      fillRound(pen, -half + 4, -2, width - 8, 24, 11, rgb('#ffe25a', 0.75));
+      strokeRound(pen, -half, -26, width, 52, 14, rgb('#fff3b0'), 2);
+    } else {
+      fillRound(pen, -half, -26, width, 52, 14, cc.color(40, 70, 140, 140));
+      strokeRound(pen, -half, -26, width, 52, 14, cc.color(255, 255, 255, 90), 2);
+    }
+    tab.label.node.color = on ? rgb('#8a3b00') : rgb('#ffffff');
+  }
   function renderLobby(controller) {
     var lobby = controller._standaloneLobby, data = lobby.data || { tables: [], variants: [], hasLocation: false };
-    fitLobby(lobby);
+    layoutLobby(controller);
     if (!data.hasLocation && lobby.tab === 'nearby') lobby.tab = 'all';
     lobby.tabs.forEach(function (tab) {
-      var on = tab.key === lobby.tab;
       tab.node.active = tab.key === 'all' || data.hasLocation;
-      tab.sprite.spriteFrame = on ? lobby.frames.tabOn : lobby.frames.tabOff;
-      tab.node.setContentSize(132, 62);
-      tab.label.node.color = on ? cc.color(122, 58, 0) : cc.color(255, 255, 255);
+      drawLobbyTab(tab, tab.key === lobby.tab);
     });
     var tables = data.tables.slice();
     if (lobby.tab === 'nearby') tables = tables.filter(function (table) { return table.nearby; }).sort(function (a, b) { return a.nearby.rank - b.nearby.rank; });
@@ -1168,61 +1281,149 @@
       : data.variants.some(function (item) { return !lobby.variant || item.key === lobby.variant; }) ? '这个玩法暂时没有公开桌，点「快速开始」开一桌'
       : '这个玩法还没有大厅桌，点「创建房间」约朋友来玩';
     lobby.empty.node.parent.active = !!lobby.empty.string;
-    var next = {};
+    var next = {}, columns = lobby.columns, cardWidth = lobby.cardWidth;
     tables.forEach(function (table, index) {
-      var signature = JSON.stringify([table, lobby.tab]), card = lobby.cards[table.code];
+      var signature = JSON.stringify([table, cardWidth]), card = lobby.cards[table.code];
       if (!card || !cc.isValid(card) || card._standaloneSignature !== signature) {
         if (card && cc.isValid(card)) card.destroy();
-        card = lobbyCard(controller, table, lobby.tab === 'nearby');
+        card = lobbyCard(controller, table, cardWidth);
         card._standaloneSignature = signature;
         lobby.content.addChild(card);
       }
-      card.setPosition(-350 + index % 3 * 350, -110 - Math.floor(index / 3) * 220);
+      card.setPosition(-lobby.areaWidth / 2 + cardWidth / 2 + index % columns * (cardWidth + LOBBY_GAP_X),
+        -LOBBY_CARD_HEIGHT / 2 - Math.floor(index / columns) * (LOBBY_CARD_HEIGHT + LOBBY_GAP_Y));
       next[table.code] = card;
     });
     Object.keys(lobby.cards).forEach(function (code) { if (!next[code] && cc.isValid(lobby.cards[code])) lobby.cards[code].destroy(); });
     lobby.cards = next;
-    lobby.content.height = Math.max(470, Math.ceil(tables.length / 3) * 220);
+    var rows = Math.ceil(tables.length / columns);
+    lobby.content.height = Math.max(lobby.view.height, rows * LOBBY_CARD_HEIGHT + Math.max(0, rows - 1) * LOBBY_GAP_Y);
   }
-  function lobbyCard(controller, table, nearbyTab) {
-    var lobby = controller._standaloneLobby, playing = table.state === 'playing';
+  // 进行中的桌子绿桌压灰（饱和度 0.35、亮度 0.88），和效果图一致。
+  function feltColor(hex, playing) {
+    var color = rgb(hex);
+    if (!playing) return color;
+    var grey = 0.3 * color.r + 0.59 * color.g + 0.11 * color.b;
+    var mix = function (value) { return Math.round(((value - grey) * 0.35 + grey) * 0.88); };
+    return cc.color(mix(color.r), mix(color.g), mix(color.b));
+  }
+  // 俯视绿桌：木框 8、金色内线，中间亮四周暗（Graphics 没有渐变，用几层圆角叠出来）。
+  function lobbyFelt(card, table, width, height, playing) {
+    var pen = lobbyPen(card, 'standaloneFelt'), x = -width / 2, y = -height / 2;
+    fillRound(pen, x + 2, y - 7, width - 4, height, 30, cc.color(40, 20, 0, 75));
+    fillRound(pen, x, y, width, height, 30, feltColor('#a3672c', playing));
+    var dark = rgb('#1a6347'), light = rgb('#43b184'), steps = 14;
+    for (var index = 0; index < steps; index++) {
+      var t = index / (steps - 1), inset = 8 + index * 2.6, lift = index * 0.7;
+      var hex = '#' + [dark.r + (light.r - dark.r) * t, dark.g + (light.g - dark.g) * t, dark.b + (light.b - dark.b) * t]
+        .map(function (value) { return ('0' + Math.round(value).toString(16)).slice(-2); }).join('');
+      fillRound(pen, x + inset, y + inset + lift, width - inset * 2, height - inset * 2, Math.max(8, 22 - index * 1.1), feltColor(hex, playing));
+    }
+    strokeRound(pen, x + 9, y + 9, width - 18, height - 18, 21, feltColor('#e6b866', playing), 2);
+    var base = new cc.Node('base'), rich = base.addComponent(cc.RichText);
+    rich.fontSize = 34; rich.lineHeight = 40; rich.horizontalAlign = cc.macro.TextAlignment.CENTER;
+    rich.string = '<b><color=#ffffff><size=16>底分 </size>' + table.baseBeans + '</color></b>';
+    base.setPosition(0, 12); pen.node.addChild(base);
+    lobbyLabel(pen.node, table.rounds + ' 局 · 门槛 ' + table.threshold + ' 豆', 0, -22, 14, playing ? cc.color(214, 224, 218) : rgb('#d9f5e8'), 0.5, true);
+  }
+  // 座位按顺时针从上方排：4 人上右下左，3 人上右左，2 人上下。
+  function lobbySeatSpots(count, width) {
+    var side = width / 2 - 10 - LOBBY_SEAT / 2, vertical = LOBBY_CARD_HEIGHT / 2 - 6 - LOBBY_SEAT / 2;
+    var top = [0, vertical], right = [side, 0], bottom = [0, -vertical], left = [-side, 0];
+    return count >= 4 ? [top, right, bottom, left] : count === 3 ? [top, right, left] : [top, bottom];
+  }
+  function lobbySeat(controller, card, player, x, y) {
+    var size = LOBBY_SEAT, half = size / 2;
+    if (!player) {
+      var empty = lobbyPen(card, 'standaloneEmptySeat', x, y);
+      fillRound(empty, -half, -half, size, size, 12, cc.color(20, 40, 60, 110));
+      fillRound(empty, -half, -half, size, size, 12, cc.color(255, 255, 255, 40));
+      dashedRound(empty, -half, -half, size, size, 12, cc.color(255, 255, 255, 230), 2.5);
+      lobbyLabel(empty.node, '+', 0, 9, 26, rgb('#ffffff'), 0.5);
+      lobbyLabel(empty.node, '空位', 0, -15, 12, rgb('#ffffff'), 0.5, true);
+      return;
+    }
+    var seat = new cc.Node('standaloneLobbySeat');
+    seat.setContentSize(size, size); seat.setPosition(x, y); card.addChild(seat);
+    var shadow = lobbyPen(seat, 'shadow', 0, -3);
+    fillRound(shadow, -half - 1, -half - 1, size + 2, size + 2, 13, cc.color(0, 0, 0, 80));
+    var clip = roundAvatar(seat, 0, 0, size, 12, player.avatarUrl);
+    var strip = lobbyPen(clip, 'nameStrip');
+    strip.fillColor = cc.color(0, 0, 0, 140); strip.rect(-half, -half, size, 21); strip.fill();
+    lobbyLabel(clip, seatName(player.nickname), 0, -half + 10.5, 13, rgb('#ffffff'), 0.5, true);
+    var ring = lobbyPen(seat, 'ring');
+    strokeRound(ring, -half, -half, size, size, 12, rgb('#ffffff'), 2.5);
+    // 头像自己是按钮：点头像看信息卡，不会当成点桌子入座。
+    var button = seat.addComponent(cc.Button); button.transition = cc.Button.Transition.SCALE; button.zoomScale = 0.94;
+    cc.mm.uitools.addBtnLister(seat, function () { openLobbyPlayer(controller, seat, player); }, controller);
+  }
+  function lobbyCard(controller, table, width) {
+    var lobby = controller._standaloneLobby, playing = table.state === 'playing', height = LOBBY_CARD_HEIGHT;
     var card = new cc.Node('standaloneLobbyCard');
-    card.setContentSize(340, 205);
-    var background = card.addComponent(cc.Sprite);
-    background.spriteFrame = lobby.frames.card; background.type = cc.Sprite.Type.SLICED; background.sizeMode = cc.Sprite.SizeMode.CUSTOM;
-    card.setContentSize(340, 205);
-    var brown = cc.color(122, 58, 0), grey = cc.color(128, 116, 100);
-    lobbyLabel(card, table.variantName, -152, 72, 26, brown, 0, true);
-    var missing = table.playerCount - table.seats.length;
-    lobbyLabel(card, playing ? '进行中 ' + table.currentRound + '/' + table.rounds + ' 局' : missing ? '缺 ' + missing + ' 人' : '已坐满', 152, 72, 22,
-      playing ? cc.color(204, 86, 30) : cc.color(46, 139, 87), 1, true);
+    card.setContentSize(width, height);
+    var glass = lobbyPen(card, 'glass');
+    fillRound(glass, -width / 2, -height / 2, width, height, 24, cc.color(255, 255, 255, 41));
+    strokeRound(glass, -width / 2, -height / 2, width, height, 24, cc.color(255, 255, 255, 107), 1.5);
+    lobbyFelt(card, table, width - 108, height - 116, playing);
     var bySeat = {};
     table.seats.forEach(function (seat) { bySeat[seat.seat] = seat; });
-    var stride = table.playerCount > 3 ? 78 : 96;
-    for (var seat = 1; seat <= table.playerCount; seat++) {
-      var x = (seat - (table.playerCount + 1) / 2) * stride, player = bySeat[seat];
-      if (player) {
-        avatarView(card, x, 10, 60)(player.avatarUrl || DEFAULT_AVATAR);
-        lobbyLabel(card, shortName(player.nickname, 4), x, -38, 17, cc.color(90, 74, 60));
-      } else {
-        var empty = new cc.Node('standaloneEmptySeat');
-        empty.setPosition(x, 10); card.addChild(empty);
-        var pen = empty.addComponent(cc.Graphics);
-        pen.fillColor = cc.color(236, 226, 206); pen.circle(0, 0, 30); pen.fill();
-        pen.lineWidth = 2; pen.strokeColor = cc.color(214, 196, 162); pen.circle(0, 0, 30); pen.stroke();
-        lobbyLabel(card, '空位', x, 10, 17, grey);
-      }
-    }
-    lobbyLabel(card, '底分 ' + table.baseBeans + ' · ' + table.rounds + ' 局 · 门槛 ' + table.threshold + ' 豆', -152, -74, 19, grey, 0);
-    if (nearbyTab && table.nearby) lobbyLabel(card, table.nearby.band, 152, -74, 19, cc.color(32, 110, 196), 1, true);
+    lobbySeatSpots(table.playerCount, width).forEach(function (spot, index) { lobbySeat(controller, card, bySeat[index + 1], spot[0], spot[1]); });
+    var missing = table.playerCount - table.seats.length;
+    lobbyPill(card, playing ? '进行中 ' + table.currentRound + '/' + table.rounds : missing ? '缺 ' + missing + ' 人' : '已坐满',
+      -width / 2 + 12, height / 2 - 12, 14, playing ? rgb('#e0702a') : missing ? rgb('#2e9b5f') : rgb('#4a6fa5'), rgb('#ffffff'), 0);
+    // 有人的桌子都显示离我多远（S2-AC3），只给档位不给米数；我没开定位时服务端不给。
+    if (table.nearby) lobbyPill(card, table.nearby.band, width / 2 - 12, height / 2 - 12, 14, cc.color(255, 255, 255, 242), rgb('#1f6fc4'), 1, pinIcon);
     var button = card.addComponent(cc.Button); button.transition = cc.Button.Transition.SCALE; button.zoomScale = 0.97;
     cc.mm.uitools.addBtnLister(card, function () {
       if (playing) return toast('这桌已经开局了，换一桌吧。');
       if (!missing) return toast('这桌已经坐满了，换一桌吧。');
       lobbyJoin(lobby, table.code);
     }, controller);
-    if (playing) card.opacity = 215;
     return card;
+  }
+  // 点头像弹的信息卡（S2-AC2）：昵称、性别、对外数字 ID；点别处关闭。
+  var SEX_TAGS = { 1: ['男', '#4a90e2'], 2: ['女', '#e8679a'] };
+  function closeLobbyPlayer(lobby) {
+    if (lobby && lobby.player && cc.isValid(lobby.player)) lobby.player.destroy();
+    if (lobby) lobby.player = null;
+  }
+  function openLobbyPlayer(controller, seat, player) {
+    var lobby = controller._standaloneLobby, host = controller.node;
+    closeLobbyPlayer(lobby);
+    var layer = new cc.Node('standaloneLobbyPlayer');
+    layer.setContentSize(host.width, host.height); host.addChild(layer);
+    layer.on(cc.Node.EventType.TOUCH_END, function () { closeLobbyPlayer(lobby); });
+    lobby.player = layer;
+    var width = 270, height = 112, half = host.width / 2, at = layer.convertToNodeSpaceAR(seat.convertToWorldSpaceAR(cc.v2(0, 0)));
+    var toRight = at.x + LOBBY_SEAT / 2 + 14 + width <= half - 10;
+    var x = toRight ? at.x + LOBBY_SEAT / 2 + 14 + width / 2 : at.x - LOBBY_SEAT / 2 - 14 - width / 2;
+    var y = Math.max(-375 + height / 2 + 10, Math.min(375 - height / 2 - 10, at.y));
+    var panel = lobbyPen(layer, 'panel', x, y);
+    panel.node.setContentSize(width, height);
+    panel.node.addComponent(cc.BlockInputEvents);
+    fillRound(panel, -width / 2, -height / 2 - 6, width, height, 16, cc.color(20, 30, 70, 70));
+    fillRound(panel, -width / 2, -height / 2, width, height, 16, rgb('#fffaf0'));
+    var arrowY = Math.max(-height / 2 + 18, Math.min(height / 2 - 18, at.y - y)), edge = toRight ? -width / 2 : width / 2, tip = toRight ? edge - 10 : edge + 10;
+    panel.fillColor = rgb('#fffaf0');
+    panel.moveTo(edge, arrowY + 10); panel.lineTo(tip, arrowY); panel.lineTo(edge, arrowY - 10); panel.close(); panel.fill();
+    var avatarX = -width / 2 + 14 + 42;
+    var frame = lobbyPen(panel.node, 'frame', avatarX, 0);
+    fillRound(frame, -44, -44, 88, 88, 16, rgb('#f0dfbd'));
+    roundAvatar(panel.node, avatarX, 0, 84, 14, player.avatarUrl);
+    var textX = avatarX + 42 + 12;
+    var name = lobbyLabel(panel.node, shortName(player.nickname, 5), textX, 18, 19, rgb('#5a3200'), 0, true);
+    var sex = SEX_TAGS[player.sex];
+    if (sex) lobbyPill(panel.node, sex[0], textX + labelWidth(name) + 6, 18 + 10.5, 13, rgb(sex[1]), rgb('#ffffff'), 0);
+    var id = new cc.Node('uid'), rich = id.addComponent(cc.RichText);
+    id.anchorX = 0; rich.fontSize = 14; rich.lineHeight = 20; rich.horizontalAlign = cc.macro.TextAlignment.LEFT;
+    rich.string = '<color=#8d7a62>ID </color><b><color=#5a3200>' + (player.uid || '—') + '</color></b>';
+    id.setPosition(textX, -16); panel.node.addChild(id);
+    panel.node.scale = 0.9; panel.node.opacity = 0;
+    cc.tween(panel.node).to(0.12, { scale: 1, opacity: 255 }).start();
+  }
+  function shortName(text, length) {
+    text = String(text || '');
+    return text.length > length ? text.substring(0, length) + '…' : text;
   }
   // 从大厅桌退出后回到大厅桌列表；好友房仍回主大厅（DEC-20261030-退桌回大厅桌列表）。
   var lobbyReturn = null;

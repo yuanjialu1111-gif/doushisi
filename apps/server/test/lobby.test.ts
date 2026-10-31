@@ -312,3 +312,24 @@ test('R2: a system table seated by four players starts its first round with the 
   assert.equal(room!.state, 'playing');
   assert.equal(room!.currentRound, 1);
 });
+
+test('S2-AC2 S2-AC3 大厅每个座位带昵称、性别、数字 ID；每张有人且有定位的桌都带档位，不带米数', async t => {
+  const ctx = await setup(); t.after(ctx.close);
+  const [girl, plain, viewer] = [await ctx.player('lobby_a2_girl', '50'), await ctx.player('lobby_a2_plain', '50'), await ctx.player('lobby_a2_viewer', '50')];
+  // 原版客户端登录时分到数字 ID；这里直接写一条，和协议层登录的效果一样。
+  await ctx.db.query("INSERT INTO original_protocol_ids(entity_kind,entity_id) VALUES('user',$1)", [girl.actor.id]);
+  const uid = String((await ctx.db.query("SELECT wire_id FROM original_protocol_ids WHERE entity_kind='user' AND entity_id=$1", [girl.actor.id])).rows[0]!.wire_id);
+  await ctx.db.query('UPDATE accounts SET sex=2 WHERE id=$1', [girl.actor.id]);
+  const girlRoom = await ctx.rooms.create(girl.actor, '4:0', { baseBeans: '1', playerNum: 4, gameNum: 8 }, undefined, 'public');
+  const plainRoom = await ctx.rooms.create(plain.actor, '4:0', { baseBeans: '2', playerNum: 4, gameNum: 8 }, undefined, 'public');
+  const locate = (headers: Record<string, string>, lat: number, lon: number) => ctx.app.inject({ method: 'POST', url: '/api/me/location', headers, payload: { lat, lon } });
+  await locate(viewer.headers, 30.4, 103.82);
+  await locate(girl.headers, 30.43, 103.82); // 约 3.3 公里
+  const byCode = Object.fromEntries((await tablesOf(ctx, viewer.headers)).tables.map((table: any) => [table.code, table]));
+  assert.deepEqual(byCode[girlRoom.code].seats.map((seat: any) => [seat.nickname, seat.sex, seat.uid]), [[girl.actor.nickname, 2, uid]]);
+  assert.match(uid, /^\d{6,}$/);
+  assert.equal(byCode[girlRoom.code].nearby.band, '5 公里内');
+  // 没设性别、还没进过游戏的人：性别 0、ID 空；桌上没人报位置就没有档位。
+  assert.deepEqual(byCode[plainRoom.code].seats.map((seat: any) => [seat.sex, seat.uid]), [[0, null]]);
+  assert.equal(byCode[plainRoom.code].nearby, undefined);
+});
