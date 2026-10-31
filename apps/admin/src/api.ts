@@ -87,6 +87,9 @@ export interface LobbyTemplate {
   summary: { baseBeans: string; playerNum: number; rounds: number } | null;
   openTables: number; seatedPlayers: number; updatedAt?: string;
 }
+export interface Setting {
+  key: string; group: string; label: string; unit: string; min: number; max: number; value: number; defaultValue: number;
+}
 export interface LedgerEntry {
   id: string; type: string; amount: string; balanceBefore: string; balanceAfter: string;
   reason: string; createdAt: string; actorName?: string; roomId?: string; roundId?: string;

@@ -149,6 +149,17 @@ tbody tr:hover { background: #fafcfb; }
 .switch-row input:checked + .switch-track::after { transform: translateX(18px); }
 .switch-row input:focus-visible + .switch-track { outline: 3px solid #64a98c; outline-offset: 3px; }
 .switch-row input:disabled + .switch-track { opacity: .5; }
+.settings-form { display: flex; flex-direction: column; gap: 18px; max-width: 760px; }
+.settings-group { border: 1px solid var(--line); border-radius: 8px; background: white; padding: 6px 22px 10px; margin: 0; min-width: 0; }
+.settings-group legend { font-size: 13px; font-weight: 600; color: #3f5a49; padding: 0 6px; margin-left: -6px; }
+.settings-row { display: flex; flex-direction: column; gap: 2px; padding: 12px 0; border-top: 1px solid var(--line); }
+.settings-row:first-of-type { border-top: 0; }
+.settings-row .probability-heading { margin-top: 0; }
+.settings-row .number-input { width: auto; }
+.settings-row .number-input input { width: 130px; }
+.settings-row .number-input > span { width: 26px; }
+.settings-row > .secondary { font-size: 11px; }
+.settings-row.dirty label { color: var(--green); font-weight: 600; }
 .probability-heading { display: flex; align-items: center; justify-content: space-between; gap: 15px; margin-top: 3px; }
 .number-input { display: flex; align-items: center; gap: 7px; width: 105px; font-size: 13px; color: #7b897f; }
 .number-input input { text-align: right; padding: 7px 8px; }

@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useId, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import {
   ArrowDownLeft, ArrowUpRight, Ban, Check, ChevronLeft, ChevronRight, Coins, Dices, History, ImageOff, Images,
-  LayoutGrid, LoaderCircle, LogOut, Plus, RefreshCw, RotateCcw, Search, Settings2, ShieldCheck, Users, UserX, X,
+  LayoutGrid, LoaderCircle, LogOut, Plus, RefreshCw, RotateCcw, Search, Settings2, ShieldCheck, SlidersHorizontal, Users, UserX, X,
 } from 'lucide-react';
 import {
   api, ApiError, EXPIRED_EVENT, isMissingEndpoint, mediaUrl, messageOf, MISSING_ENDPOINT, SESSION_KEY,
   type AdminUser, type AuditEntry, type AvatarItem, type DealPolicy, type LedgerEntry, type LobbyTemplate,
-  type LobbyVariant, type Pagination, type Player, type Stats,
+  type LobbyVariant, type Pagination, type Player, type Setting, type Stats,
 } from './api';
 
 const roleNames = { beans_admin: '豆子管理员', deal_admin: '发牌管理员' };
@@ -485,13 +485,48 @@ function Audit({ revision }: { revision: number }) {
   </section>;
 }
 
+// 后台参数（第二轮 2.8）：只给豆子管理员。只提交改过的项，服务端按范围校验并记审计。
+function AppSettings({ revision, onChange, notify }: { revision: number; onChange: () => void; notify: (message: string) => void }) {
+  const { data, error, missing, loading, reload } = useResource<{ settings: Setting[] }>('/settings', revision);
+  const [draft, setDraft] = useState<Record<string, string>>({});
+  const [busy, setBusy] = useState(false);
+  const [saveError, setSaveError] = useState('');
+  const settings = data?.settings ?? [];
+  useEffect(() => { setDraft({}); setSaveError(''); }, [data]);
+  const textOf = (item: Setting) => draft[item.key] ?? String(item.value);
+  const changed = settings.filter(item => textOf(item) !== String(item.value));
+  const invalid = changed.find(item => !isIntegerIn(textOf(item), item.min, item.max));
+  async function submit(event: FormEvent) {
+    event.preventDefault(); if (!changed.length || invalid) return;
+    setBusy(true); setSaveError('');
+    try {
+      await api('/settings', { method: 'PUT', body: JSON.stringify({ values: Object.fromEntries(changed.map(item => [item.key, Number(textOf(item))])) }) });
+      onChange(); notify(`已保存 ${changed.length} 项参数`);
+    } catch (err) { setSaveError(isMissingEndpoint(err) ? MISSING_ENDPOINT : messageOf(err)); } finally { setBusy(false); }
+  }
+  const groups = [...new Set(settings.map(item => item.group))];
+  return <section className="workspace-section"><div className="section-toolbar"><div><h2>参数</h2><span className="secondary">好友、私聊邀请和勋章的规则，保存后立刻生效</span></div><div className="toolbar-actions"><IconButton title="刷新参数" disabled={loading || busy} onClick={reload}><RefreshCw size={18} /></IconButton></div></div>
+    {error ? <ErrorBanner message={missing ? MISSING_ENDPOINT : error} retry={reload} /> : loading && !data ? <Loading /> : <form className="settings-form" onSubmit={submit}>
+      {groups.map(group => <fieldset key={group} className="settings-group" disabled={busy}><legend>{group}</legend>
+        {settings.filter(item => item.group === group).map(item => <div key={item.key} className={`settings-row ${textOf(item) !== String(item.value) ? 'dirty' : ''}`}>
+          <NumberField label={item.label} value={textOf(item)} min={item.min} max={item.max} unit={item.unit} disabled={busy} onChange={value => { setSaveError(''); setDraft(current => ({ ...current, [item.key]: value })); }} />
+          <span className="secondary">范围 {item.min.toLocaleString('zh-CN')}–{item.max.toLocaleString('zh-CN')}，默认 {item.defaultValue.toLocaleString('zh-CN')}</span>
+        </div>)}
+      </fieldset>)}
+      {invalid && <div className="secondary negative">{invalid.label}要填 {invalid.min}–{invalid.max} 的整数。</div>}
+      {saveError && <ErrorBanner message={saveError} />}
+      <div className="modal-actions"><button type="button" className="secondary-button" disabled={busy || !changed.length} onClick={() => setDraft({})}>撤销修改</button><button className="primary-button" disabled={busy || !changed.length || !!invalid}>{busy ? <LoaderCircle size={17} className="spin" /> : <Check size={17} />}{changed.length ? `保存 ${changed.length} 项` : '保存'}</button></div>
+    </form>}
+  </section>;
+}
+
 export default function App() {
   const [user, setUser] = useState<AdminUser | null>(null);
   const [checking, setChecking] = useState(!!sessionStorage.getItem(SESSION_KEY));
   const [sessionError, setSessionError] = useState('');
   const [sessionRetry, setSessionRetry] = useState(0);
   const [expired, setExpired] = useState(false);
-  const [view, setView] = useState<'main' | 'audit' | 'avatars' | 'lobby'>('main');
+  const [view, setView] = useState<'main' | 'audit' | 'avatars' | 'lobby' | 'settings'>('main');
   const [revision, setRevision] = useState(0);
   const [notice, setNotice] = useState('');
   useEffect(() => {
@@ -524,15 +559,15 @@ export default function App() {
   if (!user) return <Login expired={expired} onLogin={value => { setUser(value); setExpired(false); setRevision(n => n + 1); }} />;
   const isBeans = user.role === 'beans_admin';
   const changed = () => setRevision(value => value + 1);
-  // 头像审核两种管理员都有；大厅桌模板只给豆子管理员，策略审计只给发牌管理员。
-  const viewName = view === 'avatars' ? '头像审核' : isBeans ? view === 'lobby' ? '大厅桌模板' : '用户豆子' : view === 'audit' ? '策略审计' : '发牌策略';
+  // 头像审核两种管理员都有；大厅桌模板和参数只给豆子管理员，策略审计只给发牌管理员。
+  const viewName = view === 'avatars' ? '头像审核' : isBeans ? view === 'lobby' ? '大厅桌模板' : view === 'settings' ? '参数' : '用户豆子' : view === 'audit' ? '策略审计' : '发牌策略';
   return <div className="app-shell"><aside className="sidebar"><div className="brand"><Dices size={28} /><div><strong>斗十四</strong><span>运营管理台</span></div></div>
-    <div className="nav-label">工作空间</div><nav aria-label="管理导航"><button className={view === 'main' ? 'active' : ''} onClick={() => setView('main')}>{isBeans ? <Coins size={19} /> : <Settings2 size={19} />}{isBeans ? '用户豆子' : '发牌策略'}</button>{isBeans && <button className={view === 'lobby' ? 'active' : ''} onClick={() => setView('lobby')}><LayoutGrid size={19} />大厅桌模板</button>}{!isBeans && <button className={view === 'audit' ? 'active' : ''} onClick={() => setView('audit')}><History size={19} />策略审计</button>}<button className={view === 'avatars' ? 'active' : ''} onClick={() => setView('avatars')}><Images size={19} />头像审核</button></nav>
+    <div className="nav-label">工作空间</div><nav aria-label="管理导航"><button className={view === 'main' ? 'active' : ''} onClick={() => setView('main')}>{isBeans ? <Coins size={19} /> : <Settings2 size={19} />}{isBeans ? '用户豆子' : '发牌策略'}</button>{isBeans && <button className={view === 'lobby' ? 'active' : ''} onClick={() => setView('lobby')}><LayoutGrid size={19} />大厅桌模板</button>}{isBeans && <button className={view === 'settings' ? 'active' : ''} onClick={() => setView('settings')}><SlidersHorizontal size={19} />参数</button>}{!isBeans && <button className={view === 'audit' ? 'active' : ''} onClick={() => setView('audit')}><History size={19} />策略审计</button>}<button className={view === 'avatars' ? 'active' : ''} onClick={() => setView('avatars')}><Images size={19} />头像审核</button></nav>
     <div className="sidebar-bottom"><ShieldCheck size={17} /><span>{roleNames[user.role]}</span></div>
   </aside><div className="main-column"><header className="topbar"><div className="breadcrumbs"><span>管理台</span><ChevronRight size={14} /><strong>{viewName}</strong></div><div className="account-menu"><span>{user.nickname || user.username}</span><IconButton title="退出登录" onClick={logout}><LogOut size={18} /></IconButton></div></header>
     <main className="main-content"><div className="page-heading"><div><div className="eyebrow">{roleNames[user.role]}</div><h1>{isBeans ? '豆子管理' : '发牌管理'}</h1></div><IconButton title="刷新全部数据" onClick={changed}><RefreshCw size={18} /></IconButton></div><Statistics role={user.role} revision={revision} />
       {view === 'avatars' ? <AvatarReview revision={revision} onChange={changed} notify={setNotice} />
-        : isBeans ? view === 'lobby' ? <LobbyTemplates revision={revision} onChange={changed} notify={setNotice} /> : <Wallets revision={revision} onChange={changed} notify={setNotice} />
+        : isBeans ? view === 'lobby' ? <LobbyTemplates revision={revision} onChange={changed} notify={setNotice} /> : view === 'settings' ? <AppSettings revision={revision} onChange={changed} notify={setNotice} /> : <Wallets revision={revision} onChange={changed} notify={setNotice} />
         : view === 'audit' ? <Audit revision={revision} /> : <Policies revision={revision} onChange={changed} notify={setNotice} />}
     </main><footer className="page-footer"><span>斗十四 · 管理台</span><span>{roleNames[user.role]}</span></footer>
   </div>{notice && <div className="toast" role="status"><Check size={18} />{notice}<IconButton title="关闭通知" onClick={() => setNotice('')}><X size={16} /></IconButton></div>}</div>;

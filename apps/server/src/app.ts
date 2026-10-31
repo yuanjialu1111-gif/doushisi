@@ -20,6 +20,7 @@ import { AppError, requireCondition } from './errors.js';
 import { registerOriginalProtocol } from './original-wire.js';
 import { ProfileService } from './profile.js';
 import { LobbyService } from './lobby.js';
+import { SettingsService } from './settings.js';
 import { AVATAR_CONTENT_TYPES, AVATAR_ROUTE, DEFAULT_AVATAR_URL, MAX_AVATAR_UPLOAD, avatarUrl, parseAvatarFile } from './avatars.js';
 
 const credentials = z.object({ username: z.string().min(4).max(32), password: z.string().min(8).max(128) }).strict();
@@ -64,6 +65,7 @@ export async function createApp(db: Database, options: {
   const rooms = new RoomService(db, options.engines ?? createConfiguredEngineRegistry(), policies, options.roomClock);
   const replays = new ReplayService(db, rooms.engines);
   const profiles = new ProfileService(db);
+  const settings = new SettingsService(db);
   const requireProfile = async (userId: string) => { if (options.profileRequired) await profiles.requireComplete(userId); };
   const scheduler = options.scheduler === false ? null : new RoomScheduler(rooms, {
     ...options.scheduler, onError: (error, roomId) => app.log.error({ err: error, roomId }, 'Room scheduler operation failed'),
@@ -255,6 +257,13 @@ export async function createApp(db: Database, options: {
     return lobby.updateTemplate(admin, idSchema.parse((request.params as any).id), templateSchema.parse(request.body));
   });
 
+  // 后台参数（第二轮 2.8）：和大厅桌模板一样只给豆子管理员，改动记审计。
+  app.get('/api/admin/settings', async request => { await actor(request, 'beans_admin'); return settings.list(); });
+  app.put('/api/admin/settings', async request => {
+    const admin = await actor(request, 'beans_admin');
+    return settings.update(admin, z.object({ values: z.record(z.unknown()) }).strict().parse(request.body).values);
+  });
+
   app.get('/api/games', async request => { await actor(request, 'player'); return { games: rooms.games() }; });
   app.post('/api/rooms', async request => {
     const user = await actor(request, 'player');
@@ -354,5 +363,5 @@ export async function createApp(db: Database, options: {
     await scheduler?.stop(); await lobby.stop();
     for (const sockets of live.values()) for (const socket of sockets) socket.close(1001, 'Server restarting');
   });
-  return { app, auth, ledger, policies, rooms, replays, profiles, lobby, live, scheduler };
+  return { app, auth, ledger, policies, rooms, replays, profiles, lobby, settings, live, scheduler };
 }
