@@ -21,6 +21,7 @@ import { registerOriginalProtocol } from './original-wire.js';
 import { ProfileService } from './profile.js';
 import { LobbyService } from './lobby.js';
 import { SettingsService } from './settings.js';
+import { SocialService } from './social.js';
 import { AVATAR_CONTENT_TYPES, AVATAR_ROUTE, DEFAULT_AVATAR_URL, MAX_AVATAR_UPLOAD, avatarUrl, parseAvatarFile } from './avatars.js';
 
 const credentials = z.object({ username: z.string().min(4).max(32), password: z.string().min(8).max(128) }).strict();
@@ -73,9 +74,10 @@ export async function createApp(db: Database, options: {
   const lobby = new LobbyService(db, rooms, { profiles, profileRequired: options.profileRequired === true,
     onError: error => app.log.error({ err: error }, 'Lobby maintenance failed') });
   if (options.seedLobby) await lobby.seedDefaults();
-  app.addHook('onReady', async () => { scheduler?.start(); if (scheduler) lobby.start(); });
+  app.addHook('onReady', async () => { scheduler?.start(); if (scheduler) { lobby.start(); social.start(); } });
   const live = new Map<string, Set<WebSocket>>();
   const isOnline = (userId: string) => Boolean(live.get(userId)?.size);
+  const social = new SocialService(db, settings, { isOnline });
   const markOnline = (userId: string, socket: WebSocket) => {
     const connections = live.get(userId) ?? new Set<WebSocket>();
     requireCondition(connections.size < 5, 'TOO_MANY_CONNECTIONS', 'Too many sessions for this account.', 429);
@@ -291,6 +293,25 @@ export async function createApp(db: Database, options: {
     const rows = await db.query('SELECT a.id,a.username,a.nickname,a.avatar_hash AS "avatarHash",a.avatar_status AS "avatarStatus",f.last_played_at AS "lastPlayedAt" FROM friends f JOIN accounts a ON a.id=f.friend_id WHERE f.user_id=$1 ORDER BY f.last_played_at DESC,a.id LIMIT 200', [user.id]);
     return { friends: rows.rows.map(({ avatarHash, avatarStatus, ...row }) => ({ ...row, avatarUrl: avatarUrl({ id: row.id, avatarHash, avatarStatus }), online: isOnline(row.id) })) };
   });
+  // 加好友（第二轮 S3）：对外只用数字 ID；搜 ID 另有每人每分钟次数限制（后台可改）。
+  app.get('/api/social/friends', { config: perToken }, async request => social.friends((await actor(request, 'player')).id));
+  app.get('/api/social/search', { config: perToken }, async request => {
+    const user = await actor(request, 'player');
+    const { uid } = z.object({ uid: z.string().min(1).max(12) }).strict().parse(request.query);
+    return social.search(user.id, uid);
+  });
+  app.get('/api/social/requests', { config: perToken }, async request => social.requests((await actor(request, 'player')).id));
+  app.post('/api/social/requests', { config: perToken }, async request => {
+    const user = await actor(request, 'player');
+    const input = z.object({ uid: z.string().regex(/^\d{1,10}$/), source: z.enum(['search', 'recent']).default('search') }).strict().parse(request.body);
+    return social.request(user.id, input.uid, input.source);
+  });
+  app.post('/api/social/requests/:id/decide', { config: perToken }, async request => {
+    const user = await actor(request, 'player');
+    const { accept } = z.object({ accept: z.boolean() }).strict().parse(request.body);
+    return social.decide(user.id, idSchema.parse((request.params as any).id), accept);
+  });
+  app.get('/api/social/recent', { config: perToken }, async request => social.recent((await actor(request, 'player')).id));
   app.get('/api/records', async request => {
     const user = await actor(request, 'player');
     const { page } = pageSchema.parse(request.query);
@@ -360,8 +381,8 @@ export async function createApp(db: Database, options: {
     app.get('/', async (_request, reply) => reply.redirect('/admin/'));
   }
   app.addHook('onClose', async () => {
-    await scheduler?.stop(); await lobby.stop();
+    await scheduler?.stop(); await lobby.stop(); social.stop();
     for (const sockets of live.values()) for (const socket of sockets) socket.close(1001, 'Server restarting');
   });
-  return { app, auth, ledger, policies, rooms, replays, profiles, lobby, settings, live, scheduler };
+  return { app, auth, ledger, policies, rooms, replays, profiles, lobby, settings, social, live, scheduler };
 }

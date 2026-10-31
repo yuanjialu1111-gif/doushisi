@@ -41,21 +41,28 @@ const steps = [
   { label: '/api/lobby/ 和 /media/avatars/',
     before: String.raw`/^\/api\/(me|games|friends|records|rooms)(\/|$)/.test(pathname);`,
     after: String.raw`/^\/api\/(me|games|friends|records|rooms|lobby)(\/|$)/.test(pathname) ||
-    pathname.startsWith('/media/avatars/');` },
+    pathname.startsWith('/media/avatars/');`,
+    also: [String.raw`/^\/api\/(me|games|friends|records|rooms|lobby|social)(\/|$)/.test(pathname) ||
+    pathname.startsWith('/media/avatars/');`] },
   { label: '管理后台 /admin/ 和 /api/admin/',
     before: String.raw`/^\/api\/auth\/(register|login|logout)$/.test(pathname) ||`,
     after: String.raw`/^\/api\/auth\/(register|login|logout)$/.test(pathname) ||
     pathname.startsWith('/admin/') || pathname.startsWith('/api/admin/') ||` },
+  // 第二轮好友、私聊、邀请（S3、S4）都在 /api/social/ 下。
+  { label: '/api/social/',
+    before: String.raw`/^\/api\/(me|games|friends|records|rooms|lobby)(\/|$)/.test(pathname) ||`,
+    after: String.raw`/^\/api\/(me|games|friends|records|rooms|lobby|social)(\/|$)/.test(pathname) ||` },
 ];
 let text = fs.readFileSync(file, 'utf8');
 const todo = [];
+// 按顺序在内存里逐步替换：后面的步骤以前面改过的文字为准（/api/social/ 接在 /api/lobby/ 之后）。
 for (const step of steps) {
-  if (text.includes(step.after)) { console.log('网关白名单已含 ' + step.label); continue; }
+  if ([step.after, ...(step.also ?? [])].some(done => text.includes(done))) { console.log('网关白名单已含 ' + step.label); continue; }
   if (text.split(step.before).length !== 2) { console.error('网关白名单和预期不一致，没有改动（' + step.label + '）：' + file); process.exit(2); }
+  text = text.replace(step.before, () => step.after);
   todo.push(step);
 }
 if (mode === 'check') { for (const step of todo) console.log('网关白名单可以补上 ' + step.label); process.exit(0); }
-for (const step of todo) text = text.replace(step.before, () => step.after);
 if (todo.length) fs.writeFileSync(file, text);
 for (const step of todo) console.log('网关白名单已补上 ' + step.label);
 JS

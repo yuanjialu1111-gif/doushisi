@@ -108,7 +108,7 @@ test('confirmed scores survive restart, dissolve atomically and remain independe
       assert.equal(restoredReplay.endReason, 'dissolved');
       assert.deepEqual(restoredReplay.frames.map(frame => frame.game), [{ actions: 0 }, { actions: 1 }, { actions: 2 }]);
       assert.deepEqual(restoredReplay.results, totals(players, '0.125'));
-      assert.equal((await db.query('SELECT count(*)::int AS count FROM friends WHERE first_room_id=$1', [room.id])).rows[0]!.count, 2);
+      assert.equal((await db.query('SELECT count(*)::int AS count FROM friends WHERE first_room_id=$1', [room.id])).rows[0]!.count, 0, 'S3-AC4 不再自动加好友');
       await assert.rejects(db.query("UPDATE rounds SET results='[]' WHERE id=$1", [roundId]), /immutable/);
     });
 

@@ -482,7 +482,8 @@ export class RoomService extends EventEmitter {
     const operation = await appendOperation(tx, operationSpec);
     if (operation.replayed) return [];
     await tx.query('UPDATE room_members SET ready=false WHERE room_id=$1', [room.id]);
-    for (const userId of ids) for (const friendId of ids) if (userId !== friendId) await tx.query('INSERT INTO friends(user_id,friend_id,first_room_id) VALUES($1,$2,$3) ON CONFLICT(user_id,friend_id) DO UPDATE SET last_played_at=now()', [userId, friendId, room.id]);
+    // 第二轮 S3-AC4：同桌打完不再自动加好友（改成申请制），只刷新已是好友的最近同桌时间。
+    for (const userId of ids) for (const friendId of ids) if (userId !== friendId) await tx.query('UPDATE friends SET last_played_at=now() WHERE user_id=$1 AND friend_id=$2', [userId, friendId]);
     if (endReason === 'dissolved') {
       const previous = (await tx.query('SELECT interaction_state FROM rounds WHERE id=$1', [roundId])).rows[0]?.interaction_state as InteractionState | null;
       if (previous) await tx.query('UPDATE rounds SET interaction_state=$2 WHERE id=$1', [roundId, JSON.stringify(finishInteractions(previous, this.now()))]);

@@ -667,10 +667,11 @@ export async function registerOriginalProtocol(app: FastifyInstance, services: O
           connection.send(MSGEvent.HWResponseDissolveTable, { result: 1 }); await queueRoom(room.id); return;
         }
         case MSGEvent.HWRequestGetFriends: {
-          const rows = await db.query('SELECT a.id,a.nickname,a.avatar_hash AS "avatarHash",a.avatar_status AS "avatarStatus",f.first_room_id FROM friends f JOIN accounts a ON a.id=f.friend_id WHERE f.user_id=$1 ORDER BY f.last_played_at DESC LIMIT 200', [actor.id]);
+          const rows = await db.query('SELECT a.id,a.nickname,a.avatar_hash AS "avatarHash",a.avatar_status AS "avatarStatus",f.first_room_id,f.source FROM friends f JOIN accounts a ON a.id=f.friend_id WHERE f.user_id=$1 ORDER BY f.last_played_at DESC LIMIT 200', [actor.id]);
           const friends = [];
           for (const friend of rows.rows) friends.push({ uid: await numericUid(friend.id), nick: friend.nickname, picUrl: avatarUrl(friend),
-            recordId: await wireId('room', friend.first_room_id), online: isUserOnline(friend.id) ? '在线' : '离线中', source: '同桌对局', keZhaohui: false, headType: 0, maxGoldLevel: 0 });
+            recordId: friend.first_room_id ? await wireId('room', friend.first_room_id) : 0, online: isUserOnline(friend.id) ? '在线' : '离线中',
+            source: friend.source === 'recent' ? '最近同桌' : friend.source === 'search' ? '搜索添加' : '同桌对局', keZhaohui: false, headType: 0, maxGoldLevel: 0 });
           connection.send(MSGEvent.HWResponseGetFriends, { result: 1, friendAll: friends, gradeInfo: [] }); return;
         }
         case MSGEvent.HWRequestHeadInfo: {

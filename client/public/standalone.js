@@ -1509,6 +1509,511 @@
     hide(controller.views, ['hall_room_center/games/qiehuan']);
   }
 
+  // 好友页（第二轮 S3）：原版「我的好友」窗口只留背景和返回键，上面搭 好友 / 申请 标签、我的 ID、找朋友。
+  // 对外只用数字 ID，数据都走 /api/social/；窗口显示时每 5 秒刷新一次。
+  var FRIEND_STATUS = { idle: ['在线 · 空闲', '#4be08a'], playing: ['游戏中', '#ffb547'], offline: ['离线', '#b8c2d6'] };
+  var FRIEND_SOURCE = { search: '搜索添加', recent: '最近同桌', table: '同桌对局' };
+  var FRIEND_REQUEST_STATE = { pending: ['等对方同意', '#ffb547'], accepted: ['已同意 · 已成为好友', '#4be08a'], rejected: ['对方已拒绝', '#b8c2d6'], expired: ['已过期', '#b8c2d6'] };
+  var FRIEND_CARD_HEIGHT = 92, FRIEND_ROW_HEIGHT = 78, FRIEND_GAP = 12;
+  var FRIEND_BUTTONS = { yellow: ['#d98a00', '#ffc72c', '#ffe27a', '#7a3a00'], orange: ['#d9560b', '#ff8a1f', '#ffb15c', '#ffffff'],
+    green: ['#1f9a4a', '#33c26a', '#6be096', '#ffffff'], blue: ['#1f6fd1', '#3d9bff', '#7cc0ff', '#ffffff'], grey: ['#b8bfcc', '#e8ebf1', '#f6f7fa', '#5b6475'] };
+  function installFriends() { afterLoadUI('FriendListUIController', patchFriends); }
+  function friendButton(parent, text, x, y, width, height, style, onClick, controller) {
+    var colors = FRIEND_BUTTONS[style], pen = lobbyPen(parent, 'standaloneFriendButton', x, y), radius = Math.min(14, height / 2);
+    pen.node.setContentSize(width, height);
+    fillRound(pen, -width / 2, -height / 2 - 4, width, height, radius, rgb(colors[0]));
+    fillRound(pen, -width / 2, -height / 2, width, height, radius, rgb(colors[1]));
+    var shine = height / 2 - 3;
+    fillRound(pen, -width / 2 + 4, 0, width - 8, shine, Math.min(radius - 3, shine / 2), rgb(colors[2], 0.55));
+    var label = lobbyLabel(pen.node, text, 0, 0, Math.round(height * 0.42), rgb(colors[3]), 0.5, true);
+    if (onClick) {
+      var button = pen.node.addComponent(cc.Button); button.transition = cc.Button.Transition.SCALE; button.zoomScale = 0.94;
+      cc.mm.uitools.addBtnLister(pen.node, onClick, controller);
+    }
+    return { node: pen.node, label: label };
+  }
+  function friendBadge(parent, x, y) {
+    var pen = lobbyPen(parent, 'standaloneBadge', x, y), label = lobbyLabel(pen.node, '', 0, 0, 15, rgb('#ffffff'), 0.5, true);
+    pen.node.active = false;
+    return function (count) {
+      pen.clear(); pen.node.active = count > 0;
+      if (!count) return;
+      label.string = count > 99 ? '99+' : String(count);
+      var width = Math.max(24, labelWidth(label) + 12);
+      fillRound(pen, -width / 2, -12, width, 24, 12, rgb('#ff3b30'));
+      strokeRound(pen, -width / 2, -12, width, 24, 12, rgb('#ffffff'), 2);
+    };
+  }
+  function twoDigits(value) { return value < 10 ? '0' + value : String(value); }
+  function friendAgo(value) {
+    var time = new Date(value).getTime();
+    if (!time) return '';
+    var minutes = Math.floor((Date.now() - time) / 60000);
+    if (minutes < 1) return '刚刚';
+    if (minutes < 60) return minutes + ' 分钟前';
+    var hours = Math.floor(minutes / 60);
+    if (hours < 24) return hours + ' 小时前';
+    var days = Math.floor(hours / 24);
+    if (days === 1) return '昨天';
+    if (days < 7) return days + ' 天前';
+    var date = new Date(time);
+    return twoDigits(date.getMonth() + 1) + '-' + twoDigits(date.getDate());
+  }
+  function copyText(text) {
+    if (cc.sys.isNative && window.jsb && jsb.copyTextToClipboard) { jsb.copyTextToClipboard(text); toast('复制成功'); }
+    else cc.mm.gameserver.setClipboard(text);
+  }
+  function friendRich(parent, text, x, y, size, anchorX) {
+    var node = new cc.Node('standaloneRich'), rich = node.addComponent(cc.RichText);
+    node.anchorX = anchorX === undefined ? 0 : anchorX; rich.fontSize = size; rich.lineHeight = size + 8;
+    rich.string = text; node.setPosition(x, y); parent.addChild(node);
+    return rich;
+  }
+  // 「我的 ID 100023 复制」：深色圆角条，点「复制」放进剪贴板。
+  function friendIdPill(parent, controller) {
+    var pen = lobbyPen(parent, 'standaloneMyId');
+    var caption = lobbyLabel(pen.node, '我的 ID', 16, 0, 16, rgb('#c9d4ee'), 0, false);
+    var number = lobbyLabel(pen.node, '', 0, 0, 18, rgb('#ffffff'), 0, true);
+    var copy = lobbyPen(pen.node, 'copy');
+    copy.node.setContentSize(54, 30);
+    var copyLabel = lobbyLabel(copy.node, '复制', 0, 0, 15, rgb('#ffffff'), 0.5, true);
+    var button = copy.node.addComponent(cc.Button); button.transition = cc.Button.Transition.SCALE; button.zoomScale = 0.92;
+    var state = { uid: '', node: pen.node, width: 0 };
+    cc.mm.uitools.addBtnLister(copy.node, function () { if (state.uid) copyText(state.uid); }, controller);
+    state.set = function (uid) {
+      if (state.uid === uid) return;
+      state.uid = uid;
+      number.string = uid;
+      var captionWidth = labelWidth(caption), textWidth = captionWidth + 8 + labelWidth(number), width = 16 + textWidth + 10 + 54 + 8;
+      number.node.x = 16 + captionWidth + 8;
+      state.width = width;
+      pen.clear();
+      fillRound(pen, 0, -20, width, 40, 20, cc.color(14, 24, 60, 150));
+      copy.clear(); fillRound(copy, -27, -14, 54, 28, 14, cc.color(255, 255, 255, 60));
+      copy.node.setPosition(16 + textWidth + 10 + 27, 0);
+      copyLabel.node.color = rgb('#ffffff');
+    };
+    return state;
+  }
+  function searchIcon(pen, x, y, color) {
+    pen.lineWidth = 3.5; pen.strokeColor = color;
+    pen.circle(x - 2, y + 2, 8); pen.stroke();
+    pen.moveTo(x + 4, y - 4); pen.lineTo(x + 10, y - 10); pen.stroke();
+  }
+  function patchFriends(controller) {
+    if (!controller.views || !controller.views.backBtn) return;
+    var friends = controller._standaloneFriends || (controller._standaloneFriends = { tab: 'friends', items: {} });
+    hide(controller.views, ['baoshan-pic-chendi', 'scrollview', 'item']);
+    closeFriendSearch(friends);
+    function poll() {
+      clearInterval(friends.timer);
+      friends.timer = setInterval(function () {
+        if (!cc.isValid(controller.node)) return clearInterval(friends.timer);
+        if (!controller.node.activeInHierarchy) return;
+        if (layoutFriends(controller)) renderFriends(controller);
+        friendsRefresh(controller);
+      }, 5000);
+      friendsRefresh(controller);
+    }
+    if (friends.box) { friends.tab = 'friends'; renderFriends(controller); poll(); return; }
+    friends.box = new cc.Node('standaloneFriendsBox'); controller.node.addChild(friends.box);
+    friends.tabs = [['friends', '好友'], ['requests', '申请']].map(function (entry) {
+      var pen = lobbyPen(friends.box, 'standaloneFriendTab');
+      pen.node.setContentSize(122, 52);
+      pen.node.addComponent(cc.Button).transition = cc.Button.Transition.SCALE;
+      var label = lobbyLabel(pen.node, entry[1], 0, 0, 25, rgb('#ffffff'), 0.5, true);
+      var badge = friendBadge(pen.node, 52, 22);
+      cc.mm.uitools.addBtnLister(pen.node, function () { friends.tab = entry[0]; renderFriends(controller); }, controller);
+      return { key: entry[0], node: pen.node, pen: pen, label: label, badge: badge };
+    });
+    friends.find = friendButton(friends.box, '', 0, 0, 176, 54, 'orange', function () { openFriendSearch(controller); }, controller);
+    friends.find.label.string = '找朋友'; friends.find.label.node.x = 14;
+    searchIcon(friends.find.node.getComponent(cc.Graphics), -48, 0, rgb('#ffffff'));
+    friends.myId = friendIdPill(friends.box, controller);
+    friends.summary = friendRich(friends.box, '', 0, 0, 20);
+    var scrollNode = new cc.Node('standaloneFriendList'); friends.box.addChild(scrollNode);
+    var view = new cc.Node('view'); view.addComponent(cc.Mask); scrollNode.addChild(view);
+    var content = new cc.Node('content'); content.anchorY = 1; view.addChild(content);
+    var scroll = scrollNode.addComponent(cc.ScrollView);
+    scroll.content = content; scroll.horizontal = false; scroll.vertical = true; scroll.inertia = true; scroll.elastic = true; scroll.brake = 0.75;
+    friends.scroll = scrollNode; friends.view = view; friends.content = content;
+    var emptyPen = lobbyPen(friends.box, 'standaloneFriendEmpty', 0, 20);
+    fillRound(emptyPen, -340, -60, 680, 120, 24, cc.color(20, 30, 60, 150));
+    strokeRound(emptyPen, -340, -60, 680, 120, 24, cc.color(255, 255, 255, 107), 1.5);
+    friends.empty = lobbyLabel(emptyPen.node, '', 0, 0, 24, rgb('#ffffff'), 0.5, true);
+    layoutFriends(controller);
+    renderFriends(controller);
+    poll();
+  }
+  // 标签贴着返回键；右上「找朋友」。窄屏（4:3 这类）把「我的 ID」挪到第二行右边，免得和标签挤。
+  function layoutFriends(controller) {
+    var friends = controller._standaloneFriends, width = controller.node.width, half = width / 2;
+    if (!friends || !friends.box) return false;
+    var left = -half + 36, right = half - 36, areaWidth = right - left, narrow = width < 1150;
+    var tabWidth = narrow ? 104 : 122, tabLeft = -half + 290;
+    friends.tabs.forEach(function (tab, index) {
+      tab.width = tabWidth; tab.node.setContentSize(tabWidth, 52);
+      tab.node.setPosition(tabLeft + tabWidth / 2 + index * (tabWidth + 12), 330);
+    });
+    friends.find.node.setPosition(right - 88, 330);
+    friends.myId.node.setPosition(narrow ? right - friends.myId.width : right - 176 - 18 - friends.myId.width, narrow ? 272 : 330);
+    friends.myId.narrow = narrow;
+    friends.summary.node.setPosition(left + 4, 272);
+    var top = 375 - 130, bottom = -375 + 18;
+    friends.scroll.setContentSize(areaWidth, top - bottom); friends.scroll.setPosition(0, (top + bottom) / 2);
+    friends.view.setContentSize(areaWidth, top - bottom);
+    friends.content.width = areaWidth; friends.content.y = (top - bottom) / 2;
+    var changed = friends.areaWidth !== areaWidth;
+    friends.areaWidth = areaWidth;
+    return changed;
+  }
+  function friendsRefresh(controller, force) {
+    var friends = controller._standaloneFriends;
+    if (!friends || !friends.box || !cc.isValid(controller.node)) return;
+    if (friends.loading) { friends.again = friends.again || force; return; }
+    friends.loading = true;
+    Promise.all([apiRequest('GET', '/api/social/friends'), apiRequest('GET', '/api/social/requests')]).then(function (results) {
+      friends.loading = false;
+      if (!cc.isValid(controller.node)) return;
+      if (friends.again) { friends.again = false; return friendsRefresh(controller); }
+      var signature = JSON.stringify(results);
+      friends.failed = false;
+      if (signature === friends.signature) return;
+      friends.signature = signature; friends.data = results[0]; friends.requests = results[1];
+      renderFriends(controller);
+    }, function () {
+      friends.loading = false;
+      if (!cc.isValid(controller.node) || friends.data) return;
+      friends.failed = true;
+      renderFriends(controller);
+    });
+  }
+  function renderFriends(controller) {
+    var friends = controller._standaloneFriends, data = friends.data, requests = friends.requests || { incoming: [], outgoing: [] };
+    if (!friends.box) return;
+    layoutFriends(controller);
+    friends.tabs.forEach(function (tab) {
+      drawLobbyTab(tab, tab.key === friends.tab);
+      tab.badge(tab.key === 'requests' ? requests.incoming.length : 0);
+    });
+    if (data) friends.myId.set(data.myUid);
+    friends.myId.node.active = !!data;
+    if (data) layoutFriends(controller);
+    var list = data ? data.friends : [];
+    if (friends.tab === 'friends') {
+      var online = list.filter(function (friend) { return friend.status !== 'offline'; }).length;
+      friends.summary.string = data ? '<outline color=#14203c width=2><b><color=#ffffff>好友 ' + list.length + ' / ' + data.limit + '</color><color=#c9d4ee> · </color><color=#4be08a>在线 ' + online + '</color></b></outline>' : '';
+    } else friends.summary.string = '<outline color=#14203c width=2><color=#dfe6f5><size=16>申请 7 天没人处理自动过期 · 被拒绝后 24 小时内不能再申请同一个人</size></color></outline>';
+    friends.summary.node.active = !(friends.myId.narrow && friends.tab === 'requests');
+    friends.empty.string = friends.failed ? '好友加载失败，稍后会自动重试' : !data ? '正在加载…'
+      : friends.tab === 'friends' && !list.length ? '还没有好友，点右上角「找朋友」搜 ID 加好友' : '';
+    friends.empty.node.parent.active = !!friends.empty.string;
+    var content = friends.content, width = friends.areaWidth, keep = {}, height = 0;
+    function place(key, signature, build, x, y) {
+      var item = friends.items[key];
+      if (!item || item.signature !== signature || !cc.isValid(item.node)) {
+        if (item && cc.isValid(item.node)) item.node.destroy();
+        item = friends.items[key] = { signature: signature, node: build() };
+        content.addChild(item.node);
+      }
+      item.node.setPosition(x, y);
+      keep[key] = true;
+    }
+    if (data && friends.tab === 'friends') {
+      var cardWidth = Math.floor((width - 22) / 2);
+      list.forEach(function (friend, index) {
+        var column = index % 2, row = Math.floor(index / 2);
+        place('friend:' + friend.uid, JSON.stringify([friend, cardWidth]), function () { return friendCard(controller, friend, cardWidth); },
+          -width / 2 + cardWidth / 2 + column * (cardWidth + 22), -row * (FRIEND_CARD_HEIGHT + FRIEND_GAP) - FRIEND_CARD_HEIGHT / 2);
+      });
+      height = Math.ceil(list.length / 2) * (FRIEND_CARD_HEIGHT + FRIEND_GAP);
+    }
+    if (data && friends.tab === 'requests') {
+      var y = 0;
+      place('head:in', JSON.stringify(['in', requests.incoming.length, width]), function () { return friendSection('收到的申请', requests.incoming.length, width); }, 0, y - 18);
+      y -= 40;
+      if (!requests.incoming.length) {
+        place('none:in', 'none' + width, function () { return friendNote('暂时没有新的好友申请', width); }, 0, y - 22); y -= 48;
+      }
+      requests.incoming.forEach(function (request) {
+        place('in:' + request.id, JSON.stringify([request, width]), function () { return friendRequestRow(controller, request, width, true); }, 0, y - FRIEND_ROW_HEIGHT / 2);
+        y -= FRIEND_ROW_HEIGHT + 10;
+      });
+      y -= 8;
+      place('head:out', JSON.stringify(['out', width]), function () { return friendSection('我发出的', 0, width); }, 0, y - 18);
+      y -= 40;
+      if (!requests.outgoing.length) {
+        place('none:out', 'none' + width, function () { return friendNote('最近 7 天没有发出过申请', width); }, 0, y - 22); y -= 48;
+      }
+      requests.outgoing.forEach(function (request) {
+        place('out:' + request.id, JSON.stringify([request, width]), function () { return friendRequestRow(controller, request, width, false); }, 0, y - FRIEND_ROW_HEIGHT / 2);
+        y -= FRIEND_ROW_HEIGHT + 10;
+      });
+      height = -y;
+    }
+    Object.keys(friends.items).forEach(function (key) {
+      if (keep[key]) return;
+      if (cc.isValid(friends.items[key].node)) friends.items[key].node.destroy();
+      delete friends.items[key];
+    });
+    content.height = Math.max(friends.view.height, height);
+  }
+  function friendSection(title, count, width) {
+    var node = new cc.Node('standaloneFriendSection');
+    var label = lobbyLabel(node, title, -width / 2 + 4, 0, 21, rgb('#ffffff'), 0, true);
+    var outline = label.node.addComponent(cc.LabelOutline); outline.color = cc.color(20, 30, 60, 120); outline.width = 2;
+    if (count) friendBadge(node, -width / 2 + 4 + labelWidth(label) + 20, 0)(count);
+    return node;
+  }
+  function friendNote(text, width) {
+    var node = new cc.Node('standaloneFriendNote');
+    var pen = lobbyPen(node, 'glass');
+    fillRound(pen, -width / 2, -20, width, 40, 14, cc.color(20, 30, 60, 90));
+    lobbyLabel(node, text, 0, 0, 17, rgb('#c9d4ee'), 0.5, false);
+    return node;
+  }
+  function friendGlass(node, width, height) {
+    var glass = lobbyPen(node, 'glass');
+    fillRound(glass, -width / 2, -height / 2, width, height, 18, cc.color(28, 44, 100, 150));
+    strokeRound(glass, -width / 2, -height / 2, width, height, 18, cc.color(255, 255, 255, 80), 1.5);
+  }
+  // 头像 + 昵称 + 性别标签，返回昵称右侧的 x，方便接着放东西。
+  function friendIdentity(node, user, x, size, nameY, nameSize) {
+    roundAvatar(node, x + size / 2, 0, size, size * 0.19, user.avatarUrl);
+    var ring = lobbyPen(node, 'ring', x + size / 2, 0);
+    strokeRound(ring, -size / 2, -size / 2, size, size, size * 0.19, cc.color(255, 255, 255, 200), 2);
+    var textX = x + size + 14;
+    var name = lobbyLabel(node, shortName(user.nickname, 6), textX, nameY, nameSize, rgb('#ffffff'), 0, true);
+    var sex = SEX_TAGS[user.sex];
+    if (sex) lobbyPill(node, sex[0], textX + labelWidth(name) + 8, nameY + 10.5, 13, rgb(sex[1]), rgb('#ffffff'), 0);
+    return { textX: textX, ring: ring };
+  }
+  function friendCard(controller, friend, width) {
+    var height = FRIEND_CARD_HEIGHT, card = new cc.Node('standaloneFriendCard');
+    card.setContentSize(width, height);
+    friendGlass(card, width, height);
+    var who = friendIdentity(card, friend, -width / 2 + 14, 64, 22, 22), status = FRIEND_STATUS[friend.status] || FRIEND_STATUS.offline;
+    who.ring.fillColor = rgb(status[1]); who.ring.circle(26, -26, 7); who.ring.fill();
+    who.ring.lineWidth = 2; who.ring.strokeColor = rgb('#ffffff'); who.ring.circle(26, -26, 7); who.ring.stroke();
+    lobbyLabel(card, 'ID ' + friend.uid + ' · ' + (FRIEND_SOURCE[friend.source] || FRIEND_SOURCE.search), who.textX, -4, 15, rgb('#c9d4ee'), 0, false);
+    var text = friend.status === 'playing' && friend.round ? '游戏中 · 第 ' + friend.round.current + '/' + friend.round.total + ' 局' : status[0];
+    lobbyLabel(card, text, who.textX, -27, 15, rgb(status[1]), 0, true);
+    card._standaloneFriend = friend;
+    return card;
+  }
+  function friendRequestRow(controller, request, width, incoming) {
+    var height = FRIEND_ROW_HEIGHT, row = new cc.Node('standaloneFriendRequest');
+    row.setContentSize(width, height);
+    friendGlass(row, width, height);
+    var who = friendIdentity(row, request.user, -width / 2 + 16, 52, 14, 20);
+    var how = incoming ? (request.source === 'recent' ? '最近同桌' : '通过 ID 搜到你') + ' · ' + friendAgo(request.createdAt) : friendAgo(request.createdAt) + ' 发出';
+    lobbyLabel(row, 'ID ' + request.user.uid + ' · ' + how, who.textX, -15, 15, rgb('#c9d4ee'), 0, false);
+    if (incoming) {
+      friendButton(row, '拒绝', width / 2 - 16 - 96 - 12 - 48, 2, 96, 44, 'grey', function () { friendDecide(controller, request, false); }, controller);
+      friendButton(row, '同意', width / 2 - 16 - 48, 2, 96, 44, 'green', function () { friendDecide(controller, request, true); }, controller);
+    } else {
+      var state = FRIEND_REQUEST_STATE[request.status] || FRIEND_REQUEST_STATE.expired;
+      var pill = lobbyPen(row, 'state'), label = lobbyLabel(pill.node, state[0], 0, 0, 16, rgb(state[1]), 0.5, true);
+      var pillWidth = labelWidth(label) + 28;
+      pill.node.setPosition(width / 2 - 20 - pillWidth / 2, 0);
+      fillRound(pill, -pillWidth / 2, -17, pillWidth, 34, 17, cc.color(10, 20, 50, 110));
+      strokeRound(pill, -pillWidth / 2, -17, pillWidth, 34, 17, rgb(state[1], 0.7), 1.5);
+    }
+    return row;
+  }
+  function friendDecide(controller, request, accept) {
+    var friends = controller._standaloneFriends;
+    if (friends.deciding) return;
+    friends.deciding = true;
+    apiRequest('POST', '/api/social/requests/' + request.id + '/decide', { accept: accept }).then(function (result) {
+      friends.deciding = false;
+      toast(result.status === 'accepted' ? '你们已经是好友了' : result.status === 'rejected' ? '已拒绝' : '这条申请已经过期了');
+      friendsRefresh(controller, true);
+    }, function (error) { friends.deciding = false; toast(error.message); friendsRefresh(controller, true); });
+  }
+  function friendApply(controller, uid, source, done) {
+    apiRequest('POST', '/api/social/requests', { uid: String(uid), source: source }).then(function (result) {
+      toast(result.autoAccepted ? '对方也申请过你，你们已经是好友了' : '申请已发出，等对方同意');
+      friendsRefresh(controller, true);
+      if (done) done(result);
+    }, function (error) { toast(error.message); });
+  }
+  // 找朋友弹窗：输数字 ID 搜人、申请；下面列最近同桌（S3-AC1、S3-AC4）。
+  function closeFriendSearch(friends) {
+    if (friends && friends.search && cc.isValid(friends.search.layer)) friends.search.layer.destroy();
+    if (friends) friends.search = null;
+  }
+  function friendInput(parent, x, y, width, height, prefix, placeholder) {
+    var node = new cc.Node('standaloneFriendInput');
+    node.setContentSize(width, height); node.setPosition(x, y);
+    var pen = node.addComponent(cc.Graphics);
+    fillRound(pen, -width / 2, -height / 2, width, height, 14, rgb('#ffffff'));
+    strokeRound(pen, -width / 2, -height / 2, width, height, 14, rgb('#f0c060'), 2.5);
+    var prefixLabel = lobbyLabel(node, prefix, -width / 2 + 18, 0, 18, rgb('#a38b6d'), 0, false);
+    var start = -width / 2 + 18 + labelWidth(prefixLabel) + 12;
+    var edit = node.addComponent(cc.EditBox);
+    function editLabel(name, color, size) {
+      var child = new cc.Node(name);
+      child.setAnchorPoint(0, 1); child.setPosition(start, height / 2); child.setContentSize(width / 2 - start - 14, height);
+      child.color = color;
+      var label = child.addComponent(cc.Label);
+      label.fontSize = size; label.lineHeight = size + 6; label.enableWrapText = false;
+      label.horizontalAlign = cc.Label.HorizontalAlign.LEFT; label.verticalAlign = cc.Label.VerticalAlign.CENTER;
+      node.addChild(child);
+      return label;
+    }
+    edit.textLabel = editLabel('TEXT_LABEL', rgb('#4a2a00'), 28);
+    edit.placeholderLabel = editLabel('PLACEHOLDER_LABEL', rgb('#c4b39c'), 20);
+    edit.textLabel.enableBold = true;
+    edit.maxLength = 10;
+    edit.inputMode = cc.sys.isBrowser ? cc.EditBox.InputMode.SINGLE_LINE : cc.EditBox.InputMode.NUMERIC;
+    edit.returnType = cc.EditBox.KeyboardReturnType.SEARCH;
+    edit.placeholder = placeholder;
+    node.on('editing-did-began', function () {
+      if (cc.sys.isBrowser && edit._impl && edit._impl._elem) edit._impl._elem.setAttribute('inputmode', 'numeric');
+    });
+    parent.addChild(node);
+    return edit;
+  }
+  function openFriendSearch(controller) {
+    var friends = controller._standaloneFriends, host = controller.node;
+    closeFriendSearch(friends);
+    var layer = new cc.Node('standaloneFriendSearch');
+    layer.setContentSize(host.width, host.height); host.addChild(layer);
+    layer.addComponent(cc.BlockInputEvents);
+    var dim = lobbyPen(layer, 'dim');
+    dim.fillColor = cc.color(10, 20, 40, 150); dim.rect(-host.width / 2, -host.height / 2, host.width, host.height); dim.fill();
+    var width = 640, height = 530, half = height / 2;
+    var panel = lobbyPen(layer, 'panel', 0, -6);
+    panel.node.setContentSize(width, height);
+    fillRound(panel, -width / 2, -half - 8, width, height, 24, cc.color(20, 30, 70, 90));
+    fillRound(panel, -width / 2, -half, width, height, 24, rgb('#fff8ea'));
+    fillRound(panel, -width / 2, half - 64, width, 64, 24, rgb('#ffb13b'));
+    panel.fillColor = rgb('#ffb13b'); panel.rect(-width / 2, half - 64, width, 30); panel.fill();
+    fillRound(panel, -width / 2 + 6, half - 30, width - 12, 24, 12, rgb('#ffd27a', 0.6));
+    var title = lobbyLabel(panel.node, '找朋友', 0, half - 32, 28, rgb('#ffffff'), 0.5, true);
+    var titleOutline = title.node.addComponent(cc.LabelOutline); titleOutline.color = rgb('#d97a10'); titleOutline.width = 2;
+    var close = lobbyPen(panel.node, 'close', width / 2 - 38, half - 32);
+    close.node.setContentSize(44, 44);
+    close.fillColor = cc.color(140, 70, 0, 70); close.circle(0, 0, 18); close.fill();
+    close.lineWidth = 3.5; close.strokeColor = rgb('#ffffff');
+    close.moveTo(-7, -7); close.lineTo(7, 7); close.moveTo(-7, 7); close.lineTo(7, -7); close.stroke();
+    var closeButton = close.node.addComponent(cc.Button); closeButton.transition = cc.Button.Transition.SCALE;
+    cc.mm.uitools.addBtnLister(close.node, function () { closeFriendSearch(friends); }, controller);
+    var search = friends.search = { layer: layer, panel: panel.node };
+    var edit = search.edit = friendInput(panel.node, -width / 2 + 24 + 220, half - 112, 440, 58, '对方 ID', '输入对方的数字 ID');
+    function run() {
+      var uid = String(edit.string || '').replace(/\D/g, '');
+      if (!uid) return toast('请输入对方的数字 ID');
+      edit.string = uid;
+      showFriendResult(controller, { loading: true });
+      apiRequest('GET', '/api/social/search?uid=' + uid).then(function (data) {
+        if (friends.search === search) showFriendResult(controller, { user: data.user });
+      }, function (error) { if (friends.search === search) showFriendResult(controller, { error: error.message }); });
+    }
+    search.run = run;
+    friendButton(panel.node, '搜索', width / 2 - 24 - 72, half - 112, 144, 58, 'blue', run, controller);
+    edit.node.on('editing-return', run);
+    search.result = new cc.Node('result'); search.result.setPosition(0, half - 220); panel.node.addChild(search.result);
+    showFriendResult(controller, null);
+    var recentTitle = friendRich(panel.node, '<b><color=#8a5a1a>最近同桌</color></b><color=#b39a7a><size=15>  · 一起打过牌、还不是好友</size></color>', -width / 2 + 26, half - 318, 19);
+    recentTitle.node.anchorX = 0;
+    search.recent = new cc.Node('recent'); search.recent.setPosition(0, half - 398); panel.node.addChild(search.recent);
+    lobbyLabel(search.recent, '正在加载…', 0, 0, 17, rgb('#b39a7a'), 0.5, false);
+    var footer = new cc.Node('footer'); footer.setPosition(0, -half + 26); panel.node.addChild(footer);
+    var mine = friends.data && friends.data.myUid || '';
+    var mineRich = friendRich(footer, '<color=#8a7560>我的 ID </color><b><color=#5a3200>' + mine + '</color></b>', 0, 0, 17);
+    if (mineRich._updateRichText) mineRich._updateRichText();
+    var copy = friendButton(footer, '复制', 0, 0, 56, 28, 'yellow', function () { if (mine) copyText(mine); }, controller);
+    var tip = lobbyLabel(footer, '把 ID 发给朋友，对方就能搜到你', 0, 0, 15, rgb('#a38b6d'), 0, false);
+    var total = mineRich.node.width + 10 + 56 + 10 + labelWidth(tip), x = -total / 2;
+    mineRich.node.x = x; copy.node.x = x + mineRich.node.width + 10 + 28; tip.node.x = x + mineRich.node.width + 10 + 56 + 10;
+    footer.active = !!mine;
+    panel.node.scale = 0.92; panel.node.opacity = 0;
+    cc.tween(panel.node).to(0.14, { scale: 1, opacity: 255 }).start();
+    loadFriendRecent(controller);
+  }
+  function showFriendResult(controller, state) {
+    var friends = controller._standaloneFriends, search = friends.search;
+    if (!search || !cc.isValid(search.result)) return;
+    var box = search.result, width = 592, height = 128;
+    box.removeAllChildren();
+    var pen = lobbyPen(box, 'box');
+    fillRound(pen, -width / 2, -height / 2, width, height, 18, rgb('#fff1d6'));
+    strokeRound(pen, -width / 2, -height / 2, width, height, 18, rgb('#f3d9a6'), 2);
+    var user = state && state.user;
+    if (!user) {
+      var text = !state ? '输入对方的数字 ID，点「搜索」' : state.loading ? '正在搜索…' : state.error ? state.error : '没有找到这个 ID 的玩家，检查一下数字';
+      lobbyLabel(box, text, 0, 0, 19, rgb(state && !state.loading ? '#c0641a' : '#a38b6d'), 0.5, !!state && !state.loading);
+      return;
+    }
+    var x = -width / 2 + 20;
+    var frame = lobbyPen(box, 'frame', x + 44, 0);
+    fillRound(frame, -46, -46, 92, 92, 18, rgb('#f0dfbd'));
+    roundAvatar(box, x + 44, 0, 88, 16, user.avatarUrl);
+    var textX = x + 88 + 18;
+    var name = lobbyLabel(box, shortName(user.nickname, 6), textX, 30, 24, rgb('#5a3200'), 0, true);
+    var sex = SEX_TAGS[user.sex];
+    if (sex) lobbyPill(box, sex[0], textX + labelWidth(name) + 8, 30 + 10.5, 14, rgb(sex[1]), rgb('#ffffff'), 0);
+    lobbyLabel(box, 'ID ' + user.uid, textX, 0, 16, rgb('#8d7a62'), 0, false);
+    var together = user.self ? '这是你自己' : user.together && user.together.rounds
+      ? '一起打过 ' + user.together.rounds + ' 局 · ' + friendAgo(user.together.lastAt) : '还没一起打过牌';
+    lobbyLabel(box, together, textX, -28, 16, rgb('#c0641a'), 0, false);
+    if (user.self) return;
+    var buttonX = width / 2 - 20 - 85;
+    if (user.isFriend) friendButton(box, '已是好友', buttonX, 0, 170, 54, 'grey');
+    else if (user.requested) friendButton(box, '已申请', buttonX, 0, 170, 54, 'grey');
+    else friendButton(box, user.incoming ? '同意申请' : '申请加好友', buttonX, 0, 170, 54, user.incoming ? 'green' : 'orange', function () {
+      friendApply(controller, user.uid, 'search', function (result) {
+        user.isFriend = !!result.autoAccepted; user.requested = !result.autoAccepted; user.incoming = false;
+        showFriendResult(controller, { user: user });
+      });
+    }, controller);
+  }
+  function loadFriendRecent(controller) {
+    var friends = controller._standaloneFriends, search = friends.search;
+    apiRequest('GET', '/api/social/recent').then(function (data) {
+      if (friends.search === search) showFriendRecent(controller, data.players);
+    }, function () {
+      if (friends.search !== search || !cc.isValid(search.recent)) return;
+      search.recent.removeAllChildren();
+      lobbyLabel(search.recent, '最近同桌加载失败', 0, 0, 17, rgb('#b39a7a'), 0.5, false);
+    });
+  }
+  function showFriendRecent(controller, players) {
+    var friends = controller._standaloneFriends, search = friends.search, box = search && search.recent;
+    if (!box || !cc.isValid(box)) return;
+    box.removeAllChildren();
+    if (!players.length) return lobbyLabel(box, '最近 7 天还没有一起打过牌的人', 0, 0, 17, rgb('#b39a7a'), 0.5, false);
+    var areaWidth = 592, itemWidth = 106, gap = 9, height = 122;
+    var scrollNode = new cc.Node('scroll'); scrollNode.setContentSize(areaWidth, height); box.addChild(scrollNode);
+    var view = new cc.Node('view'); view.setContentSize(areaWidth, height); view.addComponent(cc.Mask); scrollNode.addChild(view);
+    var content = new cc.Node('content'); content.anchorX = 0; content.setContentSize(Math.max(areaWidth, players.length * (itemWidth + gap) - gap), height);
+    content.x = -areaWidth / 2; view.addChild(content);
+    var scroll = scrollNode.addComponent(cc.ScrollView);
+    scroll.content = content; scroll.horizontal = true; scroll.vertical = false; scroll.inertia = true; scroll.elastic = true;
+    players.forEach(function (player, index) {
+      var item = new cc.Node('player'); item.setContentSize(itemWidth, height);
+      item.setPosition(index * (itemWidth + gap) + itemWidth / 2, 0); content.addChild(item);
+      var pen = lobbyPen(item, 'card');
+      fillRound(pen, -itemWidth / 2, -height / 2, itemWidth, height, 16, rgb('#ffffff'));
+      strokeRound(pen, -itemWidth / 2, -height / 2, itemWidth, height, 16, rgb('#f3d9a6'), 1.5);
+      roundAvatar(item, 0, 26, 54, 11, player.avatarUrl);
+      lobbyLabel(item, shortName(player.nickname, 4), 0, -14, 15, rgb('#5a3200'), 0.5, true);
+      function draw() {
+        if (item._standaloneAction && cc.isValid(item._standaloneAction)) item._standaloneAction.destroy();
+        item._standaloneAction = player.requested ? friendButton(item, '已申请', 0, -42, 80, 28, 'grey').node
+          : friendButton(item, player.incoming ? '同意' : '加好友', 0, -42, 80, 28, player.incoming ? 'green' : 'orange', function () {
+            friendApply(controller, player.uid, 'recent', function (result) {
+              if (result.autoAccepted) return loadFriendRecent(controller);
+              player.requested = true; draw();
+            });
+          }, controller).node;
+      }
+      draw();
+    });
+  }
+
   var disabledWindows = new Set(['HallShopUI', 'HallIAPUI', 'CommonSelectPayUI', 'HallWeekCardUI', 'HallMonthUI', 'HallActivityUI', 'DoubleHolidayUI', 'HallTipUI', 'H5DownloadUI', 'BigUpdateUI', 'ForceUpdateUI', 'EventRecallResultUI', 'EventRecallUI', 'HallLiQuanUI', 'HallMatchUI', 'FirstPayUI', 'JoinFriendFail', 'SupplementUI', 'HallFriendUI', 'RecallFriend', 'HallAuthentication', 'HallMapUI']);
   window.Standalone = {
     supportsArea: function (id) {
@@ -1823,12 +2328,13 @@
       if (!controller._standaloneCurrencyNormalized) { normalizeCurrencyLabels(controller.node); controller._standaloneCurrencyNormalized = true; }
       if (window.StandaloneReplay && StandaloneReplay.active()) hide(controller.views, ['readyBtn', 'tg_bg', 'ntfOperate', 'sureTip', 'select', 'gy_btn_chat', 'menunode/gy_btn_tuoguan']);
     },
+    // 原版好友列表（同桌自动加的那套）不再画，换成 patchFriends 搭的好友页（第二轮 S3）。
     friends: function (controller) {
-      hide(controller.views, ['baoshan-pic-chendi/baoshan-button-yaoqing', 'baoshan-pic-chendi/baoshan-button-zhaohui']);
-      controller.schedule(function () { cc.mm.hallserver.requestAllFriend(); }, 10);
+      installFriends();
+      patchFriends(controller);
     },
     renderFriends: function (controller, data) {
-      if (data.gradeInfo && data.gradeInfo.length) return;
+      if (controller._standaloneFriends || data.gradeInfo && data.gradeInfo.length) return;
       var friends = data.friendAll || [], content = controller.views.scrollview.getComponent(cc.ScrollView).content;
       var previous = controller._standaloneFriendRows || {}, next = {};
       controller.views['baoshan-pic-chendi/baoshan-pic-tishi'].active = friends.length === 0;
@@ -1892,6 +2398,7 @@
       patchEnterLobbyCard(controller);
       // 开房面板的类在大厅包里，大厅出来时已注册；要赶在面板第一次绑定按钮之前装上。
       installPublicLobbyToggle();
+      installFriends();
       var create = cc.mm.uimanager.getWindow('CreateRoomUI');
       if (create) {
         hide(create.views, ['hall_room_center/left/createroom/dou-hall-pic-mianfei', 'hall_room_center/left/createroom/ad']);

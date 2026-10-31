@@ -66,7 +66,7 @@ test('room fees, authoritative settlement and recovery invariants against PGlite
       return (await db.query('SELECT count(*)::integer AS count FROM ledger_operations WHERE room_id=$1 AND kind=$2', [roomId, kind])).rows[0]!.count;
     }
 
-    await t.test('AA fees post once across four rounds and room closes with exact scores and mutual friends', async () => {
+    await t.test('AA fees post once across four rounds and room closes with exact scores; S3-AC4 same-table players are not auto-added as friends', async () => {
       const { players, room } = await pair();
       assert.equal(room.feeCharged, false);
       assert.equal(await ledger.balance(players[0]!.id), '10');
@@ -85,8 +85,8 @@ test('room fees, authoritative settlement and recovery invariants against PGlite
       const scores = (await rooms.view(room.id, players[0]!.id)).members;
       assert.equal(new Decimal(scores[0]!.score).toFixed(), '0.4');
       assert.equal(new Decimal(scores[1]!.score).toFixed(), '-0.4');
-      const friends = await db.query('SELECT user_id,friend_id FROM friends WHERE first_room_id=$1', [room.id]);
-      assert.deepEqual(new Set(friends.rows.map(row => `${row.user_id}:${row.friend_id}`)), new Set([`${players[0]!.id}:${players[1]!.id}`, `${players[1]!.id}:${players[0]!.id}`]));
+      const friends = await db.query('SELECT user_id,friend_id FROM friends WHERE user_id = $1 OR user_id = $2', [players[0]!.id, players[1]!.id]);
+      assert.equal(friends.rows.length, 0, 'S3-AC4 同桌打完不自动加好友');
       assert.equal(await rooms.current(players[0]!.id), null);
     });
 
