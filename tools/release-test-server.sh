@@ -90,7 +90,7 @@ case "${MODE}" in
     NATIVE_SHA=$(node -p "require(process.argv[1]).sha256" "${ROOT}/client/public/native/manifest.json")
 
     say "打包"
-    PATHS="apps/server/dist apps/server/migrations apps/server/package.json apps/admin/dist client/public docs/rules package.json pnpm-lock.yaml verification/build-manifest.json"
+    PATHS="apps/server/dist apps/server/migrations apps/server/data apps/server/package.json apps/admin/dist client/public docs/rules package.json pnpm-lock.yaml verification/build-manifest.json"
     for dir in packages/*/; do
       PATHS="${PATHS} ${dir}dist ${dir}package.json"
     done
@@ -101,6 +101,15 @@ case "${MODE}" in
     COPYFILE_DISABLE=1 tar --no-xattrs --no-mac-metadata --exclude '.DS_Store' -czf "${TGZ}" ${PATHS}
     SHA=$(shasum -a 256 "${TGZ}" | cut -d' ' -f1)
     echo "$(du -h "${TGZ}" | cut -f1)，sha256 ${SHA}"
+
+    say "本机解开包试加载服务端（包里缺文件就停在这里，不上传）"
+    mkdir "${WORK}/check"
+    tar -xzf "${TGZ}" -C "${WORK}/check"
+    ln -s "${ROOT}/node_modules" "${WORK}/check/node_modules"
+    ln -s "${ROOT}/apps/server/node_modules" "${WORK}/check/apps/server/node_modules"
+    (cd "${WORK}/check/apps/server" && node --input-type=module -e "await import('./dist/app.js')") \
+      || die "包里缺服务端要读的文件（见上面的报错），把它加进 PATHS"
+    echo "  ok  服务端能从包里加载"
 
     say "上传到 ${HOST}"
     ssh -i "${KEY}" ${SSH_OPTS} "root@${HOST}" "install -d -m 700 /opt/doushisi/releases"
