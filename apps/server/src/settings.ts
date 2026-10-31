@@ -4,20 +4,15 @@ import { requireRole, type Actor } from './auth.js';
 import { requireCondition } from './errors.js';
 
 // 后台「参数」页能改的业务参数（第二轮计划 2.8）。没存过的键用这里的默认值，改了立刻生效。
+// 第三轮去掉好友和私聊（R1、R6）：这几项标 retired，后台不再列出，库里的值留着不删；勋章整组去掉。
 export const SETTING_DEFS = {
-  friendLimit: { group: '好友', label: '好友上限', unit: '人', min: 10, max: 1000, value: 200 },
-  dailyFriendRequests: { group: '好友', label: '每天最多发出的好友申请', unit: '个', min: 1, max: 200, value: 20 },
-  friendRequestExpiryDays: { group: '好友', label: '好友申请没人处理自动过期', unit: '天', min: 1, max: 30, value: 7 },
-  rejectCooldownHours: { group: '好友', label: '被拒后多久才能再申请同一个人', unit: '小时', min: 0, max: 720, value: 24 },
-  searchPerMinute: { group: '好友', label: '每人每分钟最多搜 ID', unit: '次', min: 1, max: 60, value: 10 },
-  inviteSeconds: { group: '私聊和邀请', label: '邀请有效时间（同一好友两次邀请的间隔也用它）', unit: '秒', min: 10, max: 600, value: 60 },
-  messageRetentionDays: { group: '私聊和邀请', label: '私聊消息保留', unit: '天', min: 1, max: 365, value: 30 },
-  medalQiantuRounds: { group: '勋章', label: '前途无量：累计对局', unit: '局', min: 1, max: 1_000_000, value: 10 },
-  medalBaishengWins: { group: '勋章', label: '百胜王：累计胜局', unit: '局', min: 1, max: 1_000_000, value: 100 },
-  medalQianshengWins: { group: '勋章', label: '千胜王：累计胜局', unit: '局', min: 1, max: 1_000_000, value: 1000 },
-  medalFujiaBeans: { group: '勋章', label: '富甲一方：豆子达到', unit: '豆', min: 1, max: 1_000_000_000_000, value: 10_000 },
-  medalBaiwanBeans: { group: '勋章', label: '百万富翁：豆子达到', unit: '豆', min: 1, max: 1_000_000_000_000, value: 1_000_000 },
-  medalQianwanBeans: { group: '勋章', label: '千万富翁：豆子达到', unit: '豆', min: 1, max: 1_000_000_000_000, value: 10_000_000 },
+  friendLimit: { group: '好友', retired: true, label: '好友上限', unit: '人', min: 10, max: 1000, value: 200 },
+  dailyFriendRequests: { group: '好友', retired: true, label: '每天最多发出的好友申请', unit: '个', min: 1, max: 200, value: 20 },
+  friendRequestExpiryDays: { group: '好友', retired: true, label: '好友申请没人处理自动过期', unit: '天', min: 1, max: 30, value: 7 },
+  rejectCooldownHours: { group: '好友', retired: true, label: '被拒后多久才能再申请同一个人', unit: '小时', min: 0, max: 720, value: 24 },
+  searchPerMinute: { group: '好友', retired: true, label: '每人每分钟最多搜 ID', unit: '次', min: 1, max: 60, value: 10 },
+  inviteSeconds: { group: '私聊和邀请', retired: true, label: '邀请有效时间（同一好友两次邀请的间隔也用它）', unit: '秒', min: 10, max: 600, value: 60 },
+  messageRetentionDays: { group: '私聊和邀请', retired: true, label: '私聊消息保留', unit: '天', min: 1, max: 365, value: 30 },
 } as const;
 
 export type SettingKey = keyof typeof SETTING_DEFS;
@@ -45,7 +40,7 @@ export class SettingsService {
 
   async list() {
     const values = await this.get();
-    return { settings: KEYS.map(key => ({ key, ...SETTING_DEFS[key], defaultValue: SETTING_DEFS[key].value, value: values[key] })) };
+    return { settings: KEYS.filter(key => !('retired' in SETTING_DEFS[key])).map(key => ({ key, ...SETTING_DEFS[key], defaultValue: SETTING_DEFS[key].value, value: values[key] })) };
   }
 
   async update(admin: Actor, changes: Record<string, unknown>) {

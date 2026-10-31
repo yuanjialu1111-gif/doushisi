@@ -1,0 +1,444 @@
+<title>斗十四整体架构</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@700&display=swap">
+<style>
+/* 版式对标用户给的「整体架构图」参考：分层（使用者→入口→服务→数据→外部）+ 核心流程泳道 + 谁看到什么 + 必做项检测 + 待拍板；颜色沿用斗十四牌桌绿 */
+:root {
+  --bg: #f4f6f3; --panel: #ffffff; --ink: #1d2a24; --muted: #66756d; --line: #d5ddd7; --soft: #f7f9f7;
+  --felt: #1f7a4d; --felt-soft: #e3f2ea;
+  --new: #1f9a4a; --new-bg: #e5f6ea;
+  --mod: #2f6fd1; --mod-bg: #e6eefb;
+  --reuse: #6b7480; --reuse-bg: #eef0f2;
+  --off: #8a8f96; --off-bg: #f1f1f1;
+  --ask: #c77700; --ask-bg: #fff2dc;
+  --must: #c8402f; --must-bg: #fbe9e6;
+  --on-accent: #ffffff;
+  --font-display: "Noto Serif SC", "Songti SC", serif;
+  --font-body: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #121815; --panel: #1a221e; --ink: #e3ebe6; --muted: #93a39a; --line: #2e3a34; --soft: #161d1a;
+  --felt: #5cc48d; --felt-soft: #1d3329;
+  --new: #5fd187; --new-bg: #183024; --mod: #7fa9f0; --mod-bg: #1a2640;
+  --reuse: #a3acb6; --reuse-bg: #252b30; --off: #7d838a; --off-bg: #202523;
+  --ask: #f0b45a; --ask-bg: #3a2c14; --must: #f08a7b; --must-bg: #3a201c; --on-accent: #10161f;
+  color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #121815; --panel: #1a221e; --ink: #e3ebe6; --muted: #93a39a; --line: #2e3a34; --soft: #161d1a;
+  --felt: #5cc48d; --felt-soft: #1d3329;
+  --new: #5fd187; --new-bg: #183024; --mod: #7fa9f0; --mod-bg: #1a2640;
+  --reuse: #a3acb6; --reuse-bg: #252b30; --off: #7d838a; --off-bg: #202523;
+  --ask: #f0b45a; --ask-bg: #3a2c14; --must: #f08a7b; --must-bg: #3a201c; --on-accent: #10161f;
+  color-scheme: dark }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 12.5px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 24px 48px; }
+.wrap { max-width: 1240px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+h1 { font-family: var(--font-display); font-size: 26px; margin: 0; letter-spacing: .02em; text-wrap: balance; }
+.sub { color: var(--muted); margin-top: 4px; max-width: 980px; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 12px; color: var(--muted); font-size: 12px; align-items: center; margin-top: 10px; }
+.tg { display: inline-block; font-size: 10.5px; line-height: 1; padding: 3px 5px; border-radius: 3px; font-weight: 500; white-space: nowrap; flex: none; }
+.tg.new { color: var(--new); background: var(--new-bg); } .tg.mod { color: var(--mod); background: var(--mod-bg); }
+.tg.reuse { color: var(--reuse); background: var(--reuse-bg); } .tg.off { color: var(--off); background: var(--off-bg); text-decoration: line-through; }
+.tg.ask { color: var(--ask); background: var(--ask-bg); } .tg.must { color: var(--must); background: var(--must-bg); }
+section.block { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+h2 { font-size: 16px; margin: 0; text-wrap: balance; } h2 small { color: var(--muted); font-weight: 400; font-size: 12px; margin-left: 8px; }
+p { margin: 0; }
+.muted { color: var(--muted); }
+code { font-family: var(--font-mono); font-size: 10.5px; color: var(--muted); word-break: break-all; }
+
+/* 分层 */
+.layer { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 12px; }
+.lname b { display: block; font-size: 14px; }
+.lname span { color: var(--muted); font-size: 11px; }
+.boxes { display: grid; grid-template-columns: repeat(auto-fill, minmax(168px, 1fr)); gap: 8px; }
+.bx { border: 1px solid var(--line); border-radius: 6px; padding: 8px 9px; background: var(--panel); display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.bx .bh { display: flex; justify-content: space-between; align-items: flex-start; gap: 6px; }
+.bx b { font-size: 12.5px; }
+.bx p { color: var(--muted); font-size: 11.5px; }
+.bx.new { border-color: color-mix(in srgb, var(--new) 55%, var(--line)); }
+.bx.mod { border-color: color-mix(in srgb, var(--mod) 55%, var(--line)); }
+.bx.ask { border-color: color-mix(in srgb, var(--ask) 60%, var(--line)); background: color-mix(in srgb, var(--ask-bg) 35%, var(--panel)); }
+.bx.must { border-color: var(--must); }
+.bx.off { border-style: dashed; background: var(--soft); }
+.bx.off b { color: var(--off); text-decoration: line-through; }
+.grp { border: 1px solid var(--line); border-radius: 8px; padding: 10px; background: var(--soft); display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.grp > .gh { font-size: 12px; font-weight: 700; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.grp > .gh span { color: var(--muted); font-weight: 400; font-size: 11px; }
+.grp.focus { border-color: color-mix(in srgb, var(--felt) 55%, var(--line)); background: color-mix(in srgb, var(--felt-soft) 45%, var(--panel)); }
+.svc { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 10px; }
+.wire { margin-left: 108px; display: flex; flex-wrap: wrap; gap: 4px 28px; color: var(--muted); font-size: 11px; border-left: 2px dotted var(--line); padding: 2px 0 2px 10px; }
+.wire span::before { content: "↓ "; color: var(--felt); }
+@media (max-width: 640px) { .layer { grid-template-columns: minmax(0, 1fr); gap: 6px; } .wire { margin-left: 0; } }
+
+/* 流程泳道 */
+.lane { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 12px; border-top: 1px solid var(--line); padding-top: 14px; }
+.lane.first { border-top: 0; padding-top: 0; }
+.lane .ln b { display: block; font-size: 13.5px; }
+.lane .ln span { color: var(--muted); font-size: 11px; }
+.lane > div { min-width: 0; }
+.track { overflow-x: auto; padding-bottom: 4px; }
+.steps { display: flex; align-items: stretch; min-width: max-content; }
+.st { width: 132px; border: 1px solid var(--line); border-radius: 6px; padding: 7px 8px; display: flex; flex-direction: column; gap: 2px; background: var(--panel); }
+.st b { font-size: 12px; } .st p { color: var(--muted); font-size: 11px; }
+.st.new { border-color: color-mix(in srgb, var(--new) 55%, var(--line)); }
+.st.mod { border-color: color-mix(in srgb, var(--mod) 55%, var(--line)); }
+.st.ask { border-color: color-mix(in srgb, var(--ask) 60%, var(--line)); background: color-mix(in srgb, var(--ask-bg) 35%, var(--panel)); }
+.st.must { border-color: var(--must); background: color-mix(in srgb, var(--must-bg) 40%, var(--panel)); }
+.st .tg { align-self: flex-start; margin-top: 2px; }
+.ar { display: grid; place-items: center; width: 22px; color: var(--felt); font-size: 13px; flex: none; }
+.notes { margin: 8px 0 0; padding-left: 16px; display: flex; flex-direction: column; gap: 2px; font-size: 11.5px; color: var(--muted); }
+.notes .red { color: var(--must); }
+.branch { margin-top: 6px; font-size: 11.5px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 14px; }
+.branch b { color: var(--ink); font-weight: 500; }
+.formula { font-family: var(--font-mono); font-size: 11.5px; background: var(--reuse-bg); padding: 6px 9px; border-radius: 5px; overflow-x: auto; white-space: nowrap; margin-top: 8px; color: var(--ink); }
+@media (max-width: 640px) { .lane { grid-template-columns: minmax(0, 1fr); gap: 6px; } }
+
+/* 谁看到什么 */
+.views { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(0, 1.1fr); gap: 12px; }
+@media (max-width: 1000px) { .views { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .views { grid-template-columns: minmax(0, 1fr); } }
+.phone { border: 1px solid var(--line); border-radius: 14px; padding: 12px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.phone.hl { border: 2px solid var(--mod); }
+.phone .who { font-size: 11px; color: var(--muted); display: flex; justify-content: space-between; gap: 6px; }
+.phone h3 { margin: 0; font-size: 17px; font-family: var(--font-display); color: var(--felt); }
+.phone h3 small { font-family: var(--font-body); font-size: 11px; color: var(--muted); font-weight: 400; margin-left: 6px; }
+.phone ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 3px; font-size: 12px; }
+.phone li.y::before { content: "✓ "; color: var(--new); font-weight: 700; }
+.phone li.n { color: var(--muted); } .phone li.n::before { content: "✕ "; color: var(--must); font-weight: 700; }
+.phone .btn { margin-top: auto; text-align: center; border-radius: 6px; padding: 6px; font-size: 12px; background: var(--felt-soft); color: var(--felt); font-weight: 500; }
+.phone.hl .btn { background: var(--mod); color: var(--on-accent); }
+.mini { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3px; }
+.mini i { font-style: normal; border-radius: 4px; text-align: center; font-size: 10.5px; padding: 3px 0; background: var(--felt-soft); color: var(--felt); border: 1px solid transparent; }
+.mini i.e { background: transparent; border: 1px dashed var(--muted); color: var(--muted); }
+.mini i.g { border: 1px solid var(--ask); color: var(--ask); }
+.rules h4 { margin: 0 0 6px; font-size: 13px; }
+.rules ul { margin: 0; padding-left: 16px; display: flex; flex-direction: column; gap: 5px; font-size: 12px; }
+
+/* 必做 */
+.tbl { overflow-x: auto; }
+table { border-collapse: separate; border-spacing: 0 6px; width: 100%; font-size: 12px; min-width: 860px; }
+th { text-align: left; color: var(--muted); font-weight: 500; font-size: 11.5px; padding: 0 10px; }
+td { padding: 8px 10px; vertical-align: top; border-top: 1px solid var(--must); border-bottom: 1px solid var(--must); background: var(--panel); }
+td:first-child { border-left: 1px solid var(--must); border-radius: 6px 0 0 6px; font-weight: 500; white-space: nowrap; }
+td:last-child { border-right: 1px solid var(--must); border-radius: 0 6px 6px 0; }
+td.bad { color: var(--must); }
+
+/* 拍板 */
+.done { border: 1px solid color-mix(in srgb, var(--new) 50%, var(--line)); background: color-mix(in srgb, var(--new-bg) 55%, var(--panel)); border-radius: 8px; padding: 10px 12px; display: flex; flex-direction: column; gap: 4px; }
+.done b { font-size: 13px; }
+.done ul { margin: 0; padding-left: 16px; display: flex; flex-direction: column; gap: 2px; }
+.decide { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(340px, 100%), 1fr)); gap: 0 24px; }
+.dq { display: grid; grid-template-columns: 24px minmax(0, 1fr); gap: 8px; padding: 7px 0; border-top: 1px dashed var(--line); }
+.dq .n { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; background: var(--ask-bg); color: var(--ask); font-weight: 700; font-size: 11.5px; }
+.dq b { font-size: 12.5px; }
+.dq .o { color: var(--muted); }
+.dq .o em { font-style: normal; color: var(--felt); font-weight: 500; }
+footer { color: var(--muted); font-size: 11.5px; }
+</style>
+
+<div class="wrap">
+<header>
+  <h1>斗十四 · 整体架构图</h1>
+  <p class="sub">v0.3 · 2026-10-31 · 全部已定，勋章去掉 · 第三轮：去掉好友和开房，进大厅点空位就坐、打完接着打；大厅玩法定为新津，规则按网上通行的四川斗十四改成 v2；牌桌补齐胡、偷、报叫、小结算这些画面。文字版：<code>docs/requirements/斗十四第三轮-需求简报.md</code></p>
+  <div class="legend">
+    <span class="tg new">新建</span>要新做
+    <span class="tg mod">改造</span>改现有功能
+    <span class="tg reuse">复用</span>照用现有
+    <span class="tg off">下线</span>去掉入口和接口，数据留着
+        <span class="tg must">必须</span>必须做对，有专门检测
+  </div>
+</header>
+
+<section class="block">
+  <h2>分层结构<small>从上到下：谁用 → 从哪进 → 服务端做什么 → 存在哪 → 依赖谁</small></h2>
+
+  <div class="layer">
+    <div class="lname"><b>使用者</b><span>谁在用</span></div>
+    <div class="boxes">
+      <div class="bx mod"><div class="bh"><b>玩家</b><span class="tg mod">改造</span></div><p>安卓 APP 为主，网页版先验。只做一件事：进大厅找空位坐下打牌</p></div>
+      <div class="bx"><div class="bh"><b>豆子管理员</b><span class="tg reuse">复用</span></div><p>加减豆子、看流水、审头像昵称、配大厅桌模板</p></div>
+      <div class="bx"><div class="bh"><b>发牌管理员</b><span class="tg reuse">复用</span></div><p>发牌策略、发牌审计，不动</p></div>
+      <div class="bx"><div class="bh"><b>你（发布）</b><span class="tg reuse">复用</span></div><p>点运行一条发布脚本，上测试服</p></div>
+    </div>
+  </div>
+  <div class="wire"><span>打开 APP / 网页</span><span>登录后台</span><span>发布脚本</span></div>
+
+  <div class="layer">
+    <div class="lname"><b>入口</b><span>页面</span></div>
+    <div class="boxes">
+      <div class="bx mod"><div class="bh"><b>首页</b><span class="tg mod">改造</span></div><p>头像、豆子、「进入大厅」大按钮、战绩。去掉好友键、开房、输房号</p></div>
+      <div class="bx mod"><div class="bh"><b>大厅</b><span class="tg mod">改造</span></div><p>全部 / 附近 / 底分 1·2·5；空位「＋坐下」点哪坐哪；差人少的排前；底部只剩快速开始</p></div>
+      <div class="bx mod"><div class="bh"><b>牌桌</b><span class="tg mod">改造</span></div><p>胡字动画、偷、报叫火焰、巴杠、红黑点、可胡提示、每局小结算；一场打完弹「继续 / 离开」</p></div>
+      <div class="bx"><div class="bh"><b>个人资料</b><span class="tg reuse">复用</span></div><p>头像昵称、对局数、胜率（勋章去掉）</p></div>
+      <div class="bx mod"><div class="bh"><b>后台 /admin/</b><span class="tg mod">改造</span></div><p>大厅桌模板带新津 v2 默认规则；去掉好友那几项参数</p></div>
+    </div>
+  </div>
+  <div class="wire"><span>登录 · 资料</span><span>拉桌子列表 · 入座</span><span>出牌 · 要牌 · 胡</span><span>结算 · 记账</span><span>后台配置</span></div>
+
+  <div class="layer">
+    <div class="lname"><b>服务</b><span>服务端<br>apps/server</span></div>
+    <div class="svc">
+      <div class="grp focus">
+        <div class="gh">大厅与座位 <span>这次的重点之一 · lobby.ts / rooms.ts</span></div>
+        <div class="boxes">
+          <div class="bx mod"><div class="bh"><b>大厅桌位</b><span class="tg mod">改造</span></div><p>只列系统常驻桌；点哪个空座坐哪个（现在点桌子随机给座）</p></div>
+          <div class="bx new must"><div class="bh"><b>连着打</b><span class="tg new">新建</span></div><p>一场打完桌子不关，留下的人凑满 4 个开下一场，走的人空出座位</p></div>
+          <div class="bx"><div class="bh"><b>补桌与清座</b><span class="tg reuse">复用</span></div><p>每档底分常驻空桌，坐满就补；坐太久不开局自动清座</p></div>
+          <div class="bx"><div class="bh"><b>附近与距离</b><span class="tg reuse">复用</span></div><p>「附近」页签、桌卡距离档位照旧（10-31 已定）</p></div>
+          <div class="bx"><div class="bh"><b>快速开始</b><span class="tg reuse">复用</span></div><p>自动坐进差人最少、豆子够的桌（保留）</p></div>
+        </div>
+      </div>
+      <div class="grp focus">
+        <div class="gh">新津规则 v2 <span>这次的重点之二 · xinjin-win.ts / xinjin-round.ts</span></div>
+        <div class="boxes">
+          <div class="bx mod must"><div class="bh"><b>判胡</b><span class="tg mod">改造</span></div><p>4 人红点 ≥ 20、3 人 ≥ 25；全红、全黑、天走、接地免门槛；手里三张要先偷出才算</p></div>
+          <div class="bx mod must"><div class="bh"><b>只一家胡</b><span class="tg mod">改造</span></div><p>从出牌人往下逆时针，第一个能胡的人胡；没有一炮多响</p></div>
+          <div class="bx mod must"><div class="bh"><b>番与计分</b><span class="tg mod">改造</span></div><p>跟头翻 底分 × 2<sup>番</sup>，5 番封顶；碰 1、杠 2、鬼 1、全红 3、全黑 3、天走 3、接地 3</p></div>
+          <div class="bx mod must"><div class="bh"><b>谁付钱</b><span class="tg mod">改造</span></div><p>打出的牌点炮：点炮的人包三家；翻出的牌胡：三家各付一份</p></div>
+          <div class="bx new"><div class="bh"><b>巴杠</b><span class="tg new">新建</span></div><p>碰了以后摸到第四张，可以巴</p></div>
+          <div class="bx mod"><div class="bh"><b>托管出牌</b><span class="tg mod">改造</span></div><p>优先打凑不成 14、红点低的牌，不再出第一张</p></div>
+        </div>
+      </div>
+      <div class="grp">
+        <div class="gh">牌桌消息转发 <span>round-original.ts · 用客户端现成动画</span></div>
+        <div class="boxes">
+          <div class="bx mod"><div class="bh"><b>胡牌画面</b><span class="tg mod">改造</span></div><p>先发胡动作，胡字、点炮标记、亮牌，停 2 秒再结算</p></div>
+          <div class="bx mod"><div class="bh"><b>小结算 / 总结算</b><span class="tg mod">改造</span></div><p>每局小结算显示昵称和番型；最后一局才弹总结算</p></div>
+          <div class="bx mod"><div class="bh"><b>偷 · 报叫 · 等待</b><span class="tg mod">改造</span></div><p>摸到鬼发偷动作；报叫别人看得到；要牌时「等待其他玩家…」</p></div>
+          <div class="bx mod"><div class="bh"><b>红黑点 · 15 秒</b><span class="tg mod">改造</span></div><p>牌一变就带上红点黑点；出牌倒计时 30 → 15 秒</p></div>
+          <div class="bx new ask"><div class="bh"><b>可胡提示</b><span class="tg new">新建</span></div><p>服务端算能胡的牌和番数；客户端没有现成面板就先停下问你</p></div>
+        </div>
+      </div>
+      <div class="grp">
+        <div class="gh">账号 · 豆子 · 其他 <span>照用</span></div>
+        <div class="boxes">
+          <div class="bx"><div class="bh"><b>登录 · 首次资料</b><span class="tg reuse">复用</span></div><p>首次必须传头像、填昵称、选性别</p></div>
+          <div class="bx"><div class="bh"><b>战绩</b><span class="tg mod">改造</span></div><p>按局算对局数、胜率；勋章去掉</p></div>
+          <div class="bx"><div class="bh"><b>入座门槛 · 账本</b><span class="tg reuse">复用</span></div><p>豆子 ≥ 底分 × 10 才能坐；输赢、房费都记流水</p></div>
+          <div class="bx mod"><div class="bh"><b>房费</b><span class="tg mod">改造</span></div><p>连着打时每开一场扣一次 AA</p></div>
+          <div class="bx"><div class="bh"><b>表情 · 掉线托管</b><span class="tg reuse">复用</span></div><p>20 个互动表情；掉线自动托管</p></div>
+        </div>
+      </div>
+      <div class="grp">
+        <div class="gh">下线 <span>只关入口和接口，表留着（红线：迁移只加不删）</span></div>
+        <div class="boxes">
+          <div class="bx off"><div class="bh"><b>好友</b><span class="tg off">下线</span></div><p>找朋友、申请、附言、最近同桌、好友列表</p></div>
+          <div class="bx off"><div class="bh"><b>私聊与邀请</b><span class="tg off">下线</span></div><p>消息、邀请入座、收邀请弹窗、5 秒轮询</p></div>
+          <div class="bx off"><div class="bh"><b>开房</b><span class="tg off">下线</span></div><p>创建房间、输房号、「公开到大厅」</p></div>
+          <div class="bx off"><div class="bh"><b>勋章</b><span class="tg off">下线</span></div><p>6 枚勋章、资料页勋章块、勋章接口</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="wire"><span>读写</span><span>结算记录带规则版本</span></div>
+
+  <div class="layer">
+    <div class="lname"><b>数据</b><span>库表</span></div>
+    <div class="boxes">
+      <div class="bx"><div class="bh"><b>accounts</b><span class="tg reuse">复用</span></div><p>账号、头像、昵称、性别、豆子</p></div>
+      <div class="bx mod"><div class="bh"><b>lobby_templates</b><span class="tg mod">改造</span></div><p>底分、人数、局数、空桌数；加新津 v2 默认规则</p></div>
+      <div class="bx mod"><div class="bh"><b>rooms / room_members</b><span class="tg mod">改造</span></div><p>加「第几场」；一场打完回等人，不关桌</p></div>
+      <div class="bx mod"><div class="bh"><b>rounds · 流水</b><span class="tg mod">改造</span></div><p>每局记规则版本 v1 / v2 和番型明细</p></div>
+      <div class="bx"><div class="bh"><b>参数</b><span class="tg reuse">复用</span></div><p>app_settings；account_medals 留表不读写</p></div>
+      <div class="bx off"><div class="bh"><b>好友相关 4 张表</b><span class="tg off">停用</span></div><p>不再读写，表留着</p></div>
+    </div>
+  </div>
+
+  <div class="layer">
+    <div class="lname"><b>外部</b><span>部署与依赖</span></div>
+    <div class="boxes">
+      <div class="bx"><div class="bh"><b>测试服 108</b><span class="tg reuse">复用</span></div><p>nginx + 网关白名单；去掉 /api/social/</p></div>
+      <div class="bx"><div class="bh"><b>热更新</b><span class="tg reuse">复用</span></div><p>改动都在服务端和接入层，安卓不用重打包</p></div>
+      <div class="bx"><div class="bh"><b>原版客户端动画</b><span class="tg reuse">复用</span></div><p>胡、偷、碰、巴杠、报叫、结算窗都用现成的</p></div>
+      <div class="bx"><div class="bh"><b>国内直连</b><span class="tg reuse">上线前定</span></div><p>国内不开代理连不上：香港中转或国内服务器（要备案）</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="block">
+  <h2>核心流程<small>从左到右；颜色含义同上</small></h2>
+
+  <div class="lane first">
+    <div class="ln"><b>① 进大厅入座</b><span>点空位就坐</span></div>
+    <div>
+      <div class="track"><div class="steps">
+        <div class="st"><b>打开 APP 登录</b><p>令牌登录</p></div><div class="ar">→</div>
+        <div class="st"><b>首次资料</b><p>只第一次：头像、昵称、性别</p></div><div class="ar">→</div>
+        <div class="st mod"><b>首页「进入大厅」</b><p>只剩这一个主入口</p><span class="tg mod">改造</span></div><div class="ar">→</div>
+        <div class="st mod"><b>大厅</b><p>按底分分组，差人少的排前</p><span class="tg mod">改造</span></div><div class="ar">→</div>
+        <div class="st must"><b>点空座位</b><p>点哪个「＋」坐哪个</p><span class="tg must">必须</span></div><div class="ar">→</div>
+        <div class="st"><b>查门槛</b><p>豆子 ≥ 底分 × 10</p></div><div class="ar">→</div>
+        <div class="st"><b>坐下等人</b><p>坐满 4 人、都准备</p></div><div class="ar">→</div>
+        <div class="st mod"><b>开打</b><p>每开一场扣 AA 房费</p><span class="tg mod">改造</span></div>
+      </div></div>
+      <div class="branch"><span><b>快速开始</b> 自动坐进差人最少、豆子够的桌</span><span><b>豆子不够</b> 空位变灰，提示还差多少</span><span><b>坐太久没开局</b> 自动清座，不扣豆</span></div>
+      <ul class="notes"><li class="red">两个人同时点同一个空座，只能一人坐上，另一人提示「已被坐」。</li></ul>
+    </div>
+  </div>
+
+  <div class="lane">
+    <div class="ln"><b>② 一手牌</b><span>新津规则 v2</span></div>
+    <div>
+      <div class="track"><div class="steps">
+        <div class="st"><b>发牌</b><p>首家 8 张，其余 7 张；上局赢家当首家</p></div><div class="ar">→</div>
+        <div class="st mod"><b>鬼</b><p>摸到就摆出、补一张，每张 1 番；播「偷」字</p><span class="tg mod">改造</span></div><div class="ar">→</div>
+        <div class="st mod"><b>摸 · 翻 · 出</b><p>15 秒倒计时；红点黑点实时</p><span class="tg mod">改造</span></div><div class="ar">→</div>
+        <div class="st"><b>要牌</b><p>胡 &gt; 杠 &gt; 碰 &gt; 吃，吃只吃上家</p></div><div class="ar">→</div>
+        <div class="st must"><b>判胡</b><p>4 人 20、3 人 25；只给一家胡</p><span class="tg must">必须</span></div><div class="ar">→</div>
+        <div class="st mod"><b>胡牌画面</b><p>胡字、点炮标记、亮牌，停 2 秒</p><span class="tg mod">改造</span></div><div class="ar">→</div>
+        <div class="st mod"><b>小结算</b><p>每家手牌、番型、红点、输赢</p><span class="tg mod">改造</span></div>
+      </div></div>
+      <div class="branch"><span><b>手里有三张相同</b> 提示先偷出来才算一组</span><span><b>碰后摸到第四张</b> 可以巴杠（新）</span><span><b>报叫</b> 别人能看到火焰；可胡提示列出能胡的牌</span><span><b>托管 / 超时</b> 优先打凑不成 14 的牌</span></div>
+      <ul class="notes"><li class="red">一张牌好几家能胡时，从出牌人（翻牌是翻牌人）往下逆时针，第一个能胡的人胡，其他人不能胡。</li></ul>
+    </div>
+  </div>
+
+  <div class="lane">
+    <div class="ln"><b>③ 算钱</b><span>跟头翻</span></div>
+    <div>
+      <div class="track"><div class="steps">
+        <div class="st new"><b>番相加</b><p>碰 1、杠 2、鬼 1、全红 3、全黑 3、天走 3、接地 3</p><span class="tg new">新建</span></div><div class="ar">→</div>
+        <div class="st"><b>封顶</b><p>最多 5 番</p></div><div class="ar">→</div>
+        <div class="st mod"><b>每份</b><p>底分 × 2<sup>番</sup></p><span class="tg mod">改造</span></div><div class="ar">→</div>
+        <div class="st must"><b>谁付</b><p>点炮：点炮的人付 3 份；翻牌胡：三家各付 1 份</p><span class="tg must">必须</span></div><div class="ar">→</div>
+        <div class="st"><b>记账本</b><p>输赢写流水，战绩照算</p></div>
+      </div></div>
+      <div class="formula">例：底分 100，碰 1 + 杠 1 + 鬼 1 = 1+2+1 = 4 番 → 每份 100 × 2⁴ = 1,600 → 点炮：点炮人付 4,800 ／ 翻牌胡：三家各付 1,600</div>
+      <ul class="notes"><li>现在 11 个番全关，胡什么都只赢 1 份（100）；改后一局输赢大十几倍，底分等 v2 模拟结果再定，这轮不改。</li><li>红点只管能不能胡，不进分数。</li></ul>
+    </div>
+  </div>
+
+  <div class="lane">
+    <div class="ln"><b>④ 往下打</b><span>一场打完不散桌</span></div>
+    <div>
+      <div class="track"><div class="steps">
+        <div class="st"><b>一场打完</b><p>8 局结束，出总结算</p></div><div class="ar">→</div>
+        <div class="st new"><b>继续 / 离开</b><p>每人自己选，15 秒不选算离开</p><span class="tg new">新建</span></div><div class="ar">→</div>
+        <div class="st new must"><b>桌子回到等人</b><p>离开的人空出座位，大厅能看到</p><span class="tg must">必须</span></div><div class="ar">→</div>
+        <div class="st"><b>补满 4 人</b><p>别人点空位补进来</p></div><div class="ar">→</div>
+        <div class="st mod"><b>开下一场</b><p>再扣一次房费</p><span class="tg mod">改造</span></div>
+      </div></div>
+      <div class="branch"><span><b>点离开</b> 回大厅</span><span><b>豆子不够门槛</b> 「继续打」变灰，提示后回大厅</span><span><b>人都走光</b> 变回空桌</span></div>
+    </div>
+  </div>
+
+  <div class="lane">
+    <div class="ln"><b>⑤ 离开与掉线</b><span>照现有</span></div>
+    <div>
+      <div class="track"><div class="steps">
+        <div class="st"><b>开局前离开</b><p>只空出座位，桌子还在</p></div><div class="ar">·</div>
+        <div class="st mod"><b>一场中途离开</b><p>不允许，只能托管或解散</p><span class="tg mod">改造</span></div><div class="ar">·</div>
+        <div class="st"><b>掉线</b><p>托管代打，回来接着打</p></div><div class="ar">·</div>
+        <div class="st"><b>全员同意解散</b><p>按已确认的分结算</p></div>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<section class="block">
+  <h2>谁看到什么<small>改完以后每类人能看到、能做的</small></h2>
+  <div class="views">
+    <div class="phone hl">
+      <div class="who"><span>玩家 · 大厅</span><span class="tg mod">改造</span></div>
+      <h3>大厅<small>空位 17</small></h3>
+      <div class="mini"><i>张</i><i>李</i><i>王</i><i class="e g">＋</i></div>
+      <div class="mini"><i>刘</i><i class="e">＋</i><i>陈</i><i>赵</i></div>
+      <ul>
+        <li class="y">全部 / 附近 / 底分 1·2·5</li>
+        <li class="y">点哪个空位坐哪个</li>
+        <li class="y">差 1 人的空位亮黄框</li>
+        <li class="y">打牌中的桌显示第几场第几局</li>
+        <li class="y">距离档位（开了定位才有）</li>
+        <li class="n">开房、输房号</li>
+        <li class="n">好友、消息、邀请</li>
+      </ul>
+      <div class="btn">快速开始</div>
+    </div>
+    <div class="phone">
+      <div class="who"><span>玩家 · 牌桌</span><span class="tg mod">改造</span></div>
+      <h3>牌桌<small>新津 v2</small></h3>
+      <ul>
+        <li class="y">偷、碰、巴杠、报叫都有特效</li>
+        <li class="y">胡字动画、点炮标记、亮牌</li>
+        <li class="y">红点、黑点随时更新</li>
+        <li class="y">可胡提示：哪几张、几番</li>
+        <li class="y">每局小结算，一场打完总结算</li>
+        <li class="y">打完弹「继续 / 离开」</li>
+        <li class="n">邀请好友抽屉</li>
+        <li class="n">定位按钮、距离</li>
+      </ul>
+      <div class="btn">继续打（12）</div>
+    </div>
+    <div class="phone">
+      <div class="who"><span>豆子管理员 · 后台</span><span class="tg mod">改造</span></div>
+      <h3>后台<small>/admin/</small></h3>
+      <ul>
+        <li class="y">大厅桌模板：底分、人数、局数</li>
+        <li class="y">新津 v2 默认：跟头翻、5 番封顶</li>
+        <li class="y">番开关还在，可单独关</li>
+        <li class="y">豆子加减、流水</li>
+        <li class="y">头像昵称审核</li>
+        <li class="n">好友上限、申请、邀请参数</li>
+      </ul>
+      <div class="btn">大厅桌模板</div>
+    </div>
+    <div class="rules">
+      <h4>展示规则</h4>
+      <ul>
+        <li>大厅只有系统常驻桌，玩家不能自己开桌。</li>
+        <li>门槛不够的空位半透明，点了提示还差多少豆。</li>
+        <li>距离只写「1 公里内 / 5 公里内 / 同城 / 更远」，不写米数；进了牌桌看不到距离。</li>
+        <li>点有人的座位弹「昵称 + 性别 + ID」小卡（第二轮做好的）。</li>
+        <li>结算窗里名字用昵称，不再显示一串用户 ID。</li>
+        <li>某个画面客户端里没有现成动画，先停下问你，不新加。</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="block">
+  <h2>必做项检测<small>做错了玩家马上能看出来的，每条都有专门测试</small></h2>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>必做项</th><th>现在怎么做</th><th>不做会怎样</th><th>要补的检测</th></tr></thead>
+      <tbody>
+        <tr><td>1. 一张牌只给一家胡</td><td>可以多家同时胡</td><td class="bad">两家都赢、互相付钱</td><td>机器人 4、3、2 人各 1000 局，两家同胡 = 0</td></tr>
+        <tr><td>2. 点炮包三家</td><td>点炮只付 1 份</td><td class="bad">赢家只拿到 1 份，原版是 3 份</td><td>点炮人付 = 每份 × (人数 − 1)，其他人 0；翻牌胡三家各 1 份</td></tr>
+        <tr><td>3. 门槛按人数</td><td>一律 20</td><td class="bad">3 人桌太好胡</td><td>3 人 24 红不能胡、25 能胡；全红、全黑、天走、接地免门槛</td></tr>
+        <tr><td>4. 番默认打开</td><td>11 个番全关</td><td class="bad">胡什么都只赢 1 份</td><td>例牌碰 1 + 杠 1 + 鬼 1 = 4 番 = 16 份；6 番按 5 番算</td></tr>
+        <tr><td>5. 新旧规则并存</td><td>只有 v1</td><td class="bad">发布时正在打的桌中途换规则</td><td>已开的桌按 v1 打完，新桌 v2；回放按各自版本</td></tr>
+        <tr><td>6. 胡牌先播画面</td><td>直接跳结算</td><td class="bad">看不到谁胡、谁点炮</td><td>胡动作先发，2 秒后才发小结算；只有最后一局发总结算</td></tr>
+        <tr><td>7. 连着打不关桌</td><td>局数到了就关桌</td><td class="bad">打完一场就散</td><td>一场打完桌子回等人，选继续的人座位不变</td></tr>
+        <tr><td>8. 点哪座坐哪座</td><td>点桌子随机给座</td><td class="bad">想坐的位置被换</td><td>两人同时点同一座，只有一人成功</td></tr>
+        <tr><td>9. 好友、开房下线</td><td>接口都开着</td><td class="bad">老入口还能用</td><td>好友、开房接口回「不支持」；网关白名单去掉；表不删</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="muted">依据：2026-10-31 代码核对（lobby.ts、rooms.ts、xinjin-*.ts、round-original.ts）和机器人模拟。</p>
+</section>
+
+<section class="block">
+  <h2>已定<small>没有待拍板的了</small></h2>
+  <div class="done">
+    <b>10-31 已定</b>
+    <ul>
+      <li>好友全部去掉，不开房，进大厅点空位就坐、打完接着打。</li>
+      <li>大厅「附近」页签和桌卡距离档位都保留（原第 5 条）。</li>
+      <li>大厅玩法用新津；规则按网上通行的四川斗十四：点炮包三家、只一家胡、4 人 20 / 3 人 25、手里三张先偷出才算。</li>
+      <li>计分用跟头翻、5 番封顶，补碰、杠、全红、全黑番；鬼照旧摆出补牌，每张 1 番，不做碰鬼；只保留天走、接地。</li>
+    </ul>
+  </div>
+  <div class="done">
+    <b>10-31 剩余各条全按建议定</b>
+    <ul>
+      <li>1 每开一场扣一次 AA；2 一场没打完不能走；3 打完 15 秒不选继续算离开；4 保留一场 8 局。</li>
+      <li>6 保留首页；7 保留快速开始；8 好友老数据留库不显示；9 底分等模拟再定；10 先规则和画面，再大厅。</li>
+      <li>勋章整块去掉：资料页勋章块、勋章接口、点亮逻辑下线，account_medals 表留着不读写。</li>
+    </ul>
+  </div>
+</section>
+
+<footer>详细说明见 docs/requirements/斗十四第三轮-需求简报.md；规则依据见「斗十四规则问题清单」；规则和画面的分步做法见「斗十四改动方案」。</footer>
+</div>

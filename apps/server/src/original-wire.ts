@@ -87,6 +87,8 @@ export interface OriginalProtocolServices {
   profiles?: ProfileService;
   stats?: StatsService;
   profileRequired?: boolean;
+  /** 第三轮只留大厅系统桌：原协议开房、输房号进别人的桌回「不支持」（R2 AC2）。 */
+  lobbyOnly?: boolean;
   markOnline(userId: string, socket: WebSocket): void;
 }
 
@@ -509,7 +511,7 @@ export async function registerOriginalProtocol(app: FastifyInstance, services: O
       const look = (await db.query('SELECT avatar_hash AS "avatarHash",avatar_status AS "avatarStatus",sex FROM accounts WHERE id=$1', [actor.id])).rows[0] ?? {};
       const reply: Record<string, any> = { state: true, uid, token, nick: actor.nickname, picUrl: avatarUrl({ id: actor.id, ...look }), sex: wireSex(look.sex),
         tableId: room ? Number(room.code) : 0, posType: 0, areaType: ids, ...connection.region,
-        mustUpdate: false, isShowSmrz: false, isSmrz: false, winRate: (await services.stats?.lightMedals(actor.id))?.stats.winRate ?? '0%', headType: 0,
+        mustUpdate: false, isShowSmrz: false, isSmrz: false, winRate: (await services.stats?.stats(actor.id))?.winRate ?? '0%', headType: 0,
         showShouchong: false, showMonthcard: false, showYuandan: false, showChunjie: false, showZhaohuiHyhg: false,
       };
       const decimals: DecimalField[] = [];
@@ -605,6 +607,7 @@ export async function registerOriginalProtocol(app: FastifyInstance, services: O
           connection.region = DEFAULT_REGION;
           connection.send(MSGEvent.HWResponseRegionChoice, { result: 1, areaType: ids }); return;
         case MSGEvent.HWRequestCreateTable: {
+          requireCondition(!services.lobbyOnly, 'UNSUPPORTED_OPERATION', '开房已经下线，请在大厅点空位入座。', 403);
           if (services.profileRequired) await services.profiles!.requireComplete(actor.id);
           requireCondition(body.roomType === undefined || body.roomType === 100, 'UNSUPPORTED_OPERATION', 'Only host-created friend rooms are available.');
           const key = resolveVariantKey(body.areaType, body);
@@ -645,6 +648,8 @@ export async function registerOriginalProtocol(app: FastifyInstance, services: O
           await queueRoomTask(target.id, async () => {
             const current = (await db.query("SELECT r.rules,EXISTS(SELECT 1 FROM room_members m WHERE m.room_id=r.id AND m.user_id=$2) AS member FROM rooms r WHERE r.id=$1 AND r.state <> 'closed'", [target.id, actor.id])).rows[0];
             requireCondition(current, 'ROOM_NOT_FOUND', 'Room does not exist.', 404);
+            // 大厅入座先走 /api/lobby/sit 坐上指定座位，这里只让已在桌上的人（含上一场留座的人）进桌。
+            requireCondition(!services.lobbyOnly || current.member, 'UNSUPPORTED_OPERATION', '请在大厅点空位入座。', 403);
             if (services.profileRequired && !current.member) await services.profiles!.requireComplete(actor.id);
             const variant = (await db.query('SELECT variant_key,rule_version FROM rooms WHERE id=$1', [target.id])).rows[0]!;
             if (current.rules?.qionglai) requireCondition(connection.capabilities?.includes(QIONGLAI_OPTION_VERSION), 'CLIENT_UPGRADE_REQUIRED', messages.CLIENT_UPGRADE_REQUIRED!, 426);

@@ -48,14 +48,14 @@ const steps = [
     before: String.raw`/^\/api\/auth\/(register|login|logout)$/.test(pathname) ||`,
     after: String.raw`/^\/api\/auth\/(register|login|logout)$/.test(pathname) ||
     pathname.startsWith('/admin/') || pathname.startsWith('/api/admin/') ||` },
-  // 第二轮好友、私聊、邀请（S3、S4）都在 /api/social/ 下。
-  { label: '/api/social/',
-    before: String.raw`/^\/api\/(me|games|friends|records|rooms|lobby)(\/|$)/.test(pathname) ||`,
-    after: String.raw`/^\/api\/(me|games|friends|records|rooms|lobby|social)(\/|$)/.test(pathname) ||` },
+  // 第二轮加过 /api/social/（好友、私聊、邀请）；第三轮 R1 好友整块去掉，白名单里再拿掉。
+  { label: '去掉 /api/social/',
+    before: String.raw`/^\/api\/(me|games|friends|records|rooms|lobby|social)(\/|$)/.test(pathname) ||`,
+    after: String.raw`/^\/api\/(me|games|friends|records|rooms|lobby)(\/|$)/.test(pathname) ||` },
 ];
 let text = fs.readFileSync(file, 'utf8');
 const todo = [];
-// 按顺序在内存里逐步替换：后面的步骤以前面改过的文字为准（/api/social/ 接在 /api/lobby/ 之后）。
+// 按顺序在内存里逐步替换：后面的步骤以前面改过的文字为准。
 for (const step of steps) {
   if ([step.after, ...(step.also ?? [])].some(done => text.includes(done))) { console.log('网关白名单已含 ' + step.label); continue; }
   if (text.split(step.before).length !== 2) { console.error('网关白名单和预期不一致，没有改动（' + step.label + '）：' + file); process.exit(2); }

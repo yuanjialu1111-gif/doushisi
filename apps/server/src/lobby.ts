@@ -7,6 +7,7 @@ import { avatarUrl } from './avatars.js';
 import { Decimal, money } from './money.js';
 import { DEFAULT_THRESHOLD_MULTIPLIER, type RoomService } from './rooms.js';
 import type { ProfileService } from './profile.js';
+import { isXinjinV2 } from './game/xinjin-win.js';
 
 // 大厅公开桌、快速开始、系统桌补桌与清座、附近档位（R1、R2、R4、R5、R10）。
 
@@ -166,8 +167,12 @@ export class LobbyService {
   private async maintainOnce() {
     const templates = (await this.db.query('SELECT * FROM lobby_templates ORDER BY sort_order,created_at')).rows;
     for (const template of templates) {
-      const empty = (await this.db.query(`SELECT r.id FROM rooms r WHERE r.lobby_template_id=$1 AND r.state='waiting' AND r.current_round=0
+      const standing = (await this.db.query(`SELECT r.id,r.variant_key,r.rules FROM rooms r WHERE r.lobby_template_id=$1 AND r.state='waiting' AND r.current_round=0
         AND NOT EXISTS(SELECT 1 FROM room_members m WHERE m.room_id=r.id) ORDER BY r.created_at`, [template.id])).rows;
+      // 发布前开的新津空桌还是 v1 规则：收掉，按 v2 补开（第三轮规则 v2）。
+      const stale = standing.filter(room => room.variant_key === '4:0' && !isXinjinV2(room.rules ?? {}));
+      for (const room of stale) await this.rooms.closeEmptySystemRoom(room.id);
+      const empty = standing.filter(room => !stale.includes(room));
       // 其他玩法的老模板不再补桌，空桌收掉；模板本身留着不动（S1）。
       const wanted = template.enabled && isVisibleVariant(template.variant_key) ? template.standing_empty : 0;
       for (const room of empty.slice(wanted).reverse()) await this.rooms.closeEmptySystemRoom(room.id);
@@ -180,9 +185,10 @@ export class LobbyService {
         }
       }
     }
+    await this.rooms.releaseHolds();
     const idle = await this.db.query(`SELECT m.room_id,m.user_id,t.idle_clear_minutes FROM room_members m JOIN rooms r ON r.id=m.room_id
       JOIN lobby_templates t ON t.id=r.lobby_template_id WHERE r.state='waiting' AND r.current_round=0
-      AND m.joined_at <= now() - make_interval(mins => t.idle_clear_minutes)`);
+      AND m.hold_until IS NULL AND m.joined_at <= now() - make_interval(mins => t.idle_clear_minutes)`);
     for (const seat of idle.rows) await this.rooms.clearIdleSeat(seat.room_id, seat.user_id, seat.idle_clear_minutes);
   }
 
@@ -219,7 +225,7 @@ export class LobbyService {
   // ---------- 玩家：大厅列表与快速开始 ----------
 
   async tables(userId: string, variant?: string, since?: string) {
-    const rows = (await this.db.query(`SELECT r.id,r.code,r.variant_key,r.rules,r.player_count,r.rounds,r.current_round,r.state,r.created_at,
+    const rows = (await this.db.query(`SELECT r.id,r.code,r.variant_key,r.rules,r.player_count,r.rounds,r.current_round,r.state,r.created_at,r.match_seq,
       r.lobby_template_id,t.threshold_multiplier,t.sort_order,m.seat,a.id AS user_id,a.nickname,a.avatar_hash AS "avatarHash",a.avatar_status AS "avatarStatus",a.sex,p.wire_id AS uid
       FROM rooms r LEFT JOIN lobby_templates t ON t.id=r.lobby_template_id
       LEFT JOIN room_members m ON m.room_id=r.id LEFT JOIN accounts a ON a.id=m.user_id
@@ -234,7 +240,7 @@ export class LobbyService {
         const baseBeans = money(row.rules?.baseBeans ?? '0');
         table = { code: row.code, variantKey: row.variant_key, variantName: variantName(row.variant_key), baseBeans,
           threshold: money(new Decimal(baseBeans).times(row.threshold_multiplier ?? DEFAULT_THRESHOLD_MULTIPLIER)),
-          playerCount: row.player_count, rounds: row.rounds, currentRound: row.current_round,
+          playerCount: row.player_count, rounds: row.rounds, currentRound: row.current_round, matchSeq: row.match_seq ?? 1,
           state: row.state === 'waiting' && row.current_round === 0 ? 'waiting' : 'playing', system: Boolean(row.lobby_template_id),
           seats: [], sortOrder: row.sort_order ?? Number.MAX_SAFE_INTEGER, createdAt: new Date(row.created_at).getTime(), nearestKm: Infinity };
         byRoom.set(row.id, table);
@@ -248,8 +254,10 @@ export class LobbyService {
       }
     }
     const all = [...byRoom.values()];
-    const open = (table: any) => table.state === 'waiting' && table.seats.length < table.playerCount ? 0 : 1;
-    all.sort((a, b) => open(a) - open(b) || b.seats.length - a.seats.length || a.sortOrder - b.sortOrder || a.createdAt - b.createdAt);
+    // 差 1 人的排最前，再差 2、差 3，然后空桌，打牌中的最后（第三轮 R4）。
+    const rank = (table: any) => table.state !== 'waiting' || table.seats.length >= table.playerCount ? 99
+      : table.seats.length === 0 ? 98 : table.playerCount - table.seats.length;
+    all.sort((a, b) => rank(a) - rank(b) || a.sortOrder - b.sortOrder || a.createdAt - b.createdAt);
     // 有人坐、且桌上有人报了位置的桌都带档位（「全部」里每张桌也显示，S2-AC3），「附近」按名次排；只给档位和名次，不给米数和坐标（R10 AC1、AC2）。
     const near = all.filter(table => table.seats.length && Number.isFinite(table.nearestKm)).sort((a, b) => a.nearestKm - b.nearestKm);
     near.forEach((table, index) => { table.nearby = { band: BANDS.find(([km]) => table.nearestKm <= km)?.[1] ?? '更远', rank: index + 1 }; });
@@ -257,7 +265,9 @@ export class LobbyService {
     const variants = (await this.db.query(`SELECT DISTINCT variant_key FROM lobby_templates WHERE enabled
       UNION SELECT DISTINCT variant_key FROM rooms WHERE visibility='public' AND state <> 'closed'`)).rows
       .filter(row => isVisibleVariant(row.variant_key)).map(row => ({ key: row.variant_key as string, name: variantName(row.variant_key) })).sort((a, b) => a.key.localeCompare(b.key, 'en', { numeric: true }));
-    const body = { tables, variants, hasLocation: Boolean(me) };
+    // 我的豆子：客户端拿它和门槛比，不够的空位画半透明、点了提示差多少（第三轮 R3）。
+    const beans = money((await this.db.query('SELECT balance::text FROM wallets WHERE user_id=$1', [userId])).rows[0]?.balance ?? '0');
+    const body = { tables, variants, hasLocation: Boolean(me), beans };
     const version = createHash('sha1').update(JSON.stringify(body)).digest('hex').slice(0, 16);
     // 版本没变只回一个标记，大厅每 2 秒拉一次也几乎不占流量（R1 AC1）。
     return since === version ? { version, unchanged: true as const } : { version, ...body };

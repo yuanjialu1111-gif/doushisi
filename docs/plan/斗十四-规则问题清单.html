@@ -1,0 +1,473 @@
+<title>斗十四规则问题清单</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@700&display=swap">
+<style>
+/* 版式：顶部结论 + 一手牌流程图（问题挂在步骤上）+ 分组问题卡 + 拍板清单；沿用架构图的牌桌绿，严重度用红/橙/灰 */
+:root {
+  --bg: #f4f6f3; --panel: #ffffff; --ink: #1d2a24; --muted: #66756d; --line: #d5ddd7;
+  --felt: #1f7a4d; --felt-soft: #e3f2ea;
+  --hi: #c8402f; --hi-bg: #fbe9e6;
+  --mid: #c77700; --mid-bg: #fff2dc;
+  --lo: #6b7480; --lo-bg: #eef0f2;
+  --ok: #1f9a4a; --ok-bg: #e5f6ea;
+  --ask: #2f6fd1; --ask-bg: #e6eefb;
+  --font-display: "Noto Serif SC", "Songti SC", serif;
+  --font-body: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #121815; --panel: #1a221e; --ink: #e3ebe6; --muted: #93a39a; --line: #2e3a34;
+  --felt: #5cc48d; --felt-soft: #1d3329;
+  --hi: #f08a7b; --hi-bg: #3a201c; --mid: #f0b45a; --mid-bg: #3a2c14;
+  --lo: #a3acb6; --lo-bg: #252b30; --ok: #5fd187; --ok-bg: #183024; --ask: #7fa9f0; --ask-bg: #1a2640;
+  color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #121815; --panel: #1a221e; --ink: #e3ebe6; --muted: #93a39a; --line: #2e3a34;
+  --felt: #5cc48d; --felt-soft: #1d3329;
+  --hi: #f08a7b; --hi-bg: #3a201c; --mid: #f0b45a; --mid-bg: #3a2c14;
+  --lo: #a3acb6; --lo-bg: #252b30; --ok: #5fd187; --ok-bg: #183024; --ask: #7fa9f0; --ask-bg: #1a2640;
+  color-scheme: dark }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 13px; line-height: 1.6;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 24px 48px; }
+.wrap { max-width: 1180px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 12px; }
+h1 { font-family: var(--font-display); font-size: 26px; margin: 0; letter-spacing: .02em; text-wrap: balance; }
+.sub { color: var(--muted); margin-top: 4px; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px; color: var(--muted); font-size: 12px; align-items: center; }
+.tag { display: inline-block; font-size: 11px; line-height: 1; padding: 4px 6px; border-radius: 4px; font-weight: 500; white-space: nowrap; }
+.t-hi { color: var(--hi); background: var(--hi-bg); } .t-mid { color: var(--mid); background: var(--mid-bg); }
+.t-lo { color: var(--lo); background: var(--lo-bg); } .t-ok { color: var(--ok); background: var(--ok-bg); }
+.t-ask { color: var(--ask); background: var(--ask-bg); }
+section.block { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+h2 { font-size: 16px; margin: 0; text-wrap: balance; } h2 small { color: var(--muted); font-weight: 400; font-size: 12px; margin-left: 8px; }
+p { margin: 0; }
+.muted { color: var(--muted); }
+code { font-family: var(--font-mono); font-size: 11.5px; background: var(--lo-bg); padding: 1px 4px; border-radius: 3px; word-break: break-all; }
+
+/* 结论 */
+.verdict { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+.vitem { border-left: 3px solid var(--hi); padding: 2px 0 2px 12px; min-width: 0; }
+.vitem b { display: block; font-size: 14px; margin-bottom: 2px; }
+.vitem p { color: var(--muted); }
+.counts { display: flex; flex-wrap: wrap; gap: 6px 16px; color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+.counts b { color: var(--ink); }
+
+/* 流程图 */
+.flow-scroll { overflow-x: auto; padding-bottom: 4px; }
+.flow { display: grid; grid-template-columns: repeat(7, minmax(150px, 1fr)); gap: 0; min-width: 1060px; }
+.step { position: relative; padding: 0 10px; display: flex; flex-direction: column; gap: 6px; }
+.step + .step { border-left: 1px dashed var(--line); }
+.step .sn { display: flex; align-items: center; gap: 6px; font-weight: 700; font-size: 13px; }
+.step .sn i { font-style: normal; width: 20px; height: 20px; border-radius: 50%; display: inline-grid; place-items: center; background: var(--felt-soft); color: var(--felt); font-size: 11px; }
+.step .row { font-size: 12px; }
+.step .row span { display: block; font-size: 10.5px; color: var(--muted); letter-spacing: .06em; }
+.step .chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 2px; }
+.step .chips a { text-decoration: none; }
+.step.bad { background: linear-gradient(var(--hi-bg), transparent 70%); border-radius: 6px 6px 0 0; }
+.arrow { color: var(--felt); font-size: 12px; }
+
+/* 问题卡 */
+.group-h { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.issues { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 10px; }
+.issue { border: 1px solid var(--line); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 8px; min-width: 0; scroll-margin-top: 16px; }
+.issue.hi { border-color: color-mix(in srgb, var(--hi) 45%, var(--line)); }
+.issue.ok { border-style: dashed; }
+.issue:target { outline: 2px solid var(--ask); outline-offset: 2px; }
+.ih { display: flex; gap: 8px; align-items: flex-start; justify-content: space-between; }
+.ih b { font-size: 14px; } .ih .id { font-family: var(--font-mono); color: var(--muted); font-size: 11px; margin-right: 6px; }
+.cmp { display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 4px 8px; font-size: 12.5px; }
+.cmp dt { color: var(--muted); font-size: 11.5px; padding-top: 1px; }
+.cmp dd { margin: 0; min-width: 0; }
+.cmp dd.fix { color: var(--felt); }
+
+/* 模拟 */
+table { border-collapse: collapse; width: 100%; font-size: 12.5px; font-variant-numeric: tabular-nums; }
+.tbl { overflow-x: auto; }
+th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th { color: var(--muted); font-weight: 500; font-size: 12px; }
+td.num, th.num { text-align: right; }
+td.warn { color: var(--hi); font-weight: 700; }
+
+/* 拍板 */
+.decide { display: flex; flex-direction: column; gap: 10px; }
+.dq { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 10px; padding: 10px 0; border-top: 1px dashed var(--line); }
+.dq:first-child { border-top: 0; }
+.dq .n { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; background: var(--ask-bg); color: var(--ask); font-weight: 700; font-size: 12px; }
+.dq b { display: block; font-size: 13.5px; margin-bottom: 4px; }
+.opts { display: flex; flex-wrap: wrap; gap: 6px; }
+.opt { border: 1px solid var(--line); border-radius: 6px; padding: 4px 8px; font-size: 12px; }
+.opt.rec { border-color: var(--felt); color: var(--felt); background: var(--felt-soft); }
+.unchecked { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 6px 16px; padding: 0; margin: 0; list-style: none; font-size: 12.5px; }
+.unchecked li::before { content: "□ "; color: var(--muted); }
+.callout { border: 1px solid color-mix(in srgb, var(--mid) 50%, var(--line)); background: color-mix(in srgb, var(--mid-bg) 60%, var(--panel)); border-radius: 8px; padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; }
+.callout b { font-size: 14px; }
+.tl td { white-space: normal; vertical-align: top; min-width: 120px; }
+.tl td:first-child { font-family: var(--font-mono); color: var(--muted); min-width: 44px; white-space: nowrap; }
+.tl td:last-child { min-width: 170px; }
+.tl .tag { margin-right: 4px; }
+.formula { font-family: var(--font-mono); font-size: 12px; background: var(--lo-bg); padding: 8px 10px; border-radius: 6px; overflow-x: auto; white-space: nowrap; }
+a { color: var(--ask); }
+a:focus-visible { outline: 2px solid var(--ask); outline-offset: 2px; border-radius: 3px; }
+@media (max-width: 520px) { .issues { grid-template-columns: minmax(0, 1fr); } h1 { font-size: 22px; } }
+</style>
+
+<div class="wrap">
+<header>
+  <div>
+    <h1>斗十四规则问题清单</h1>
+    <p class="sub">新津斗十四（4:0）· 2026-10-31 · 对照你发的「7 张组牌规则详解」三张图、百度规则文字和快手「红原斗十四」视频，逐条比对服务端引擎和牌桌客户端</p>
+  </div>
+  <div class="legend">
+    <span class="tag t-hi">严重</span>打法或结果明显不对
+    <span class="tag t-mid">中</span>和资料不一致
+    <span class="tag t-lo">轻</span>体验问题
+    <span class="tag t-ok">一致</span>
+    <span class="tag t-ask">待你拍板</span>
+  </div>
+</header>
+
+<section class="block">
+  <h2>先说结论</h2>
+  <div class="verdict">
+    <div class="vitem"><b>一张牌能好几家同时胡</b><p>翻出来的牌，摸牌人和其他人只要能胡就一起算赢，然后互相付钱。两人桌都会出现。资料要求只胡一家、按座次先到先得。</p></div>
+    <div class="vitem"><b>手里成了坎也不让胡</b><p>手里三张相同的牌不算一组，必须先点「偷」摆出来，否则判不胡。资料里碰杠是组牌时优先算的。</p></div>
+    <div class="vitem"><b>胡了看不到胡</b><p>胡牌没有特效和语音。每局打完弹出的是总结算窗口，名字显示成一串用户 ID，看不到谁胡、胡了什么、多少红点。</p></div>
+    <div class="vitem"><b>视频是另一种玩法</b><p>你发的是红原（阿坝）斗十四，起胡看「分数 400」；大厅开的是新津，起胡看红点 20。点炮在原版是一人包三家，我们只付一份。</p></div>
+    <div class="vitem"><b>不管什么牌都只赢 1 分</b><p>大厅开的桌所有番都是关的，分数也不乘红点。大牌、小牌赢的一样多。</p></div>
+  </div>
+  <div class="counts">
+    <span>规则与算法 <b>8</b></span><span>计分 <b>3</b></span><span>牌桌特效 <b>7</b></span><span>结算画面 <b>1</b></span><span>托管 <b>1</b></span>
+    <span>其中严重 <b>7</b></span><span>待你拍板 <b>8</b> 条</span>
+  </div>
+</section>
+
+<section class="block" id="video">
+  <h2>视频对照：红原斗十四<small>快手视频 54 秒，一局从起手打到「战绩」结算，逐秒截帧看的</small></h2>
+  <div class="callout">
+    <b>视频和大厅不是同一种玩法</b>
+    <p>红原在原服务器里归「阿坝」玩法（编号 10:0），大厅现在开的是「新津」（4:0）。两种起胡方式完全不同：新津看红点满 20，阿坝看「分数」满 300/400/500（视频这桌是 400）。你测试时感觉逻辑不对，有一部分原因是拿阿坝的打法去对新津的桌。10-31 已定：大厅用新津。视频里的特效和结算画面照样参考，阿坝的算分和点炮规则不直接搬。</p>
+  </div>
+  <div class="tbl">
+    <table class="tl">
+      <thead><tr><th>时间</th><th>视频里发生了什么</th><th>原版画面效果</th><th>我们现在</th></tr></thead>
+      <tbody>
+        <tr><td>0:00</td><td>庄家（自己）起手有 7♥，自动偷走</td><td>紫色「偷」横幅划过，7 摆到头像旁</td><td><a href="#E4" class="tag t-mid">E4</a>偷王当普通摸牌，无横幅；新津默认 7 不偷</td></tr>
+        <tr><td>0:05</td><td>下家翻出 7♠，偷走后补牌</td><td>同上</td><td>同上</td></tr>
+        <tr><td>0:08</td><td>自己打出 5</td><td>牌放大停在桌中，角上绿色「打」字</td><td>出牌有放大，角标待实机核对</td></tr>
+        <tr><td>0:10</td><td>报叫状态下的「可胡提示」</td><td>手牌上方浮一条：「5 张 可胡」，列出 3♦ 3♣ 3♥ 3♠ 和鬼，每张下面标「2 番」</td><td><a href="#E7" class="tag t-mid">E7</a>没有</td></tr>
+        <tr><td>0:11</td><td>上家碰 5</td><td>蓝色「碰」横幅加闪光；碰来的那张带来源角标</td><td><a href="#E5" class="tag t-ok">E5</a>有</td></tr>
+        <tr><td>0:13</td><td>上家偷鬼、再偷 7♣</td><td>「偷」横幅，鬼和 7 摆在碰牌旁边</td><td><a href="#R6" class="tag t-ask">R6</a>鬼会偷；7 不偷</td></tr>
+        <tr><td>0:19</td><td>上家摸到第四张 5，巴杠</td><td>整桌下雨特效</td><td><a href="#R5" class="tag t-mid">R5</a>巴杠不存在</td></tr>
+        <tr><td>0:21</td><td>对家碰 Q</td><td>碰横幅</td><td>有</td></tr>
+        <tr><td>0:25</td><td>没人要的牌</td><td>飞回打牌人头像下的弃牌区，带「弃」字</td><td>待实机核对</td></tr>
+        <tr><td>0:42</td><td>对家吃下家打的 9♠（9+5=14）</td><td>绿色「吃」横幅</td><td><a href="#R8" class="tag t-ok">R8</a>吃上家一致</td></tr>
+        <tr><td>全程</td><td>自己报叫后手牌锁定，只摸只打</td><td>手牌上沿一排火焰，头像也着火</td><td><a href="#E6" class="tag t-mid">E6</a>别人看不到报叫</td></tr>
+        <tr><td>每步</td><td>倒计时</td><td>摸、打、要牌都是 15 秒闹钟</td><td><a href="#E8" class="tag t-lo">E8</a>要牌 15 秒，出牌 30 秒</td></tr>
+        <tr><td>0:48</td><td>上家打 3♠，自己能胡</td><td>手牌右上出现两个圆按钮：橙色「胡」、蓝色「过」</td><td>有选择按钮，样式待核对</td></tr>
+        <tr><td>0:50</td><td>点胡</td><td>橙色火焰「胡」大字；豆子当场变化</td><td><a href="#E1" class="tag t-hi">E1</a>没有，直接跳结算</td></tr>
+        <tr><td>0:52</td><td>本局「战绩」</td><td>四家全部亮牌（手牌、碰杠、偷牌分开摆），胡的那张标「胡」；庄、小家、报叫、点炮标签；「400 分 1 番」；每家输赢；按钮：问题反馈 / 返回大厅 / 再来一局</td><td><a href="#E2" class="tag t-hi">E2</a>弹总结算，名字是 ID</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p><b>算分对得上：</b>结算底部写着</p>
+  <div class="formula">赢每家得分 = 分数 × 2^(番数之和) ÷ 100 × 底分 × 0.8</div>
+  <p class="muted">400 × 2¹ ÷ 100 × 6000 × 0.8 = 38,400 一家；点炮的上家一个人付了三家的 115,200（豆子 17.73 万 → 6.21 万），另外两家 0。也就是<b>点炮包三家</b>，0.8 看着像抽两成。</p>
+  <p class="muted">同一手牌放进我们的阿坝引擎：红点 × 10 只有约 110 分（算上偷的 7♥ 也不到 200），到不了 400，胡不了。说明阿坝的「分数」算法我们也不对，原版怎么从这手牌算出 400 还需要更多录像。</p>
+</section>
+
+<section class="block">
+  <h2>一手牌的流程，问题出在哪一步<small>点编号跳到下面的明细；横向可滑动</small></h2>
+  <div class="flow-scroll">
+    <div class="flow">
+      <div class="step">
+        <div class="sn"><i>1</i>发牌</div>
+        <div class="row"><span>资料</span>首家 8 张，其他 7 张</div>
+        <div class="row"><span>现在</span>首家 8 张，其他 7 张；摸到鬼自动移到旁边再补一张</div>
+        <div class="chips"><a href="#R6" class="tag t-mid">R6 鬼牌</a><a href="#E4" class="tag t-mid">E4 偷王无特效</a></div>
+      </div>
+      <div class="step">
+        <div class="sn"><i>2</i>摸牌 / 翻牌</div>
+        <div class="row"><span>资料</span>翻出的牌给大家看，可吃碰胡</div>
+        <div class="row"><span>现在</span>翻到桌上，开一轮响应；没有"等别人操作"的提示</div>
+        <div class="chips"><a href="#E6" class="tag t-lo">E6 等待提示</a></div>
+      </div>
+      <div class="step bad">
+        <div class="sn"><i>3</i>谁来要这张牌</div>
+        <div class="row"><span>资料</span>胡 &gt; 碰/杠 &gt; 吃；同级按座次只给一家；吃只能吃上家</div>
+        <div class="row"><span>现在</span>碰杠吃顺序对；<b>胡可以多家同时</b>；吃上家一致</div>
+        <div class="chips"><a href="#R1" class="tag t-hi">R1 多家同胡</a><a href="#R8" class="tag t-ok">R8 吃上家</a></div>
+      </div>
+      <div class="step">
+        <div class="sn"><i>4</i>吃 / 碰 / 杠 / 偷</div>
+        <div class="row"><span>资料</span>三张碰，四张杠，鬼可参与</div>
+        <div class="row"><span>现在</span>吃碰偷有动画语音；巴杠不存在；鬼不能参与</div>
+        <div class="chips"><a href="#R5" class="tag t-mid">R5 杠</a><a href="#E5" class="tag t-ok">E5 特效正常</a></div>
+      </div>
+      <div class="step bad">
+        <div class="sn"><i>5</i>能不能胡</div>
+        <div class="row"><span>资料</span>全部成组（坎优先）+ 红点到门槛：当家 20 / 普通 18 / 小家 5（另一份说 ≥20，三人 25）</div>
+        <div class="row"><span>现在</span>手里的坎不算组；门槛一律 20</div>
+        <div class="chips"><a href="#R2" class="tag t-hi">R2 坎不算</a><a href="#R3" class="tag t-hi">R3 门槛</a><a href="#R4" class="tag t-mid">R4 碰杠红点</a></div>
+      </div>
+      <div class="step bad">
+        <div class="sn"><i>6</i>算分</div>
+        <div class="row"><span>资料</span>红点 × 2<sup>番</sup>，天地人和加番</div>
+        <div class="row"><span>现在</span>只算 2<sup>番</sup>，不乘红点；番默认全关 = 永远 1 分</div>
+        <div class="chips"><a href="#S1" class="tag t-hi">S1 永远 1 分</a><a href="#S2" class="tag t-mid">S2 不乘红点</a><a href="#R7" class="tag t-ask">R7 天地人和</a></div>
+      </div>
+      <div class="step bad">
+        <div class="sn"><i>7</i>胡牌和结算画面</div>
+        <div class="row"><span>资料</span>胡字动画、亮牌、番型、红点</div>
+        <div class="row"><span>现在</span>没动画；直接弹总结算；名字是 ID</div>
+        <div class="chips"><a href="#E1" class="tag t-hi">E1 无胡特效</a><a href="#E2" class="tag t-hi">E2 结算窗口错</a><a href="#E3" class="tag t-mid">E3 红点 0</a></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="block">
+  <div class="group-h"><h2>规则与算法</h2><span class="muted">服务端引擎 <code>apps/server/src/game/xinjin-round.ts</code>、<code>xinjin-win.ts</code></span></div>
+  <div class="issues">
+    <article class="issue hi" id="R1">
+      <div class="ih"><b><span class="id">R1</span>一张牌好几家同时胡，还互相付钱</b><span class="tag t-hi">严重</span></div>
+      <dl class="cmp">
+        <dt>资料</dt><dd>胡比碰杠吃都大；两家同级时按座次，离出牌的人近的那家胡，只胡一家。</dd>
+        <dt>现在</dt><dd>胡按"可同时"处理。翻出来的牌，摸牌人自己和其他人都能胡，都算赢家；不是点炮的话，每个没胡的人要给每个胡家付钱。机器人模拟 1000 局：4 人桌 28 局、2 人桌 20 局出现两家同胡。</dd>
+        <dt>玩家看到</dt><dd>两个人同时赢；两人桌两人都赢，互相付了钱。</dd>
+        <dt>建议</dt><dd class="fix">胡改成只给一家：从出牌人（翻牌是摸牌人）开始按座次，第一个选胡的人胡。</dd>
+      </dl>
+    </article>
+    <article class="issue hi" id="R2">
+      <div class="ih"><b><span class="id">R2</span>手里的三张、四张相同不算一组</b><span class="tag t-hi">严重</span></div>
+      <dl class="cmp">
+        <dt>资料</dt><dd>组牌时碰/杠优先。例：红桃 5、梅花 5、方块 5、红桃 K、方块 A、黑桃 7、红桃 7 = 一坎 5 + K/A + 7/7，能胡。</dd>
+        <dt>现在</dt><dd>判胡时手里只认"两张凑 14"的对子。三张相同必须先点「偷」摆到桌上，不然判"牌型不对"。上面那手例子牌现在直接胡不了。</dd>
+        <dt>玩家看到</dt><dd>明明成牌了，没有胡按钮。</dd>
+        <dt>建议</dt><dd class="fix">判胡时手里的三张/四张同点可以当一组（是否还要先偷，见拍板 3）。</dd>
+      </dl>
+    </article>
+    <article class="issue hi" id="R3">
+      <div class="ih"><b><span class="id">R3</span>红点门槛一律 20</b><span class="tag t-ask">待拍板</span></div>
+      <dl class="cmp">
+        <dt>资料</dt><dd>图片版：当家 20、普通 18、小家 5。百度版：门前牌红点 ≥ 20，三人桌 25。两份不一样。</dd>
+        <dt>现在</dt><dd>不分人数、不分位置都是 20，算的是手里加桌上全部牌。也没有当家 / 小家的概念（发给客户端的小家座位是空）。</dd>
+        <dt>建议</dt><dd class="fix">先定用哪份，再按人数和位置给门槛。</dd>
+      </dl>
+    </article>
+    <article class="issue" id="R4">
+      <div class="ih"><b><span class="id">R4</span>碰/杠的红点算法</b><span class="tag t-ask">待拍板</span></div>
+      <dl class="cmp">
+        <dt>资料</dt><dd>图片版给的是固定值：三张红 8、四张红 10、三张黑 4、四张黑 6。</dd>
+        <dt>现在</dt><dd>逐张加：红 A/J/Q/K 记 1，红 2–10 记牌面，黑牌记 0。三张 5（两红一黑）现在记 10。</dd>
+        <dt>注意</dt><dd>一副牌同点只有两张红色，"三张全红"凑不出来，资料这条要换个理解（比如"红多算红坎"）。</dd>
+        <dt>建议</dt><dd class="fix">你定按固定值还是逐张加。</dd>
+      </dl>
+    </article>
+    <article class="issue" id="R5">
+      <div class="ih"><b><span class="id">R5</span>杠几乎打不出来，巴杠不存在</b><span class="tag t-mid">中</span></div>
+      <dl class="cmp">
+        <dt>资料</dt><dd>四张相同为杠。视频 0:19 上家碰了 5 以后摸到第四张，巴杠，整桌下雨。</dd>
+        <dt>现在</dt><dd>"碰了以后再摸到第四张"的巴杠，引擎里有名字但从来不生成这个操作，客户端的巴杠按钮永远不会出现。模拟 3000 局杠 0 次（机器人碰优先，真人会少量出现）。</dd>
+        <dt>建议</dt><dd class="fix">补上巴杠；杠和碰同时可选时两个按钮都给。</dd>
+      </dl>
+    </article>
+    <article class="issue" id="R6">
+      <div class="ih"><b><span class="id">R6</span>鬼牌只会被偷走，不能参与碰杠</b><span class="tag t-ask">待拍板</span></div>
+      <dl class="cmp">
+        <dt>资料</dt><dd>鬼可以参与碰/杠，不能凑 14。视频里鬼和 7 都被偷到旁边；但可胡提示把鬼也列成能胡的牌，像是能顶任意一张，和「不能凑 14」对不上。</dd>
+        <dt>现在</dt><dd>默认 3 张鬼，摸到就自动放到旁边再补一张，不能拿来碰杠。偷王的番默认关，偷了也不加分，等于白摸。</dd>
+        <dt>建议</dt><dd class="fix">定鬼的用法：当万能牌参与碰杠，还是保留偷王但打开偷王加番。</dd>
+      </dl>
+    </article>
+    <article class="issue" id="R7">
+      <div class="ih"><b><span class="id">R7</span>天地人和对不上</b><span class="tag t-ask">待拍板</span></div>
+      <dl class="cmp">
+        <dt>资料</dt><dd>天（12+12）、地（2+2）、人（8+8）、和（3+3）成对加番，这是长牌叫法搬到扑克上。</dd>
+        <dt>现在</dt><dd>我们的"天胡 / 地胡"是起手就胡、第一手就胡，意思不同，而且默认关。</dd>
+        <dt>建议</dt><dd class="fix">定要不要按资料加这四种对子番。</dd>
+      </dl>
+    </article>
+    <article class="issue ok" id="R8">
+      <div class="ih"><b><span class="id">R8</span>吃只能吃上家</b><span class="tag t-ok">一致</span></div>
+      <dl class="cmp">
+        <dt>资料</dt><dd>只能吃上家展示的牌。</dd>
+        <dt>现在</dt><dd>只给出牌人的下家吃，就是吃上家。自己翻的牌默认不能自己吃（后台"自吃"开关，默认关）。</dd>
+      </dl>
+    </article>
+  </div>
+</section>
+
+<section class="block">
+  <div class="group-h"><h2>计分</h2><span class="muted">大厅开桌 <code>apps/server/src/lobby.ts</code> 只传局数、人数、底分</span></div>
+  <div class="issues">
+    <article class="issue hi" id="S1">
+      <div class="ih"><b><span class="id">S1</span>不管胡什么牌都只赢 1 个底分</b><span class="tag t-hi">严重</span></div>
+      <dl class="cmp">
+        <dt>现在</dt><dd>11 个番（七星王、报叫、天胡、地胡、暗对、恰 20、龙对、小胡、恰 40、恰 50、四归一）在大厅桌上全是关的，所以番永远是 0，2<sup>0</sup> = 1。</dd>
+        <dt>建议</dt><dd class="fix">按你定的番种默认打开（见拍板 5）。</dd>
+      </dl>
+    </article>
+    <article class="issue" id="S2">
+      <div class="ih"><b><span class="id">S2</span>分数不乘红点</b><span class="tag t-mid">中</span></div>
+      <dl class="cmp">
+        <dt>资料</dt><dd>红点 × 2<sup>番</sup>。</dd>
+        <dt>现在</dt><dd>只有 2<sup>番</sup>（或 1 + 番），红点只用来判门槛。机器人胡牌时平均红点 27，30 点和 20 点赢的一样。</dd>
+        <dt>建议</dt><dd class="fix">定是否乘红点；乘的话底分要相应调小。</dd>
+      </dl>
+    </article>
+    <article class="issue hi" id="S3">
+      <div class="ih"><b><span class="id">S3</span>点炮只付一份，原版是包三家</b><span class="tag t-hi">严重</span></div>
+      <dl class="cmp">
+        <dt>视频</dt><dd>点炮的人一个人付了三家的钱（38,400 × 3），其他人不付。</dd>
+        <dt>现在</dt><dd>新津、阿坝引擎都是点炮只付一份；翻牌或自摸胡，其他每人各付一份。</dd>
+        <dt>建议</dt><dd class="fix">点炮改成包三家；自摸、翻牌胡保持每家各付。</dd>
+      </dl>
+    </article>
+  </div>
+</section>
+
+<section class="block">
+  <div class="group-h"><h2>牌桌特效和点击反馈</h2><span class="muted">服务端转发层 <code>apps/server/src/game/round-original.ts</code>；客户端 <code>client/public/assets/dss/index.js</code> 里的动画都在，问题是服务端没发对应的消息</span></div>
+  <div class="issues">
+    <article class="issue hi" id="E1">
+      <div class="ih"><b><span class="id">E1</span>胡牌没有任何特效</b><span class="tag t-hi">严重</span></div>
+      <dl class="cmp">
+        <dt>应有</dt><dd>客户端里有按牌型播放的"胡"字动画和语音，还有平胡 / 自摸标记、点炮的人头上的标记，胡家亮手牌。</dd>
+        <dt>现在</dt><dd>服务端胡牌时不发"胡"这个动作，这些全部走不到，牌桌直接跳到结算。</dd>
+        <dt>建议</dt><dd class="fix">胡牌时先发胡动作（带胡家、点炮人、牌型），停 2 秒再出结算。</dd>
+      </dl>
+    </article>
+    <article class="issue hi" id="E2">
+      <div class="ih"><b><span class="id">E2</span>每局打完弹的是总结算</b><span class="tag t-hi">严重</span></div>
+      <dl class="cmp">
+        <dt>应有</dt><dd>每局一个小结算：每家手牌、组牌、番型、红点、本局输赢；整场打完才是总结算。</dd>
+        <dt>现在</dt><dd>服务端每局都把小结算发成空的，客户端看到空就弹总结算窗口；名字字段填的是用户 ID，所以显示一串数字字母。</dd>
+        <dt>建议</dt><dd class="fix">补小结算数据，名字用昵称；总结算只在最后一局发。</dd>
+      </dl>
+    </article>
+    <article class="issue" id="E3">
+      <div class="ih"><b><span class="id">E3</span>红点、黑点一直显示 0</b><span class="tag t-mid">中</span></div>
+      <dl class="cmp">
+        <dt>现在</dt><dd>进桌和摸牌时发给客户端的红点、黑点都写死 0。玩家看不出自己离门槛还差多少。</dd>
+        <dt>建议</dt><dd class="fix">每次牌变化都带上当前红点、黑点。</dd>
+      </dl>
+    </article>
+    <article class="issue" id="E4">
+      <div class="ih"><b><span class="id">E4</span>偷王看起来像普通摸牌</b><span class="tag t-mid">中</span></div>
+      <dl class="cmp">
+        <dt>现在</dt><dd>摸到鬼时当普通摸牌发：自己看到一张大牌弹出来，别人看到一张背面，没有"偷"字和语音。</dd>
+        <dt>建议</dt><dd class="fix">改发偷牌动作，走客户端现成的偷牌动画。</dd>
+      </dl>
+    </article>
+    <article class="issue ok" id="E5">
+      <div class="ih"><b><span class="id">E5</span>吃、碰、杠、偷的动画和语音</b><span class="tag t-ok">正常</span></div>
+      <dl class="cmp">
+        <dt>现在</dt><dd>这几个动作带着组牌信息发，客户端会播对应动画和语音，碰还有专门的特效。</dd>
+      </dl>
+    </article>
+    <article class="issue" id="E6">
+      <div class="ih"><b><span class="id">E6</span>报叫别人看不到；翻牌后没有等待提示</b><span class="tag t-mid">中</span></div>
+      <dl class="cmp">
+        <dt>现在</dt><dd>视频里报叫的人手牌上沿一排火焰、头像着火，一眼能认出。我们报叫被当成普通出牌发，其他人看不到报叫特效。翻出牌后进入"大家选择要不要"的阶段时没有单独的消息，不能操作的人只看到倒计时。</dd>
+        <dt>建议</dt><dd class="fix">报叫改发报叫动作；等待阶段给一句"等待其他玩家…"。</dd>
+      </dl>
+    </article>
+    <article class="issue" id="E7">
+      <div class="ih"><b><span class="id">E7</span>没有「可胡提示」</b><span class="tag t-mid">中</span></div>
+      <dl class="cmp">
+        <dt>视频</dt><dd>报叫后手牌上方浮一条：还剩几张能胡、是哪几张、各几番。</dd>
+        <dt>现在</dt><dd>没有。玩家只能自己算。</dd>
+        <dt>建议</dt><dd class="fix">服务端算好能胡的牌和番数，随手牌一起发；客户端有没有现成面板要查。</dd>
+      </dl>
+    </article>
+    <article class="issue" id="E8">
+      <div class="ih"><b><span class="id">E8</span>出牌倒计时 30 秒，原版 15 秒</b><span class="tag t-lo">轻</span></div>
+      <dl class="cmp">
+        <dt>视频</dt><dd>摸、打、要牌都是 15 秒闹钟。</dd>
+        <dt>现在</dt><dd>要牌 15 秒，出牌 30 秒，牌局节奏慢一倍。</dd>
+        <dt>建议</dt><dd class="fix">出牌也改 15 秒，或做成后台参数。</dd>
+      </dl>
+    </article>
+    <article class="issue" id="T1">
+      <div class="ih"><b><span class="id">T1</span>托管和超时乱出牌</b><span class="tag t-mid">中</span></div>
+      <dl class="cmp">
+        <dt>现在</dt><dd>托管或超时（要牌 15 秒、出牌 30 秒）：能胡就胡，其余一律"过"，出牌出列表里第一张，会把能凑 14 的好牌拆掉。</dd>
+        <dt>建议</dt><dd class="fix">出牌优先出凑不成对、红点低的牌；能碰就碰。</dd>
+      </dl>
+    </article>
+  </div>
+</section>
+
+<section class="block">
+  <h2>机器人模拟<small>用现在的引擎，每种人数各 1000 局；机器人能胡就胡、能碰吃就要，只能说明大致趋势</small></h2>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>人数</th><th class="num">胡牌率</th><th class="num">流局率</th><th class="num">两家同胡</th><th class="num">胡时平均红点</th><th class="num">每局吃</th><th class="num">每局碰</th><th class="num">每局偷</th><th class="num">每局杠</th><th class="num">每局偷王</th></tr></thead>
+      <tbody>
+        <tr><td>4 人</td><td class="num">84.5%</td><td class="num">15.5%</td><td class="num warn">28 局</td><td class="num">27.2</td><td class="num">4.84</td><td class="num">2.27</td><td class="num">0.40</td><td class="num warn">0</td><td class="num">0.79</td></tr>
+        <tr><td>3 人</td><td class="num">93.4%</td><td class="num">6.6%</td><td class="num warn">27 局</td><td class="num">27.1</td><td class="num">4.56</td><td class="num">1.58</td><td class="num">0.31</td><td class="num warn">0</td><td class="num">0.81</td></tr>
+        <tr><td>2 人</td><td class="num">91.5%</td><td class="num">8.5%</td><td class="num warn">20 局</td><td class="num">27.4</td><td class="num">3.70</td><td class="num">0.95</td><td class="num">0.20</td><td class="num warn">0</td><td class="num">0.96</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="muted">读法：门槛 20 并不卡人，九成局都能胡；问题在胡的方式（多家同胡、坎不算）和胡了以后的分数与画面。</p>
+</section>
+
+<section class="block">
+  <h2>网上资料核对<small>10-31 查的四川斗十四通行规则，和新津引擎现在的做法逐条对比</small></h2>
+  <p class="muted">最完整的是 2017 年流传的「四人四鬼」规则全文（360 问答，和百度百科、原创力文档《斗十四游戏规则》同源）。同城游、搜狐、维基说法有出入的地方单独标了。各地细则本来就不完全一样，下面取多份资料一致的说法。</p>
+  <div class="tbl">
+    <table class="tl">
+      <thead><tr><th>项</th><th>网上通行说法</th><th>新津引擎现在</th><th>结论</th></tr></thead>
+      <tbody>
+        <tr><td>点炮</td><td>打出的牌被胡：点炮的人一人付 3 份（包三家）。翻出的牌被胡：不算点炮，三家各付 1 份。360 问答、百度百科、同城游一致</td><td>打出被胡只付 1 份；翻出被胡三家各付，这一条对</td><td><span class="tag t-hi">要改</span></td></tr>
+        <tr><td>一张牌几家能胡</td><td>按逆时针顺序，排在前面的一家胡，没有一炮双响</td><td>可以多家同时胡</td><td><span class="tag t-hi">要改</span></td></tr>
+        <tr><td>胡牌门槛</td><td>4 人红点 ≥ 20，3 人 ≥ 25（吃牌机会多）。全红、全黑、天走、接地不受门槛限制</td><td>不管几人都是 20；只有五小免门槛</td><td><span class="tag t-hi">要改</span></td></tr>
+        <tr><td>手里的三张（坎）</td><td>要摆到桌面上才算组合；判胡时手里只认凑 14 的两张</td><td>判胡时手里也只认凑 14，和资料一致；但没提醒玩家要先摆</td><td><span class="tag t-mid">加提示</span></td></tr>
+        <tr><td>计分公式</td><td>两种可选：跟头翻，每家付 基数 × 2<sup>番</sup>，建议 5 番封顶；梯字翻，每家付 基数 × (番 + 1)，基数一般 5。红点不进分数，只管能不能胡</td><td>两种公式代码里都有；但 11 个番全部默认关，所以每局都是 1 份</td><td><span class="tag t-hi">开番</span></td></tr>
+        <tr><td>番型</td><td>鬼每张 1 番；碰每组 1 番；杠每组 2 番；碰鬼 4 番；天走 3、接地 3、全红 3、全黑 3；自摸不加番</td><td>有天胡 3、地胡 3（对应天走、接地），开「七当王」时鬼每张 1 番；<b>没有</b>碰番、杠番、全红、全黑</td><td><span class="tag t-hi">补番</span></td></tr>
+        <tr><td>天胡 / 地胡 / 人胡</td><td>只有天走（首家起手就胡）、接地（首家打的第一张被胡）。人胡、对子类番资料里都没有</td><td>天胡、地胡已有，默认关</td><td><span class="tag t-ok">已有</span></td></tr>
+        <tr><td>鬼</td><td>不凑 14，不分颜色也不算红点；翻到鬼摆在面前再补一张；可以碰鬼、杠鬼；一张鬼可换牌堆顶一张</td><td>鬼一到手就自动摆出补牌，所以碰不了鬼；换牌没有</td><td><span class="tag t-ask">待定</span></td></tr>
+        <tr><td>吃碰优先</td><td>胡 &gt; 杠 &gt; 碰 &gt; 吃；吃只吃上家打出或翻出的牌，自己翻出的也能吃</td><td>一致（自己翻出能吃是开关，默认开）</td><td><span class="tag t-ok">一致</span></td></tr>
+        <tr><td>庄家</td><td>首局随机，以后上局赢家当首家，摸 8 张，其余 7 张</td><td>一致</td><td><span class="tag t-ok">一致</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="muted">有出入的说法：搜狐那篇（沿河勾鱼玩法）按红点取整算分，如恰 20 = 50 分、天胡 100、全红 100、报叫 50，番不累加只取最大，是另一套算法，没采用。维基和 IT 猫扑写的是川牌纸骨牌版（88 张、红点 ≥ 80 加番），和扑克版不是一回事。</p>
+</section>
+
+<section class="block">
+  <h2>需要你拍板<small>定了这些我再出改动方案，没定之前不动代码</small></h2>
+  <div class="callout" style="border-color: color-mix(in srgb, var(--ok) 50%, var(--line)); background: color-mix(in srgb, var(--ok-bg) 60%, var(--panel));">
+    <b>10-31 已定：新津，按网上通行规则走</b>
+    <p>大厅用新津（0）。点炮包三家，翻牌胡三家各付；一张牌只给一家胡，按逆时针排前面的（2）。手里的三张要先摆出才算，判胡逻辑不变，只加提示（3）。4 人红点 ≥ 20、3 人 ≥ 25，全红、全黑、天走、接地免门槛（4）。</p>
+    <p>分数用跟头翻，每家付 底分 × 2<sup>番</sup>，5 番封顶；补碰、杠、全红、全黑番，天走、接地、鬼番默认开（5）。鬼照旧摆出补牌，每张 1 番，不做碰鬼（6）。天地人和只保留天走、接地（7）。全部已定，下一步看改动方案。</p>
+  </div>
+  <div class="decide">
+    <div class="dq"><span class="n">0</span><div><b>大厅开哪个地区的玩法</b><div class="opts"><span class="opt rec">已定：新津（10-31）</span><span class="opt" style="opacity:.5">阿坝 / 红原</span><span class="opt" style="opacity:.5">两种都开</span></div></div></div>
+    <div class="dq"><span class="n">1</span><div><b>以哪份资料为准</b><div class="opts"><span class="opt rec">已定：网上通行规则（2017 四人四鬼全文）</span></div></div></div>
+    <div class="dq"><span class="n">2</span><div><b>一张牌几家能胡（R1、S3）</b><div class="opts"><span class="opt rec">已定：只一家，逆时针排前；点炮包三家</span></div></div></div>
+    <div class="dq"><span class="n">3</span><div><b>手里的坎（R2）</b><div class="opts"><span class="opt rec">已定：必须先摆出才算，加提示</span></div></div></div>
+    <div class="dq"><span class="n">4</span><div><b>红点门槛和碰杠红点（R3、R4）</b><div class="opts"><span class="opt rec">已定：4 人 20、3 人 25，逐张加；全红全黑天走接地免</span></div></div></div>
+    <div class="dq"><span class="n">5</span><div><b>分数（S1、S2）</b><div class="opts"><span class="opt rec">已定：跟头翻 2<sup>番</sup>、5 番封顶；补碰 1、杠 2、全红 3、全黑 3，天走、接地、鬼番默认开</span></div></div></div>
+    <div class="dq"><span class="n">6</span><div><b>鬼牌（R6）</b><div class="opts"><span class="opt rec">已定：鬼摆出补牌照旧，每张 1 番；不做碰鬼</span></div></div></div>
+    <div class="dq"><span class="n">7</span><div><b>天地人和（R7）</b><div class="opts"><span class="opt rec">已定：只要天走、接地（引擎已有），不加人胡</span></div></div></div>
+  </div>
+  <p class="muted">特效、结算画面和倒计时（E1–E4、E6–E8）和规则无关，可以先改，不用等上面。</p>
+</section>
+
+<section class="block">
+  <h2>还没实机核对的点<small>以上都是读代码和模拟得出的；下面几条要在本机打一局看</small></h2>
+  <ul class="unchecked">
+    <li>点「过」后按钮是否马上消失</li>
+    <li>吃有两种组合时，选牌面板是否出现</li>
+    <li>连点按钮会不会重复发送</li>
+    <li>超时自动过的时候有没有提示</li>
+    <li>报叫后自己这边的报叫标记</li>
+    <li>断线重连后桌上的偷牌区和红点</li>
+    <li>没人要的牌是否进弃牌区、带「弃」字</li>
+    <li>出牌放大时的「打」角标</li>
+  </ul>
+</section>
+</div>

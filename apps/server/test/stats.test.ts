@@ -9,8 +9,8 @@ import { createApp } from '../src/app.js';
 import { EngineRegistry, type EnginePlayer, type RuleEngine, type RoundInput } from '../src/engines.js';
 import { winRate } from '../src/stats.js';
 
-// 第二轮 S6：个人资料的真实战绩和勋章。
-// 只测战绩和勋章的记账，不涉及任何地方玩法：一步就结算，delta 给第一个座位，其他座位记相反数。
+// 第二轮 S6：个人资料的真实战绩（第三轮去掉勋章）。
+// 只测战绩的记账，不涉及任何地方玩法：一步就结算，delta 给第一个座位，其他座位记相反数。
 interface Snapshot { players: EnginePlayer[]; number: number; finished: boolean }
 const fixtureEngine: RuleEngine = {
   variantKey: '4:0', version: 'test-fixture-v1',
@@ -68,8 +68,8 @@ test('S6-AC1 win rate rounds to a whole percent and is 0% before any round', () 
   assert.equal(winRate(4, 4), '100%');
 });
 
-test('S6 profile stats and medals', async t => {
-  const { db, created, admin, player, profile, setSettings, play, next } = await setup();
+test('S6 profile stats', async t => {
+  const { db, created, player, profile, play, next } = await setup();
   t.after(async () => { await created.app.close(); await db.close(); });
 
   await t.test('S6-AC1 play 3 rounds win 1 shows 3 / 1 / 33%; a 0-score round counts as played but not won', async () => {
@@ -86,37 +86,13 @@ test('S6 profile stats and medals', async t => {
     assert.deepEqual([after.rounds, after.wins, after.winRate], [4, 1, '25%']);
   });
 
-  await t.test('S6-AC2 round medals light right after settlement from admin thresholds; unlit ones carry progress and a hint', async () => {
-    await setSettings({ medalQiantuRounds: 2, medalBaishengWins: 100 });
+  await t.test('第三轮 R6 勋章去掉：资料只给对局数、胜局、胜率和豆子，结算也不再记勋章', async () => {
     const [c, d] = [await player('stats_c'), await player('stats_d')];
     const room = await play([c, d], ['0.1']);
-    const lit = async (id: string) => (await db.query('SELECT medal FROM account_medals WHERE account_id=$1 ORDER BY medal', [id])).rows.map(row => row.medal);
-    assert.deepEqual(await lit(c.id), []);
     await next([c, d], room.id, '0.1');
-    // 没打开资料、没重新登录，结算那一刻就点亮了。
-    assert.deepEqual(await lit(c.id), ['qiantu']);
-    assert.deepEqual(await lit(d.id), ['qiantu']);
     const view = await profile(c.headers);
-    assert.equal(view.lit, 1);
-    assert.deepEqual(view.medals.map((medal: any) => medal.key), ['qiantu', 'baisheng', 'qiansheng', 'fujia', 'baiwan', 'qianwan']);
-    assert.deepEqual(view.medals.map((medal: any) => medal.name), ['前途无量', '百胜王', '千胜王', '富甲一方', '百万富翁', '千万富翁']);
-    const baisheng = view.medals[1];
-    assert.deepEqual([baisheng.lit, baisheng.value, baisheng.need, baisheng.hint, baisheng.unlockedAt], [false, 2, 100, '赢 100 局', null]);
-    assert.ok(view.medals[0].unlockedAt);
-    assert.equal(view.medals[5].hint, '豆子 1000 万');
-  });
-
-  await t.test('S6-AC2/AC3 raising beans to 10,000 lights 富甲一方 and deducting them again keeps it lit', async () => {
-    const e = await player('stats_e');
-    let view = await profile(e.headers);
-    assert.deepEqual([view.beans, view.medals[3].lit, view.medals[3].value, view.medals[3].need, view.medals[3].hint], [100, false, 100, 10_000, '豆子 1 万']);
-    await created.ledger.adjust(admin, e.id, '9900', 'medal test top up', 'stats-e-topup');
-    view = await profile(e.headers);
-    assert.deepEqual([view.beans, view.medals[3].lit, view.lit], [10_000, true, 1]);
-    await created.ledger.adjust(admin, e.id, '-9950', 'medal test deduct', 'stats-e-deduct');
-    view = await profile(e.headers);
-    assert.deepEqual([view.beans, view.medals[3].lit, view.medals[3].value, view.lit], [50, true, 50, 1]);
-    assert.equal(view.medals[4].lit, false);
+    assert.deepEqual(Object.keys(view).sort(), ['beans', 'rounds', 'winRate', 'wins']);
+    assert.equal((await db.query('SELECT COUNT(*)::int AS count FROM account_medals')).rows[0]!.count, 0);
   });
 
   await t.test('S6-AC1 the original login, head-info and table seat replies carry the real win rate', async () => {

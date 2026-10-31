@@ -21,7 +21,7 @@ try {
   // PostgreSQL deployment (DATABASE_URL set) never advertises acceptance isolation.
   const isolatedDatabase = local && process.env.ACCEPTANCE_ISOLATED_DATABASE === 'true';
   const acceptanceRunId = isolatedDatabase ? process.env.ACCEPTANCE_RUN_ID : undefined;
-  app = (await createApp(db, { logger: true, engines, isolatedDatabase, acceptanceRunId, profileRequired: true, seedLobby: true })).app;
+  app = (await createApp(db, { logger: true, engines, isolatedDatabase, acceptanceRunId, profileRequired: true, seedLobby: true, lobbyOnly: true })).app;
   await app.listen({ port: Number(process.env.PORT ?? 3000), host: process.env.HOST ?? '127.0.0.1' });
   if (backups) await backups.start();
   if (backups && process.env.DSS_LOCAL_CONTROL_TOKEN && process.env.DSS_LOCAL_STATE_FILE) {

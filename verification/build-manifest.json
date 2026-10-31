@@ -1,8 +1,8 @@
 {
   "version": 1,
-  "builtAt": "2026-10-31T12:33:20.869Z",
+  "builtAt": "2026-10-31T18:41:27.212Z",
   "sources": {
-    "sha256": "16fdcea01f696569156334834186b0604b9f30b7c77cb64f46f46cad63b678e9",
+    "sha256": "7b4c74bb888c0b340704df126fe91104483cb59253de4e6fe15009f8b26cda71",
     "files": [
       {
         "path": "apps/admin/index.html",
@@ -14,7 +14,7 @@
       },
       {
         "path": "apps/admin/src/App.tsx",
-        "sha256": "e98e722a74b4c206d2f5e140c0b3c3b755d191694d9988e161ca372a71652332"
+        "sha256": "aa2811aaae494617412c56352c6f69daac5dccbee82458300e17ee398fac2eb3"
       },
       {
         "path": "apps/admin/src/api.ts",
@@ -85,12 +85,20 @@
         "sha256": "584f488f2ac9296e6cde0cbc664bed5bc9a56decf697155da1fd4c60b6513ec2"
       },
       {
+        "path": "apps/server/migrations/013-friend-request-note.sql",
+        "sha256": "05576d218ead260843cd414ab282780fdfae82ed81496ffa01de6c1453f96b33"
+      },
+      {
+        "path": "apps/server/migrations/014-continuous-match.sql",
+        "sha256": "ba61f38134f5f9799597ad67ba945715b9e69eaeab12a80435c72092ca0b3031"
+      },
+      {
         "path": "apps/server/package.json",
         "sha256": "25eda800c56e666ebab8badb8acbefd7be9cb49b589fcd705eacdd1f2b78e924"
       },
       {
         "path": "apps/server/src/app.ts",
-        "sha256": "20a8c381ff847d4dfb37d9cecc0e70351d4d118d3728d3e0ce07b91461fe2976"
+        "sha256": "2adf3e7fbf5ee92787d54816f9556c8364d4acf7969cf3754c7e661919b7bf76"
       },
       {
         "path": "apps/server/src/auth.ts",
@@ -118,7 +126,7 @@
       },
       {
         "path": "apps/server/src/engines.ts",
-        "sha256": "f95c569f4003e7fec0780c3081826effecca5353f3042e73d8b02d78f207e497"
+        "sha256": "d2ef848d96a9101eb416b452741f2d231d08c2193460feedd74eadc225283325"
       },
       {
         "path": "apps/server/src/errors.ts",
@@ -230,7 +238,7 @@
       },
       {
         "path": "apps/server/src/game/round-original.ts",
-        "sha256": "ff2b1de85730a386c7e8d9b947e1202cae3c3eb863e5c117756c914137c19149"
+        "sha256": "b47840e64bc89cb0ca925321392b5d03abb873c8860aa6d2331e424aac83a887"
       },
       {
         "path": "apps/server/src/game/score-region-engine.ts",
@@ -250,7 +258,7 @@
       },
       {
         "path": "apps/server/src/game/xinjin-engine.ts",
-        "sha256": "e0c587397a8fb0fb328170ba7e12d7c8ff67280ba108e595ac7e38e9203b7414"
+        "sha256": "442d3168a8b350c90afab24cc14df9041c20953ba2b8227e22feca816c168dc4"
       },
       {
         "path": "apps/server/src/game/xinjin-pack.ts",
@@ -258,11 +266,11 @@
       },
       {
         "path": "apps/server/src/game/xinjin-round.ts",
-        "sha256": "5a84ee5a8973b0786d2d1f9b0bed806f07fc3dfb8a6a44cc6879b768c200d547"
+        "sha256": "e68e1f40cbe2974150d9d94fe1742bc92e3ff9110bdc159fb14ce016c3fd431c"
       },
       {
         "path": "apps/server/src/game/xinjin-win.ts",
-        "sha256": "b0451b537179469055f919540ebe69db79f83bf691b3640439430f6267ba1784"
+        "sha256": "62bdbde8b1cd6f7fe9cc139ce1e9929077fea77c11dff56eef9a8dbc42c9ea8c"
       },
       {
         "path": "apps/server/src/game/yaan-engine.ts",
@@ -286,7 +294,7 @@
       },
       {
         "path": "apps/server/src/lobby.ts",
-        "sha256": "f21ac8602bff1e1e5c69acbc171a1b9096f925a84488bc351f9f68ad76a24423"
+        "sha256": "def6e981584cba54e6b9949cad685bed1bc944b1972254e4bb106ad737c885ea"
       },
       {
         "path": "apps/server/src/local-backups.ts",
@@ -306,7 +314,7 @@
       },
       {
         "path": "apps/server/src/main.ts",
-        "sha256": "1e0684f1ff4b64d2df3759e86899b61715800478c0a2fdefb3f30aa8778ceeeb"
+        "sha256": "9e14da52ccbd266ff172e8ae2b05b0b218dbb690a2461293d7488e148aed5f20"
       },
       {
         "path": "apps/server/src/migrate.ts",
@@ -318,7 +326,7 @@
       },
       {
         "path": "apps/server/src/original-wire.ts",
-        "sha256": "6904a916feb6c4692978605a52e46e22c078de09facad01cfe4c004450510ccc"
+        "sha256": "5aab94c7ff116da09aed67940b99d76c20e3d6b23b9072bfd7d238cbcb9f3128"
       },
       {
         "path": "apps/server/src/policies.ts",
@@ -350,7 +358,7 @@
       },
       {
         "path": "apps/server/src/rooms.ts",
-        "sha256": "677716e2c63eb7c4c8c22705f11c8bcdcbbd0fb22b376c253c131a3636d4df21"
+        "sha256": "6b127322afa409d722a1881e40c9b9ee0b7ac82373a3fa87505d1f50b0a470ac"
       },
       {
         "path": "apps/server/src/round-context.ts",
@@ -362,15 +370,15 @@
       },
       {
         "path": "apps/server/src/settings.ts",
-        "sha256": "913d0318d0e5110036be85f877ef0eba716d0c8b2b9ba240c4fb10fbc620d4fe"
+        "sha256": "7b77bde773ca45726d045c96417fc24fd919a33cb5a12b949b3ece053716454d"
       },
       {
         "path": "apps/server/src/social.ts",
-        "sha256": "9651aef133bca9914211ef5f2def76a404e920bcbd1d1c951686e588516a7590"
+        "sha256": "e15ba55ebea18ebc7e4953030f433236d8c498f50a10472c262306b72c9de651"
       },
       {
         "path": "apps/server/src/stats.ts",
-        "sha256": "c38cafab22f9257c38449766a9e98eccb84fcfa21ea8d2f8eb0db3231088dc82"
+        "sha256": "9b8910b737d3c417d27d477d32800ec6099d82030e2ad320f04a6ef600818b0e"
       },
       {
         "path": "apps/server/src/transfers.ts",
@@ -422,7 +430,7 @@
       },
       {
         "path": "packages/rules/src/edition.ts",
-        "sha256": "41a6f131d3d6a572a23d517237a771de29fa563b723e8f1b6af8a0435ed0929f"
+        "sha256": "44cfeeb957bdb447a58145d7f91b253c639546da11084a1bf1bed55edb7352ce"
       },
       {
         "path": "packages/rules/src/index.ts",
@@ -471,23 +479,23 @@
     ]
   },
   "binaries": {
-    "sha256": "d10b8e6001db9b8eb5f7a83d77681d259c31a2370dae06d8fc80068f0f997a2f",
+    "sha256": "2e8c66eabc23f68e08b2d5acde932b7291f2d6d636e72935047a0b1b85437a21",
     "files": [
       {
         "path": "apps/admin/dist/assets/index-DHg5FXwW.css",
         "sha256": "2a8086016890b52d2c9e03a9a29e1a1605512f6d7b1a932bbba92941755fbee1"
       },
       {
-        "path": "apps/admin/dist/assets/index-DZWpvSmx.js",
-        "sha256": "76305160597b43b3b4fbe828cb062eea8c3a81e4f9ccad66bb6054d90c89269c"
+        "path": "apps/admin/dist/assets/index-DT1KK-eF.js",
+        "sha256": "59cf22c9d1592fc0b9c6633cc0aa25736862e6109f52c7d5f1023ed895c1299c"
       },
       {
         "path": "apps/admin/dist/index.html",
-        "sha256": "0797c6f85c9e82a6ff8326421eb02fa62df45596045fedb3a2097e793a84f726"
+        "sha256": "09c0e275c27ddaa8a2de9352dc924e2831ba80c6f038962016047836bf94f4fb"
       },
       {
         "path": "apps/server/dist/app.js",
-        "sha256": "0aec7ea1daa8546a85269c9e7012eb868a53a3c33efb6ea2af331ae3302b2749"
+        "sha256": "5d0152c276454de802c4ecdc1bb6192726ec47140f85a2b7583d1c64008ff2d5"
       },
       {
         "path": "apps/server/dist/auth.js",
@@ -627,7 +635,7 @@
       },
       {
         "path": "apps/server/dist/game/round-original.js",
-        "sha256": "dd7188af8f2ece759bad734cf781b4ca207eae55a8368943a44e1c4331b83fed"
+        "sha256": "947200615e581ebbfc25e8979e812a72ba2969c19fe451dc9135bfc1d2502810"
       },
       {
         "path": "apps/server/dist/game/score-region-engine.js",
@@ -647,7 +655,7 @@
       },
       {
         "path": "apps/server/dist/game/xinjin-engine.js",
-        "sha256": "1b7653d90431135b83ed9fcf8a63c6f7faedb9a4ebb6eabc5981b49b38c7f700"
+        "sha256": "4e206c9837d536641839185b710cc251518c448dc8a2a920fa36a66780613e66"
       },
       {
         "path": "apps/server/dist/game/xinjin-pack.js",
@@ -655,11 +663,11 @@
       },
       {
         "path": "apps/server/dist/game/xinjin-round.js",
-        "sha256": "8f3ee1c85dc1a1a409df4643923197dc353c38a3a5f60fccaaf7b48d77b5496e"
+        "sha256": "fc90386427ca36e7a3ccad6ac9673643cc112575262d0fd6c44afcc6055c7c72"
       },
       {
         "path": "apps/server/dist/game/xinjin-win.js",
-        "sha256": "a059127ec1be9a6e4261ce0a12aa56feeea8bf86b4ea97cb6721251ddb55d5c5"
+        "sha256": "effd48ca014dc67d32eab605ef580b260f6572c7032b9fbf0f25fa3a7cebd1d4"
       },
       {
         "path": "apps/server/dist/game/yaan-engine.js",
@@ -683,7 +691,7 @@
       },
       {
         "path": "apps/server/dist/lobby.js",
-        "sha256": "d0fe89afc520a9771e3203e416e5c41da04ba6ff52412da98a7e74b21322d537"
+        "sha256": "642cfba11412e278b286f7d4b0b174cd1fc2ebf4c7d6d26e537010ec677202fe"
       },
       {
         "path": "apps/server/dist/local-backups.js",
@@ -703,7 +711,7 @@
       },
       {
         "path": "apps/server/dist/main.js",
-        "sha256": "9e7eb5e9abbfccedbcf31576e15702bb0b41631a3df1a1ab542f0c9bed053199"
+        "sha256": "d76515c38fe3d4851bd8ae4d6bd584f5a23915833d1110dab598033211dce9c1"
       },
       {
         "path": "apps/server/dist/migrate.js",
@@ -715,7 +723,7 @@
       },
       {
         "path": "apps/server/dist/original-wire.js",
-        "sha256": "1bd6158ce654b39e359f6543dc40ab01eb10214c5157e5cfbc3278089b4e9639"
+        "sha256": "5ba02bef94b7bbbb55dcd9f4d535dd585be74f07d9d6e5debbcd3631cbc31c37"
       },
       {
         "path": "apps/server/dist/policies.js",
@@ -747,7 +755,7 @@
       },
       {
         "path": "apps/server/dist/rooms.js",
-        "sha256": "c9e1f65bd2e10643a3636d20171db4d0bdd18554a18e7dc9cbd136ae0d29fec1"
+        "sha256": "602c95b60ef36196b3994e1d22b83fa08297b9c7fae4201fd4b45a263d313621"
       },
       {
         "path": "apps/server/dist/round-context.js",
@@ -759,15 +767,15 @@
       },
       {
         "path": "apps/server/dist/settings.js",
-        "sha256": "f329ebcead9aebec3661ce47e14922f1407c609acb640bc51e18e99ea44c4dcd"
+        "sha256": "a3a399fc2e38466a3581659e8a236110f6700d902f1c0a0a8f40256d8a997da5"
       },
       {
         "path": "apps/server/dist/social.js",
-        "sha256": "046d9ba13448c05c15319934f183a845705a3bb8c89bbaa752ff3189c87c1dca"
+        "sha256": "a00f70416752eb36e8d5f527c9f838f45bb650d31dc680f4a4cf0a3171686f0c"
       },
       {
         "path": "apps/server/dist/stats.js",
-        "sha256": "1a61c9f434a91431af9965e03a139c2f1a3608ebe8f7e22cc914e72b6abe50cf"
+        "sha256": "2b4aabcc8a98e436906bd0dd1340397c99395f1a0b7c41a69875bff5f7d85322"
       },
       {
         "path": "apps/server/dist/transfers.js",
@@ -819,11 +827,11 @@
       },
       {
         "path": "packages/rules/dist/edition.d.ts",
-        "sha256": "1d8b55cd67620c65b1f1661bfdbbe511d91eecd24d143414009c935a9cb80ddb"
+        "sha256": "9364a5204a02d96af8b4ef66a616b5b0baf1844fa6569ce2c93fefa720e5cb3b"
       },
       {
         "path": "packages/rules/dist/edition.js",
-        "sha256": "a38c5927aee7c9c5dc043c3ef9ef09affccf07aa6b58ce2875ba0ee38d431ee6"
+        "sha256": "d2d8e43769b9f4ae1834cfe84174ffe0f93a80a3c780caec0ad9331043b9c986"
       },
       {
         "path": "packages/rules/dist/index.d.ts",

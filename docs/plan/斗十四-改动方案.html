@@ -1,0 +1,284 @@
+<title>斗十四改动方案</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@700&display=swap">
+<style>
+/* 版式：沿用规则问题清单的牌桌绿；一手牌流程图标改动点 + 结算前后对比 + 里程碑泳道 + 我的假设 */
+:root {
+  --bg: #f4f6f3; --panel: #ffffff; --ink: #1d2a24; --muted: #66756d; --line: #d5ddd7;
+  --felt: #1f7a4d; --felt-soft: #e3f2ea;
+  --hi: #c8402f; --hi-bg: #fbe9e6;
+  --mid: #c77700; --mid-bg: #fff2dc;
+  --lo: #6b7480; --lo-bg: #eef0f2;
+  --ok: #1f9a4a; --ok-bg: #e5f6ea;
+  --ask: #2f6fd1; --ask-bg: #e6eefb;
+  --font-display: "Noto Serif SC", "Songti SC", serif;
+  --font-body: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #121815; --panel: #1a221e; --ink: #e3ebe6; --muted: #93a39a; --line: #2e3a34;
+  --felt: #5cc48d; --felt-soft: #1d3329;
+  --hi: #f08a7b; --hi-bg: #3a201c; --mid: #f0b45a; --mid-bg: #3a2c14;
+  --lo: #a3acb6; --lo-bg: #252b30; --ok: #5fd187; --ok-bg: #183024; --ask: #7fa9f0; --ask-bg: #1a2640;
+  color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #121815; --panel: #1a221e; --ink: #e3ebe6; --muted: #93a39a; --line: #2e3a34;
+  --felt: #5cc48d; --felt-soft: #1d3329;
+  --hi: #f08a7b; --hi-bg: #3a201c; --mid: #f0b45a; --mid-bg: #3a2c14;
+  --lo: #a3acb6; --lo-bg: #252b30; --ok: #5fd187; --ok-bg: #183024; --ask: #7fa9f0; --ask-bg: #1a2640;
+  color-scheme: dark }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 13px; line-height: 1.6;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 24px 48px; }
+.wrap { max-width: 1180px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 12px; }
+h1 { font-family: var(--font-display); font-size: 26px; margin: 0; letter-spacing: .02em; text-wrap: balance; }
+.sub { color: var(--muted); margin-top: 4px; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px; color: var(--muted); font-size: 12px; align-items: center; }
+.tag { display: inline-block; font-size: 11px; line-height: 1; padding: 4px 6px; border-radius: 4px; font-weight: 500; white-space: nowrap; }
+.m1 { color: var(--hi); background: var(--hi-bg); } .m2 { color: var(--mid); background: var(--mid-bg); }
+.m3 { color: var(--ask); background: var(--ask-bg); } .m4 { color: var(--lo); background: var(--lo-bg); }
+.m5 { color: var(--ok); background: var(--ok-bg); }
+section.block { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+h2 { font-size: 16px; margin: 0; text-wrap: balance; } h2 small { color: var(--muted); font-weight: 400; font-size: 12px; margin-left: 8px; }
+p { margin: 0; }
+.muted { color: var(--muted); }
+code { font-family: var(--font-mono); font-size: 11.5px; background: var(--lo-bg); padding: 1px 4px; border-radius: 3px; word-break: break-all; }
+
+.verdict { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; }
+.vitem { border-left: 3px solid var(--felt); padding: 2px 0 2px 12px; min-width: 0; }
+.vitem b { display: block; font-size: 14px; margin-bottom: 2px; }
+.vitem p { color: var(--muted); }
+
+/* 一手牌流程 */
+.flow-scroll { overflow-x: auto; padding-bottom: 4px; }
+.flow { display: grid; grid-template-columns: repeat(7, minmax(150px, 1fr)); min-width: 1060px; }
+.step { padding: 0 10px; display: flex; flex-direction: column; gap: 6px; }
+.step + .step { border-left: 1px dashed var(--line); }
+.sn { display: flex; align-items: center; gap: 6px; font-weight: 700; font-size: 13px; }
+.sn i { font-style: normal; width: 20px; height: 20px; border-radius: 50%; display: inline-grid; place-items: center; background: var(--felt-soft); color: var(--felt); font-size: 11px; }
+.chg { font-size: 12px; display: flex; gap: 6px; align-items: flex-start; }
+.chg .tag { flex: none; margin-top: 1px; }
+.keep { font-size: 11.5px; color: var(--muted); }
+
+/* 结算对比 */
+.calc { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; }
+.card { border: 1px solid var(--line); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.card.after { border-color: color-mix(in srgb, var(--felt) 50%, var(--line)); }
+.card h3 { margin: 0; font-size: 13.5px; }
+.formula { font-family: var(--font-mono); font-size: 12px; background: var(--lo-bg); padding: 8px 10px; border-radius: 6px; overflow-x: auto; white-space: nowrap; }
+.pay { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.seat { border: 1px solid var(--line); border-radius: 6px; padding: 6px; text-align: center; font-variant-numeric: tabular-nums; }
+.seat span { display: block; font-size: 11px; color: var(--muted); }
+.seat b { font-size: 14px; }
+.seat.win { background: var(--felt-soft); border-color: var(--felt); }
+.seat.win b { color: var(--felt); }
+.seat.lose b { color: var(--hi); }
+
+table { border-collapse: collapse; width: 100%; font-size: 12.5px; font-variant-numeric: tabular-nums; }
+.tbl { overflow-x: auto; }
+th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { color: var(--muted); font-weight: 500; font-size: 12px; white-space: nowrap; }
+td:first-child { white-space: nowrap; }
+
+/* 里程碑泳道 */
+.lanes { display: flex; flex-direction: column; gap: 10px; }
+.lane { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 12px; border-top: 1px dashed var(--line); padding-top: 10px; }
+.lane:first-child { border-top: 0; padding-top: 0; }
+.lane .lh b { display: block; font-size: 13.5px; }
+.lane .lh span { color: var(--muted); font-size: 11.5px; }
+.lane ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 3px; }
+.lane .files { color: var(--muted); font-size: 11.5px; margin-top: 4px; }
+.gate { color: var(--mid); font-size: 12px; margin-top: 4px; }
+@media (max-width: 560px) { .lane { grid-template-columns: minmax(0, 1fr); gap: 4px; } h1 { font-size: 22px; } .pay { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+.asm { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; }
+.cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
+a { color: var(--ask); }
+</style>
+
+<div class="wrap">
+<header>
+  <div>
+    <h1>斗十四改动方案</h1>
+    <p class="sub">新津斗十四（4:0）规则 v2 + 牌桌画面 · 2026-10-31 · 依据：规则问题清单第 5 版里全部已定项</p>
+  </div>
+  <div class="legend">
+    <span class="tag m1">M1 规则</span><span class="tag m2">M2 画面</span><span class="tag m3">M3 可胡提示</span><span class="tag m4">M4 托管</span><span class="tag m5">M5 自测</span>
+  </div>
+</header>
+
+<section class="block">
+  <h2>一句话</h2>
+  <div class="verdict">
+    <div class="vitem"><b>只改新津</b><p>服务端新津引擎、转发层和大厅开桌默认值。阿坝等其他地区引擎、小程序、大厅界面都不动。</p></div>
+    <div class="vitem"><b>规则升 v2</b><p>新开的桌按 v2 打；已经开着的桌按 v1 打完，战绩和回放不受影响。</p></div>
+    <div class="vitem"><b>画面用现成动画</b><p>客户端里已有胡、偷、报叫、小结算这些动画，问题是服务端没发对消息，所以主要改转发层，不新做美术。</p></div>
+    <div class="vitem"><b>做完再交</b><p>你点头后我一口气做完 M1–M5：每步自测、本机提交。发布命令最后给你，由你来跑。</p></div>
+  </div>
+</section>
+
+<section class="block">
+  <h2>一手牌里改哪些地方<small>颜色对应下面的里程碑</small></h2>
+  <div class="flow-scroll">
+    <div class="flow">
+      <div class="step">
+        <div class="sn"><i>1</i>开桌发牌</div>
+        <div class="chg"><span class="tag m1">M1</span>大厅开桌带上 v2 默认值：跟头翻、5 番封顶、新番默认开</div>
+        <div class="keep">不变：首家 8 张、其余 7 张；上局赢家当首家</div>
+      </div>
+      <div class="step">
+        <div class="sn"><i>2</i>鬼</div>
+        <div class="chg"><span class="tag m1">M1</span>鬼每张 1 番单独算，不再和「七当王」绑在一起（7 照旧不偷）</div>
+        <div class="chg"><span class="tag m2">M2</span>摸到鬼发「偷」动作，播偷字横幅和语音（E4）</div>
+      </div>
+      <div class="step">
+        <div class="sn"><i>3</i>摸 / 翻 / 出牌</div>
+        <div class="chg"><span class="tag m2">M2</span>出牌倒计时 30 秒改 15 秒（E8）</div>
+        <div class="chg"><span class="tag m2">M2</span>每次牌变动都带上红点、黑点（E3）</div>
+        <div class="chg"><span class="tag m2">M2</span>报叫发报叫动作，别人能看到火焰（E6）</div>
+        <div class="chg"><span class="tag m2">M2</span>手里有三张相同时，用客户端现有提示提醒「先偷出来才算」（R2）</div>
+      </div>
+      <div class="step">
+        <div class="sn"><i>4</i>要牌</div>
+        <div class="chg"><span class="tag m1">M1</span>补上巴杠：碰了以后摸到第四张，可以巴（R5）</div>
+        <div class="chg"><span class="tag m2">M2</span>等别人选的时候显示「等待其他玩家…」（E6）</div>
+        <div class="keep">不变：胡 &gt; 杠 &gt; 碰 &gt; 吃，吃只吃上家</div>
+      </div>
+      <div class="step">
+        <div class="sn"><i>5</i>判胡</div>
+        <div class="chg"><span class="tag m1">M1</span>门槛：4 人 20、3 人 25；全红、全黑、天走、接地不受门槛限制（R3）</div>
+        <div class="chg"><span class="tag m1">M1</span>只给一家胡：从出牌人往下按逆时针，第一个能胡的人（R1）</div>
+        <div class="chg"><span class="tag m3">M3</span>可胡提示：还剩哪几张能胡、各几番（E7）</div>
+      </div>
+      <div class="step">
+        <div class="sn"><i>6</i>胡牌</div>
+        <div class="chg"><span class="tag m2">M2</span>先发胡动作：胡字动画、语音、点炮标记、亮牌，停 2 秒再结算（E1）</div>
+      </div>
+      <div class="step">
+        <div class="sn"><i>7</i>结算</div>
+        <div class="chg"><span class="tag m1">M1</span>点炮包三家；翻牌胡三家各付（S3）</div>
+        <div class="chg"><span class="tag m1">M1</span>番：补碰 1、杠 2、全红 3、全黑 3（S1）</div>
+        <div class="chg"><span class="tag m2">M2</span>每局弹小结算，显示昵称；最后一局才弹总结算（E2）</div>
+      </div>
+    </div>
+  </div>
+  <p class="muted">托管 <span class="tag m4">M4</span>贯穿第 3、4 步：超时或托管出牌时，优先打凑不成 14 的、红点低的牌，能碰就碰，不再出列表第一张（T1）。</p>
+</section>
+
+<section class="block">
+  <h2>结算前后对比<small>例：4 人桌，底分 100；赢家手里有碰 1 组、杠 1 组、鬼 1 张</small></h2>
+  <div class="calc">
+    <div class="card">
+      <h3>现在（v1）</h3>
+      <div class="formula">番全关 → 0 番 → 2⁰ = 1 份 = 100</div>
+      <p class="muted">点炮：点炮的人付 100，其他人不付</p>
+      <div class="pay">
+        <div class="seat win"><span>赢家</span><b>+100</b></div>
+        <div class="seat lose"><span>点炮</span><b>−100</b></div>
+        <div class="seat"><span>闲</span><b>0</b></div>
+        <div class="seat"><span>闲</span><b>0</b></div>
+      </div>
+    </div>
+    <div class="card after">
+      <h3>改后（v2）· 点炮</h3>
+      <div class="formula">碰 1 + 杠 2 + 鬼 1 = 4 番 → 2⁴ = 16 → 每份 1,600</div>
+      <p class="muted">点炮的人一人包三家：1,600 × 3</p>
+      <div class="pay">
+        <div class="seat win"><span>赢家</span><b>+4,800</b></div>
+        <div class="seat lose"><span>点炮</span><b>−4,800</b></div>
+        <div class="seat"><span>闲</span><b>0</b></div>
+        <div class="seat"><span>闲</span><b>0</b></div>
+      </div>
+    </div>
+    <div class="card after">
+      <h3>改后（v2）· 翻牌胡</h3>
+      <div class="formula">同一手牌 4 番 → 每份 1,600</div>
+      <p class="muted">翻出的牌不算点炮，三家各付一份</p>
+      <div class="pay">
+        <div class="seat win"><span>赢家</span><b>+4,800</b></div>
+        <div class="seat lose"><span>闲</span><b>−1,600</b></div>
+        <div class="seat lose"><span>闲</span><b>−1,600</b></div>
+        <div class="seat lose"><span>闲</span><b>−1,600</b></div>
+      </div>
+    </div>
+  </div>
+  <p class="muted">5 番封顶：每份最多 底分 × 32；点炮最多 底分 × 96。v1 里其余番（七星王、报叫、暗对、恰 20/40/50、龙对、小胡、四归一）资料里没有，v2 默认关，后台开关还在。豆子是虚拟币，一局输赢比现在大十几倍，大厅底分要不要调小，等你看了模拟结果再定。</p>
+</section>
+
+<section class="block">
+  <h2>里程碑<small>按顺序做，每个做完都自测</small></h2>
+  <div class="lanes">
+    <div class="lane">
+      <div class="lh"><span class="tag m1">M1</span><b>规则 v2</b><span>服务端新津引擎</span></div>
+      <div>
+        <ul>
+          <li>只给一家胡（逆时针从出牌人起）；点炮包三家，翻牌胡三家各付</li>
+          <li>门槛按人数：4 人 20、3 人 25；全红、全黑、天走、接地不受门槛限制</li>
+          <li>新番：碰 1、杠 2、全红 3、全黑 3；鬼每张 1 番单独算；天走、接地、鬼番默认开；跟头翻、5 番封顶</li>
+          <li>巴杠：碰了以后再摸到第四张，可以巴</li>
+          <li>规则版本升 xinjin-independent-v2；规则文档同步改；已开的桌按 v1 打完</li>
+        </ul>
+        <p class="files"><code>packages/rules/src/edition.ts</code> <code>apps/server/src/game/xinjin-win.ts</code> <code>xinjin-round.ts</code> <code>apps/server/src/lobby.ts</code> <code>docs/rules/XINJIN-INDEPENDENT.md</code></p>
+      </div>
+    </div>
+    <div class="lane">
+      <div class="lh"><span class="tag m2">M2</span><b>牌桌画面</b><span>转发层，用客户端现成动画</span></div>
+      <div>
+        <ul>
+          <li>胡动作 + 停 2 秒（E1）；每局小结算显示昵称，最后一局才弹总结算（E2）</li>
+          <li>红点、黑点实时更新（E3）；偷鬼发偷动作（E4）</li>
+          <li>报叫发报叫动作；要牌时显示等待提示（E6）</li>
+          <li>出牌倒计时改 15 秒（E8）；手里有三张时给偷的提示（R2）</li>
+        </ul>
+        <p class="files"><code>apps/server/src/game/round-original.ts</code> <code>xinjin-round.ts</code>（计时）</p>
+        <p class="gate">某个效果如果客户端里找不到现成的动画或提示条，我先停下问你，不自己加。</p>
+      </div>
+    </div>
+    <div class="lane">
+      <div class="lh"><span class="tag m3">M3</span><b>可胡提示</b><span>E7</span></div>
+      <div>
+        <ul>
+          <li>服务端算出还剩哪几张能胡、各几番，跟手牌一起发下去</li>
+          <li>先查客户端有没有现成的可胡面板：有就接上；没有就停下问你</li>
+        </ul>
+      </div>
+    </div>
+    <div class="lane">
+      <div class="lh"><span class="tag m4">M4</span><b>托管出牌</b><span>T1</span></div>
+      <div>
+        <ul>
+          <li>托管或超时出牌时，优先打凑不成 14 的、红点低的牌；能碰就碰、能胡就胡</li>
+        </ul>
+      </div>
+    </div>
+    <div class="lane">
+      <div class="lh"><span class="tag m5">M5</span><b>自测</b><span>本机，不碰生产</span></div>
+      <div>
+        <ul>
+          <li>新津引擎和转发层：改动处的单元测试，加新规则用例（每条已定规则一个）</li>
+          <li>机器人 4、3、2 人各打 1000 局，前后对比：两家同胡应为 0；看番数和输赢分布</li>
+          <li>本机开一桌逐步看：偷、碰、巴杠、报叫、胡、小结算、总结算，每步截图</li>
+          <li>问题清单把已改项标绿；交接记录更新；本机提交；最后给你一条发布到测试服的命令</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="block">
+  <h2>我自己定的几处<small>资料里没写，我先这样做；不对你直接说</small></h2>
+  <div class="cols">
+    <ul class="asm">
+      <li><b>2 人桌门槛</b>：资料只写了 4 人和 3 人，2 人按 3 人的 25 算（吃牌机会更多）。</li>
+      <li><b>偷出来的三张</b>：算一组碰，1 番；偷出来的四张和巴杠都算杠，2 番。</li>
+      <li><b>翻牌胡的顺序</b>：从翻牌人自己算起，按逆时针。</li>
+    </ul>
+    <ul class="asm">
+      <li><b>报叫</b>：动作和特效保留（视频里有），v2 不加番。</li>
+      <li><b>接地</b>：首家打出的第一张就被胡，算点炮，由打出的人包三家。</li>
+      <li><b>底分</b>：先不调，模拟结果出来后你再定。</li>
+    </ul>
+  </div>
+</section>
+</div>

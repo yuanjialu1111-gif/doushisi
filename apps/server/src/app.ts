@@ -57,6 +57,11 @@ export async function createApp(db: Database, options: {
   profileRequired?: boolean;
   /** 正式入口第一次启动时放入默认大厅桌模板（R2）。 */
   seedLobby?: boolean;
+  /**
+   * 第三轮只留大厅系统桌（R1、R2）：玩家开房、输房号、好友私聊邀请都回「不支持」。
+   * 正式入口 main.ts 打开；原有测试夹具还靠玩家开房搭桌，默认关。
+   */
+  lobbyOnly?: boolean;
 } = {}) {
   const app = Fastify({ logger: options.logger ? { redact: ['req.headers.authorization', 'req.headers.cookie'],
     serializers: { err: (error: Error & { code?: string }) => ({ type: error.name, code: error.code, stack: '',
@@ -68,8 +73,7 @@ export async function createApp(db: Database, options: {
   const replays = new ReplayService(db, rooms.engines);
   const profiles = new ProfileService(db);
   const settings = new SettingsService(db);
-  const stats = new StatsService(db, settings);
-  rooms.afterSettle = async (tx, userIds) => { for (const userId of userIds) await stats.lightMedals(userId, tx); };
+  const stats = new StatsService(db);
   const requireProfile = async (userId: string) => { if (options.profileRequired) await profiles.requireComplete(userId); };
   const scheduler = options.scheduler === false ? null : new RoomScheduler(rooms, {
     ...options.scheduler, onError: (error, roomId) => app.log.error({ err: error, roomId }, 'Room scheduler operation failed'),
@@ -77,7 +81,7 @@ export async function createApp(db: Database, options: {
   const lobby = new LobbyService(db, rooms, { profiles, profileRequired: options.profileRequired === true,
     onError: error => app.log.error({ err: error }, 'Lobby maintenance failed') });
   if (options.seedLobby) await lobby.seedDefaults();
-  app.addHook('onReady', async () => { scheduler?.start(); if (scheduler) { lobby.start(); social.start(); } });
+  app.addHook('onReady', async () => { scheduler?.start(); if (scheduler) { lobby.start(); if (!options.lobbyOnly) social.start(); } });
   const live = new Map<string, Set<WebSocket>>();
   const isOnline = (userId: string) => Boolean(live.get(userId)?.size);
   const social = new SocialService(db, settings, { isOnline, thresholdFor: (sql, room) => rooms.thresholdFor(sql, room) });
@@ -114,6 +118,12 @@ export async function createApp(db: Database, options: {
   }
 
   const isolation = healthIsolation(db, options);
+
+  if (options.lobbyOnly) app.addHook('onRequest', async request => {
+    const path = request.url.split('?')[0]!;
+    const closed = path.startsWith('/api/social/') || path === '/api/friends' || request.method === 'POST' && (path === '/api/rooms' || path === '/api/rooms/join');
+    if (closed) throw new AppError('UNSUPPORTED_OPERATION', '这个功能已经下线，请在大厅点空位入座。', 410);
+  });
   app.get('/health', async () => { await db.query('SELECT 1'); return { status: 'ok', database: db.kind, releaseReady: false, protocolVersion: 2, ruleEnginesVerified: rooms.games().filter(g => g.playable).length, ...isolation }; });
   app.post('/api/auth/register', { config: { rateLimit: { max: 10, timeWindow: '1 minute' } } }, async request => {
     const input = credentials.extend({ nickname: z.string().min(1).max(32).optional() }).parse(request.body);
@@ -246,6 +256,17 @@ export async function createApp(db: Database, options: {
     const { variant } = z.object({ variant: z.string().max(20).optional() }).strict().parse(request.body ?? {});
     return lobby.quickStart(user, variant || undefined);
   });
+  // 点哪个空位坐哪个（第三轮 R3）：坐上了客户端再用原协议进桌。
+  app.post('/api/lobby/sit', { config: { rateLimit: { max: 60, timeWindow: '1 minute' } } }, async request => {
+    const user = await actor(request, 'player');
+    const input = z.object({ code: z.string().regex(/^\d{6}$/), seat: z.number().int().min(1).max(4) }).strict().parse(request.body);
+    await requireProfile(user.id);
+    const room = await rooms.join(user, input.code, input.seat);
+    return { code: room.code, seat: input.seat };
+  });
+  // 一场打完的「继续 / 离开」（第三轮 R5）：查留座、主动离开。
+  app.get('/api/lobby/hold', { config: perToken }, async request => rooms.hold((await actor(request, 'player')).id));
+  app.post('/api/lobby/hold/release', { config: perToken }, async request => ({ released: await rooms.releaseHolds((await actor(request, 'player')).id) }));
   // 位置只放请求体，不进网址；服务端只存内存（R10）。
   app.post('/api/me/location', { config: perToken }, async request => {
     const user = await actor(request, 'player');
@@ -399,7 +420,7 @@ export async function createApp(db: Database, options: {
       }).catch(error => { if (socket.readyState === 1) socket.send(JSON.stringify({ type: 'error', code: error instanceof AppError ? error.code : 'INVALID_MESSAGE' })); socket.close(1008, 'Message rejected'); });
     });
   });
-  await registerOriginalProtocol(app, { db, auth, ledger, policies, rooms, replays, markOnline, profiles, stats, profileRequired: options.profileRequired === true });
+  await registerOriginalProtocol(app, { db, auth, ledger, policies, rooms, replays, markOnline, profiles, stats, profileRequired: options.profileRequired === true, lobbyOnly: options.lobbyOnly === true });
   if (options.staticFiles !== false) {
     const adminDist = fileURLToPath(new URL('../../admin/dist/', import.meta.url));
     if (existsSync(adminDist)) await app.register(fastifyStatic, { root: adminDist, prefix: '/admin/', decorateReply: false });

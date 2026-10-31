@@ -1,0 +1,330 @@
+<title>斗十四大厅样式</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&display=swap">
+<style>
+/* 页面外框用中性色；游戏画面本身按原版大厅的雪景背景、玻璃卡、绿桌、橙色主按钮来画，所有尺寸用 cqw 跟着画面宽度缩放 */
+:root { --bg: #eef1f4; --panel: #ffffff; --ink: #1c2530; --muted: #66727f; --line: #d8dee5; --accent: #e8730c;
+  --font-body: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #12171c; --panel: #1a2128; --ink: #e4e9ee; --muted: #93a0ac; --line: #2c3640; --accent: #ff9a3c; color-scheme: dark } }
+:root[data-theme="dark"] { --bg: #12171c; --panel: #1a2128; --ink: #e4e9ee; --muted: #93a0ac; --line: #2c3640; --accent: #ff9a3c; color-scheme: dark }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 14px; line-height: 1.6;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 24px 56px; }
+.wrap { max-width: 1120px; margin: 0 auto; display: flex; flex-direction: column; gap: 22px; }
+h1 { font-size: 24px; margin: 0; } .sub { color: var(--muted); margin: 4px 0 0; }
+h2 { font-size: 16px; margin: 0 0 8px; } h2 small { color: var(--muted); font-weight: 400; font-size: 12.5px; margin-left: 8px; }
+.frame { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px; }
+.notes { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 8px 18px; margin: 12px 0 0; padding: 0; list-style: none; font-size: 13px; }
+.notes li { display: flex; gap: 8px; } .notes b { color: var(--ink); }
+.notes .n { flex: none; width: 20px; height: 20px; border-radius: 50%; background: #ffd23f; color: #5a3200; font-weight: 900; font-size: 12px; display: grid; place-items: center; margin-top: 1px; }
+.notes span { color: var(--muted); }
+
+/* ---------- 游戏画面 ---------- */
+.stage { container-type: inline-size; position: relative; aspect-ratio: 16 / 9; border-radius: 8px; overflow: hidden; color: #fff;
+  background: #9bb7d8 url(img/lobby-bg.jpg) center / cover no-repeat; user-select: none; }
+.stage * { box-sizing: border-box; }
+.outline { text-shadow: 0 0.15cqw 0 rgba(20, 35, 70, .55), 0 0 0.4cqw rgba(20, 35, 70, .5); }
+.top { position: absolute; inset: 1.6cqw 2cqw auto 2cqw; height: 4.2cqw; display: flex; align-items: center; gap: 1.4cqw; }
+.back { width: 4cqw; height: 4cqw; display: grid; place-items: center; font-size: 3.6cqw; font-weight: 900; color: #7ec8ff; }
+.title { font-size: 2.6cqw; font-weight: 900; margin-right: 1.6cqw; }
+.tabs { display: flex; gap: 0.7cqw; }
+.tab { height: 3.4cqw; padding: 0 1.5cqw; border-radius: 1.7cqw; display: grid; place-items: center; font-size: 1.55cqw; font-weight: 700;
+  background: rgba(22, 44, 88, .5); border: 0.12cqw solid rgba(255, 255, 255, .35); }
+.tab.on { background: linear-gradient(#ffe27a, #f6a91f); color: #6a3500; border-color: #fff3c4; box-shadow: 0 0.25cqw 0 #c77700; }
+.spacer { flex: 1; }
+.beans { height: 3.2cqw; padding: 0 1.4cqw 0 0.6cqw; border-radius: 1.6cqw; background: rgba(15, 30, 60, .55); display: flex; align-items: center; gap: 0.7cqw; font-size: 1.6cqw; font-weight: 700; }
+.bean { width: 2.6cqw; height: 2cqw; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #fff3a8, #f2b51c 55%, #b9780a); }
+.count { font-size: 1.5cqw; font-weight: 700; }
+.count em { font-style: normal; color: #ffe27a; }
+
+.grid { position: absolute; left: 2cqw; right: 2cqw; top: 7.4cqw; height: 39.4cqw; display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(2, 1fr); gap: 1.4cqw 1.2cqw; }
+.card { position: relative; border-radius: 1.3cqw; background: rgba(255, 255, 255, .2); border: 0.12cqw solid rgba(255, 255, 255, .55);
+  backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); box-shadow: 0 0.4cqw 1.2cqw rgba(20, 40, 80, .18); }
+.card.playing { background: rgba(30, 45, 75, .28); }
+.state { position: absolute; left: 0.8cqw; top: 0.8cqw; height: 2.1cqw; padding: 0 0.9cqw; border-radius: 1.05cqw; font-size: 1.15cqw; font-weight: 700; display: grid; place-items: center; z-index: 2; }
+.st-hot { background: linear-gradient(#ffb340, #ff7a00); box-shadow: 0 0 0.9cqw rgba(255, 140, 0, .7); }
+.st-wait { background: #2fae63; }
+.st-empty { background: rgba(255, 255, 255, .85); color: #2f7d52; }
+.st-play { background: rgba(30, 45, 80, .78); color: #cfe0ff; }
+.dist { position: absolute; right: 0.8cqw; top: 0.8cqw; height: 2.1cqw; padding: 0 0.8cqw 0 0.6cqw; border-radius: 1.05cqw; background: rgba(255, 255, 255, .95); color: #1f6fc4;
+  font-size: 1.1cqw; font-weight: 700; display: flex; align-items: center; gap: 0.3cqw; z-index: 2; white-space: nowrap; }
+.dist::before { content: ""; width: 0.9cqw; height: 0.9cqw; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); background: radial-gradient(circle, #fff 0 28%, #1f6fc4 30%); }
+.chips .dist { position: static; height: 22px; padding: 0 10px 0 8px; border-radius: 11px; font-size: 12px; gap: 4px; }
+.chips .dist::before { width: 9px; height: 9px; }
+.felt { position: absolute; left: 50%; top: 50%; width: 50%; height: 44%; transform: translate(-50%, -50%); border-radius: 1.6cqw;
+  background: radial-gradient(ellipse at 50% 40%, #3aa56b, #1d6e43 75%); border: 0.45cqw solid #9a6533; box-shadow: inset 0 0 0 0.18cqw #d9a35f, 0 0.35cqw 0.6cqw rgba(0, 0, 0, .25);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+.felt b { font-size: 1.8cqw; font-weight: 900; line-height: 1.15; }
+.felt span { font-size: 0.95cqw; opacity: .9; line-height: 1.3; }
+.felt i { font-style: normal; font-size: 0.95cqw; color: #ffe27a; font-weight: 700; }
+.playing .felt { filter: saturate(.75) brightness(.9); }
+
+.seat { position: absolute; width: 4.4cqw; height: 4.4cqw; border-radius: 0.9cqw; transform: translate(-50%, -50%); z-index: 1; overflow: hidden; }
+.p-t { left: 50%; top: 14.5%; } .p-b { left: 50%; top: 85.5%; } .p-l { left: 13%; top: 50%; } .p-r { left: 87%; top: 50%; }
+.seat.who { border: 0.2cqw solid #fff; box-shadow: 0 0.2cqw 0.5cqw rgba(0, 0, 0, .25); display: grid; place-items: center; font-size: 2cqw; font-weight: 900; }
+.seat.who em { position: absolute; left: 0; right: 0; bottom: 0; height: 1.6cqw; background: rgba(0, 0, 0, .55); font-style: normal; font-size: 0.95cqw; font-weight: 500; display: grid; place-items: center; }
+.seat.who.f::after { content: "♀"; position: absolute; right: 0.25cqw; top: 0.1cqw; font-size: 1cqw; color: #ffb3d1; }
+.seat.who.m::after { content: "♂"; position: absolute; right: 0.25cqw; top: 0.1cqw; font-size: 1cqw; color: #a8d4ff; }
+.seat.open { border: 0.18cqw dashed rgba(255, 255, 255, .95); background: rgba(255, 255, 255, .28); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.1cqw; cursor: pointer; }
+.seat.open b { font-size: 2.1cqw; line-height: 1; font-weight: 500; }
+.seat.open span { font-size: 1cqw; font-weight: 700; }
+.seat.open.go { border: 0.22cqw solid #ffe27a; background: rgba(255, 196, 40, .45); box-shadow: 0 0 1.2cqw rgba(255, 210, 60, .95); animation: pulse 1.6s ease-in-out infinite; }
+.seat.open.low { opacity: .45; }
+@keyframes pulse { 50% { box-shadow: 0 0 0.3cqw rgba(255, 210, 60, .5); } }
+@media (prefers-reduced-motion: reduce) { .seat.open.go { animation: none; } }
+.c1 { background: #e2725b; } .c2 { background: #5b8de2; } .c3 { background: #9a6be0; } .c4 { background: #e0a43b; } .c5 { background: #3fb59a; } .c6 { background: #d9578f; } .c7 { background: #6d7f99; } .c8 { background: #47a3d6; }
+
+.finger { position: absolute; z-index: 3; font-size: 2.6cqw; transform: rotate(-20deg); filter: drop-shadow(0 0.2cqw 0.3cqw rgba(0, 0, 0, .35)); pointer-events: none; }
+.tip { position: absolute; z-index: 3; background: rgba(15, 25, 50, .82); border: 0.12cqw solid rgba(255, 226, 122, .8); border-radius: 0.8cqw; padding: 0.5cqw 0.9cqw; font-size: 1.1cqw; white-space: nowrap; }
+
+.bottom { position: absolute; left: 0; right: 0; bottom: 1.4cqw; height: 6cqw; display: flex; align-items: center; justify-content: center; gap: 1.6cqw; }
+.quick { height: 5.4cqw; width: 22cqw; border-radius: 2.7cqw; background: linear-gradient(#ffb04a, #f2661b); border: 0.28cqw solid #ffe08a;
+  box-shadow: 0 0.45cqw 0 #b8420a, 0 0.6cqw 1.4cqw rgba(160, 60, 0, .35); display: grid; place-items: center; font-size: 2.5cqw; font-weight: 900; letter-spacing: 0.15em; }
+.quick-hint { font-size: 1.15cqw; background: rgba(15, 30, 60, .5); padding: 0.4cqw 1cqw; border-radius: 1cqw; }
+.scrollbar { position: absolute; right: 0.7cqw; top: 8cqw; width: 0.4cqw; height: 34cqw; border-radius: 0.2cqw; background: rgba(255, 255, 255, .25); }
+.scrollbar::after { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 55%; border-radius: inherit; background: rgba(255, 255, 255, .75); }
+.mark { position: absolute; z-index: 4; width: 2.2cqw; height: 2.2cqw; border-radius: 50%; background: #ffd23f; color: #5a3200; font-weight: 900; font-size: 1.25cqw;
+  display: grid; place-items: center; border: 0.15cqw solid #fff; box-shadow: 0 0.2cqw 0.5cqw rgba(0, 0, 0, .3); }
+
+/* 牌桌：一场打完 */
+.stage.table { background-image: url(img/table-bg.jpg); }
+.dim { position: absolute; inset: 0; background: rgba(5, 10, 25, .55); }
+.modal { position: absolute; left: 50%; top: 50%; width: 52cqw; transform: translate(-50%, -50%); border-radius: 1.6cqw; overflow: hidden;
+  background: linear-gradient(#fdf6e6, #f3e3c0); color: #4a2c0a; border: 0.35cqw solid #e2b25a; box-shadow: 0 1cqw 3cqw rgba(0, 0, 0, .45); }
+.mhead { background: linear-gradient(#ff9c3a, #e8601a); color: #fff; text-align: center; padding: 1cqw 0; }
+.mhead b { display: block; font-size: 2.2cqw; font-weight: 900; } .mhead span { font-size: 1.15cqw; opacity: .95; }
+.rows { padding: 1.2cqw 2cqw 0.6cqw; display: flex; flex-direction: column; gap: 0.7cqw; }
+.row { display: grid; grid-template-columns: 4cqw 1fr 7cqw 9cqw; align-items: center; gap: 1cqw; padding: 0.5cqw 0.8cqw; border-radius: 0.9cqw; background: rgba(255, 255, 255, .6); font-size: 1.35cqw; }
+.row.me { background: #fff; box-shadow: inset 0 0 0 0.18cqw #f2a03a; }
+.row .av { width: 3.6cqw; height: 3.6cqw; border-radius: 0.7cqw; display: grid; place-items: center; color: #fff; font-weight: 900; font-size: 1.7cqw; }
+.row .nm { font-weight: 700; } .row .nm small { display: block; font-weight: 400; font-size: 1cqw; color: #8a6a3a; }
+.row .sc { font-weight: 900; text-align: right; font-variant-numeric: tabular-nums; }
+.up { color: #d23a1a; } .down { color: #2d7d4a; }
+.pill { justify-self: end; font-size: 1.05cqw; font-weight: 700; padding: 0.2cqw 0.8cqw; border-radius: 1cqw; }
+.pk { background: #2fae63; color: #fff; } .pw { background: #e9dcc0; color: #8a6a3a; } .pl { background: #c9c2b3; color: #fff; }
+.mfoot { display: flex; gap: 1.6cqw; justify-content: center; padding: 1cqw 0 1.4cqw; }
+.btn { height: 4.6cqw; width: 15cqw; border-radius: 2.3cqw; display: flex; align-items: center; justify-content: center; white-space: nowrap; font-size: 1.9cqw; font-weight: 900; color: #fff; }
+.btn.leave { background: linear-gradient(#6fb6ff, #2f7ad8); border: 0.22cqw solid #cfe6ff; box-shadow: 0 0.35cqw 0 #1d4f9a; }
+.btn.go { background: linear-gradient(#ffb04a, #f2661b); border: 0.22cqw solid #ffe08a; box-shadow: 0 0.35cqw 0 #b8420a; }
+.btn.go small { font-size: 1.3cqw; font-weight: 700; margin-left: 0.3cqw; }
+.mnote { text-align: center; font-size: 1.05cqw; color: #8a6a3a; padding: 0 2cqw 1.2cqw; }
+
+/* 状态说明 */
+.legend { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; }
+.lg { border: 1px solid var(--line); border-radius: 10px; padding: 12px; }
+.lg h3 { margin: 0 0 8px; font-size: 13.5px; }
+.chips { container-type: inline-size; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; background: #6f8fb6; border-radius: 8px; padding: 12px; color: #fff; }
+.chips .seat { position: relative; transform: none; width: 52px; height: 52px; border-radius: 10px; }
+.chips .seat.who { font-size: 20px; border-width: 2px; } .chips .seat.who em { height: 17px; font-size: 10px; }
+.chips .seat.who.f::after, .chips .seat.who.m::after { font-size: 11px; right: 3px; top: 1px; }
+.chips .seat.open { border-width: 2px; gap: 1px; } .chips .seat.open b { font-size: 22px; } .chips .seat.open span { font-size: 11px; }
+.chips .seat.open.go { border-width: 2px; box-shadow: 0 0 12px rgba(255, 210, 60, .95); }
+.chips .state { position: static; height: 22px; padding: 0 10px; border-radius: 11px; font-size: 12px; }
+.chips .cap { font-size: 12px; opacity: .95; margin-right: 6px; }
+.lg p { margin: 8px 0 0; color: var(--muted); font-size: 12.5px; }
+.toast { display: inline-block; background: rgba(15, 25, 50, .88); color: #fff; border-radius: 8px; padding: 8px 14px; font-size: 13px; }
+.toast b { color: #ffe27a; }
+.diff { width: 100%; border-collapse: collapse; font-size: 13px; }
+.diff th, .diff td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.diff th { color: var(--muted); font-weight: 500; }
+.scroll { overflow-x: auto; } .scroll table { min-width: 560px; }
+footer { color: var(--muted); font-size: 12px; }
+</style>
+
+<div class="wrap">
+<header>
+  <h1>斗十四 · 新大厅样式稿 v0.1</h1>
+  <p class="sub">沿用现在大厅的雪景背景、玻璃卡、绿桌和橙色按钮，只改要改的地方：不开房、没好友（附近和距离照旧），看到哪里有空位点进去就坐，打完接着往下打。下面是横屏 16:9 的效果，窄屏会等比缩小。</p>
+</header>
+
+<section class="frame">
+  <h2>① 大厅主界面<small>黄圈数字对应下方说明</small></h2>
+  <div class="stage" role="img" aria-label="新大厅主界面样式稿">
+    <div class="top outline">
+      <div class="back">‹</div>
+      <div class="title">大厅</div>
+      <div class="tabs"><div class="tab on">全部</div><div class="tab">附近</div><div class="tab">底分 1</div><div class="tab">底分 2</div><div class="tab">底分 5</div></div>
+      <div class="spacer"></div>
+      <div class="beans"><i class="bean"></i>1,280</div>
+      <div class="count">空位 <em>17</em></div>
+    </div>
+
+    <div class="grid">
+      <!-- 差 1 人：排最前，空位发光 -->
+      <div class="card">
+        <div class="state st-hot outline">差 1 人</div>
+        <div class="dist">1 公里内</div>
+        <div class="felt outline"><b>底分 1</b><span>8 局 · 门槛 10 豆</span></div>
+        <div class="seat who c1 m p-t outline">张<em>张三丰</em></div>
+        <div class="seat who c2 f p-r outline">李<em>李小梅</em></div>
+        <div class="seat who c3 m p-l outline">王<em>王大锤</em></div>
+        <div class="seat open go p-b outline"><b>＋</b><span>坐下</span></div>
+      </div>
+      <div class="card">
+        <div class="state st-hot outline">差 1 人</div>
+        <div class="dist">同城</div>
+        <div class="felt outline"><b>底分 2</b><span>8 局 · 门槛 20 豆</span><i>第 3 场</i></div>
+        <div class="seat who c4 m p-t outline">刘<em>刘老六</em></div>
+        <div class="seat open go p-r outline"><b>＋</b><span>坐下</span></div>
+        <div class="seat who c5 f p-b outline">陈<em>陈晓</em></div>
+        <div class="seat who c6 f p-l outline">赵<em>赵小敏</em></div>
+      </div>
+      <div class="card">
+        <div class="state st-wait outline">差 2 人</div>
+        <div class="dist">5 公里内</div>
+        <div class="felt outline"><b>底分 1</b><span>8 局 · 门槛 10 豆</span></div>
+        <div class="seat who c7 m p-t outline">周<em>周大哥</em></div>
+        <div class="seat open p-r outline"><b>＋</b><span>坐下</span></div>
+        <div class="seat open p-b outline"><b>＋</b><span>坐下</span></div>
+        <div class="seat who c8 m p-l outline">吴<em>吴老师</em></div>
+      </div>
+      <div class="card">
+        <div class="state st-wait outline">差 3 人</div>
+        <div class="dist">更远</div>
+        <div class="felt outline"><b>底分 5</b><span>8 局 · 门槛 50 豆</span></div>
+        <div class="seat who c2 m p-t outline">郑<em>郑总</em></div>
+        <div class="seat open p-r outline"><b>＋</b><span>坐下</span></div>
+        <div class="seat open p-b outline"><b>＋</b><span>坐下</span></div>
+        <div class="seat open p-l outline"><b>＋</b><span>坐下</span></div>
+      </div>
+      <div class="card">
+        <div class="state st-empty">空桌</div>
+        <div class="felt outline"><b>底分 1</b><span>8 局 · 门槛 10 豆</span></div>
+        <div class="seat open p-t outline"><b>＋</b><span>坐下</span></div>
+        <div class="seat open p-r outline"><b>＋</b><span>坐下</span></div>
+        <div class="seat open p-b outline"><b>＋</b><span>坐下</span></div>
+        <div class="seat open p-l outline"><b>＋</b><span>坐下</span></div>
+      </div>
+      <div class="card">
+        <div class="state st-empty">空桌</div>
+        <div class="felt outline"><b>底分 5</b><span>8 局 · 门槛 50 豆</span></div>
+        <div class="seat open low p-t outline"><b>＋</b><span>坐下</span></div>
+        <div class="seat open low p-r outline"><b>＋</b><span>坐下</span></div>
+        <div class="seat open low p-b outline"><b>＋</b><span>坐下</span></div>
+        <div class="seat open low p-l outline"><b>＋</b><span>坐下</span></div>
+      </div>
+      <div class="card playing">
+        <div class="state st-play">打牌中</div>
+        <div class="dist">1 公里内</div>
+        <div class="felt outline"><b>底分 2</b><span>第 2 场 · 5 / 8 局</span></div>
+        <div class="seat who c3 f p-t outline">孙<em>孙姐</em></div>
+        <div class="seat who c1 m p-r outline">钱<em>钱多多</em></div>
+        <div class="seat who c8 m p-b outline">冯<em>冯二</em></div>
+        <div class="seat who c5 m p-l outline">何<em>何师傅</em></div>
+      </div>
+      <div class="card playing">
+        <div class="state st-play">打牌中</div>
+        <div class="dist">同城</div>
+        <div class="felt outline"><b>底分 1</b><span>第 1 场 · 7 / 8 局</span></div>
+        <div class="seat who c6 f p-t outline">韩<em>韩梅</em></div>
+        <div class="seat who c4 m p-r outline">杨<em>杨哥</em></div>
+        <div class="seat who c7 m p-b outline">朱<em>朱八</em></div>
+        <div class="seat who c2 f p-l outline">秦<em>秦小妹</em></div>
+      </div>
+    </div>
+    <div class="scrollbar"></div>
+
+    <div class="finger" style="left: 14.2cqw; top: 23.6cqw;">👆</div>
+    <div class="tip" style="left: 2cqw; top: 50cqw;">👆 点哪个空位就坐哪个，直接进牌桌</div>
+
+    <div class="bottom">
+      <div class="quick outline">快速开始</div>
+      <div class="quick-hint">自动坐进差人最少、豆子够的桌</div>
+    </div>
+
+    <div class="mark" style="left: 21cqw; top: 1.5cqw;">1</div>
+    <div class="mark" style="left: 89.4cqw; top: 1.2cqw;">2</div>
+    <div class="mark" style="left: 22.9cqw; top: 11cqw;">8</div>
+    <div class="mark" style="left: 1.4cqw; top: 6.8cqw;">3</div>
+    <div class="mark" style="left: 17.4cqw; top: 21.4cqw;">4</div>
+    <div class="mark" style="left: 46.6cqw; top: 28.4cqw;">5</div>
+    <div class="mark" style="left: 51.6cqw; top: 43.6cqw;">6</div>
+    <div class="mark" style="left: 37.4cqw; top: 48.6cqw;">7</div>
+  </div>
+  <ul class="notes">
+    <li><i class="n">1</i><div><b>按底分分组</b> <span>「全部 / 附近 / 底分 1 / 2 / 5」；「附近」照旧，没开定位时自动藏起来</span></div></li>
+    <li><i class="n">2</i><div><b>空位总数</b> <span>右上角从「共 9 桌」改成「空位 17」，一眼看出还有多少地方能坐</span></div></li>
+    <li><i class="n">3</i><div><b>差人少的排前面</b> <span>差 1 人 → 差 2 人 → 差 3 人 → 空桌 → 打牌中，最快能开打的桌在左上</span></div></li>
+    <li><i class="n">4</i><div><b>空位发光</b> <span>差 1 人的桌，那个空位亮黄框、轻轻闪；其他空位白虚线「＋ 坐下」</span></div></li>
+    <li><i class="n">5</i><div><b>门槛不够变灰</b> <span>豆子不够这张桌门槛，空位变半透明；点了提示还差多少，不让坐</span></div></li>
+    <li><i class="n">6</i><div><b>打牌中的桌也列出来</b> <span>显示「第几场 · 第几局」，暗一点、不能点；这场打完有人离开，空位就出现</span></div></li>
+    <li><i class="n">7</i><div><b>底部只剩快速开始</b> <span>「加入房间」「创建房间」去掉，快速开始放正中间</span></div></li>
+    <li><i class="n">8</i><div><b>距离档位照旧</b> <span>有人的桌右上角写「1 公里内 / 5 公里内 / 同城 / 更远」，不写米数；没开定位不显示</span></div></li>
+  </ul>
+</section>
+
+<section class="frame">
+  <h2>② 一场打完：继续 / 离开<small>在牌桌上弹，4 个人各自选</small></h2>
+  <div class="stage table" role="img" aria-label="一场打完的继续离开弹窗样式稿">
+    <div class="dim"></div>
+    <div class="modal">
+      <div class="mhead"><b>第 2 场结束</b><span>底分 2 · 8 / 8 局打完</span></div>
+      <div class="rows">
+        <div class="row me"><div class="av c1">我</div><div class="nm">测试1号<small>豆子 1,316</small></div><div class="sc up">+36</div><div class="pill pw">还没选</div></div>
+        <div class="row"><div class="av c4">刘</div><div class="nm">刘老六<small>豆子 842</small></div><div class="sc up">+12</div><div class="pill pk">继续 ✓</div></div>
+        <div class="row"><div class="av c5">陈</div><div class="nm">陈晓<small>豆子 610</small></div><div class="sc down">−20</div><div class="pill pk">继续 ✓</div></div>
+        <div class="row"><div class="av c6">赵</div><div class="nm">赵小敏<small>豆子 95</small></div><div class="sc down">−28</div><div class="pill pl">已离开</div></div>
+      </div>
+      <div class="mfoot">
+        <div class="btn leave">离开</div>
+        <div class="btn go">继续打<small>（12）</small></div>
+      </div>
+      <div class="mnote">倒计时到了没点算离开。离开的人空出座位，大厅里别人能补进来；凑满 4 人自动开下一场。</div>
+    </div>
+  </div>
+  <ul class="notes">
+    <li><i class="n">·</i><div><b>点继续</b> <span>留在这桌，等其他人；有人离开就等大厅里的人补位，凑满就开</span></div></li>
+    <li><i class="n">·</i><div><b>点离开 / 倒计时到</b> <span>回大厅桌列表，座位空出来（拍板第 3 条）</span></div></li>
+    <li><i class="n">·</i><div><b>豆子不够门槛</b> <span>「继续打」变灰，写「豆子不够，回大厅」</span></div></li>
+    <li><i class="n">·</i><div><b>房费</b> <span>下一场开打前按拍板第 1 条扣，弹窗里不另外问</span></div></li>
+  </ul>
+</section>
+
+<section class="frame">
+  <h2>③ 状态一览<small>座位、桌子、提示三种元素的所有样子</small></h2>
+  <div class="legend">
+    <div class="lg"><h3>座位</h3>
+      <div class="chips">
+        <div class="seat open go outline"><b>＋</b><span>坐下</span></div><span class="cap">差 1 人的空位</span>
+        <div class="seat open outline"><b>＋</b><span>坐下</span></div><span class="cap">普通空位</span>
+        <div class="seat open low outline"><b>＋</b><span>坐下</span></div><span class="cap">门槛不够</span>
+        <div class="seat who c2 f outline">李<em>李小梅</em></div><span class="cap">有人</span>
+      </div>
+      <p>有人的座位点了弹「昵称 + 性别 + ID」小卡（第二轮做好的，不变）。</p>
+    </div>
+    <div class="lg"><h3>桌子状态</h3>
+      <div class="chips">
+        <span class="state st-hot outline">差 1 人</span><span class="state st-wait outline">差 2 人</span><span class="state st-wait outline">差 3 人</span><span class="state st-empty">空桌</span><span class="state st-play">打牌中</span><span class="dist">1 公里内</span><span class="dist">同城</span>
+      </div>
+      <p>连着打过的桌，桌面多一行「第 3 场」。打牌中的桌桌面写「第几场 · 第几局」。蓝色定位标签是距离档位，只给有人的桌、只在我开了定位时显示。</p>
+    </div>
+    <div class="lg"><h3>提示</h3>
+      <div class="toast">豆子不够：底分 5 要 <b>50</b> 豆，你还差 <b>30</b> 豆</div>
+      <p style="margin-top:10px"><span class="toast">这个座位刚被人坐了，换一个吧</span></p>
+      <p>两个人同时点同一个空位，后点的人收到第二条提示，大厅马上刷新。</p>
+    </div>
+  </div>
+</section>
+
+<section class="frame">
+  <h2>和现在的大厅比</h2>
+  <div class="scroll">
+  <table class="diff">
+    <thead><tr><th>位置</th><th>现在</th><th>改成</th></tr></thead>
+    <tbody>
+      <tr><td>顶部标签</td><td>全部 / 附近（没定位时只剩全部）</td><td>全部 / 附近 / 底分 1 / 底分 2 / 底分 5</td></tr>
+      <tr><td>距离档位</td><td>有人的桌右上角，1 公里内 / 5 公里内 / 同城 / 更远</td><td>不变</td></tr>
+      <tr><td>右上角</td><td>共 9 桌</td><td>空位 N</td></tr>
+      <tr><td>桌子排序</td><td>按模板顺序</td><td>差人少的在前，打牌中的放最后</td></tr>
+      <tr><td>桌卡左上</td><td>缺 4 人</td><td>差 N 人（差 1 人橙色发光）/ 空桌 / 打牌中</td></tr>
+      <tr><td>空座位</td><td>「＋ 空位」，点桌子随机分座</td><td>「＋ 坐下」，点哪个坐哪个；门槛不够变灰</td></tr>
+      <tr><td>打牌中的桌</td><td>—</td><td>照样列出，写第几场第几局，不能点</td></tr>
+      <tr><td>底部按钮</td><td>快速开始 · 加入房间 · 创建房间</td><td>只留快速开始，放正中</td></tr>
+      <tr><td>牌桌</td><td>一场打完桌子关掉</td><td>弹「继续 / 离开」，留下的人接着打</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<footer>背景图和牌桌底图取自现有客户端素材；人名、豆子数都是示意。样式确认后再动代码。</footer>
+</div>

@@ -123,7 +123,7 @@ test('R2/R1/R5: templates keep standing empty system tables, the lobby lists onl
   assert.equal(listing.tables.filter((table: any) => table.system && table.seats.length === 0).length, 2);
 });
 
-test('R2 AC3/R5 AC1: a full system table plays its rounds with AA fees, closes, and the lobby is back to empty tables', async t => {
+test('第三轮 R5：一场打完同桌号开下一场，留座 15 秒，点继续认领座位、到时没点空出来，每场各扣一次 AA', async t => {
   const ctx = await setup(); t.after(ctx.close);
   await ctx.lobby.createTemplate(ctx.beans, template({ standingEmpty: 1 }));
   await ctx.lobby.maintain();
@@ -139,13 +139,106 @@ test('R2 AC3/R5 AC1: a full system table plays its rounds with AA fees, closes, 
   }
   assert.equal((await ctx.db.query('SELECT state FROM rooms WHERE id=$1', [joined.id])).rows[0]!.state, 'closed');
   // AA：4 局房费每人 1 豆，只扣一次。
-  const fees = (await ctx.db.query("SELECT e.user_id,e.amount::text FROM ledger_entries e JOIN ledger_operations o ON o.id=e.operation_id WHERE o.kind='room_fee' AND o.room_id=$1 ORDER BY e.user_id", [joined.id])).rows;
-  assert.deepEqual(fees.map(fee => fee.amount).sort(), ['-1', '-1']);
+  const feesOf = async (roomId: string) => (await ctx.db.query("SELECT e.amount::text FROM ledger_entries e JOIN ledger_operations o ON o.id=e.operation_id WHERE o.kind='room_fee' AND o.room_id=$1", [roomId])).rows.map(fee => fee.amount).sort();
+  assert.deepEqual(await feesOf(joined.id), ['-1', '-1']);
+
+  // 下一场：同桌号、第 2 场，两人的座位都留着，还算不上「在桌上」。
+  const next = (await ctx.db.query("SELECT id,match_seq,previous_room_id FROM rooms WHERE code=$1 AND state <> 'closed'", [code])).rows[0]!;
+  assert.deepEqual([next.match_seq, next.previous_room_id], [2, joined.id]);
+  assert.equal((await ctx.db.query('SELECT COUNT(*)::int AS count FROM room_members WHERE room_id=$1 AND hold_until IS NOT NULL', [next.id])).rows[0]!.count, 2);
+  assert.equal(await ctx.rooms.current(a.actor.id), null);
+  const hold = (await ctx.app.inject({ method: 'GET', url: '/api/lobby/hold', headers: a.headers })).json().hold;
+  assert.equal(hold.code, code); assert.equal(hold.matchSeq, 2); assert.equal(hold.enough, true);
+  assert.ok(hold.seconds >= 14 && hold.seconds <= 17, String(hold.seconds));
+  let listing = await tablesOf(ctx, a.headers);
+  assert.equal(listing.tables.find((table: any) => table.code === code).matchSeq, 2);
+
+  // a 点继续：座位不变；b 没点，到时空出来。
+  const seatOf = async (userId: string) => (await ctx.db.query('SELECT seat FROM room_members WHERE room_id=$1 AND user_id=$2', [next.id, userId])).rows[0]?.seat;
+  const seatA = await seatOf(a.actor.id);
+  await ctx.rooms.join(a.actor, code);
+  assert.equal(await seatOf(a.actor.id), seatA);
+  assert.equal((await ctx.rooms.current(a.actor.id))!.id, next.id);
+  await ctx.db.query("UPDATE room_members SET hold_until=now()-interval '1 second' WHERE user_id=$1", [b.actor.id]);
   await ctx.lobby.maintain();
-  const listing = await tablesOf(ctx, a.headers);
+  assert.equal(await seatOf(b.actor.id), undefined);
+  listing = await tablesOf(ctx, a.headers);
+  assert.equal(listing.tables.find((table: any) => table.code === code).seats.length, 1);
+  // 有人坐的桌排在空桌前面；带上我的豆子给客户端比门槛。
+  assert.equal(listing.tables[0].code, code);
+  assert.match(listing.beans, /^\d+(\.\d+)?$/);
+
+  // 别人补进来就开第 2 场，第 2 场再扣一次 AA。
+  const c = await ctx.player('lobby_round_c', '50');
+  await ctx.rooms.join(c.actor, code);
+  await ctx.rooms.ready(a.actor, next.id, true);
+  assert.equal((await ctx.rooms.ready(c.actor, next.id, true)).currentRound, 1);
+  assert.deepEqual(await feesOf(next.id), ['-1', '-1']);
+});
+
+test('第三轮 R5 AC2/AC3：豆子不够门槛不能接着打；留座的人主动离开、全走光桌子变回空桌', async t => {
+  const ctx = await setup(); t.after(ctx.close);
+  await ctx.lobby.createTemplate(ctx.beans, template({ standingEmpty: 1 }));
+  await ctx.lobby.maintain();
+  const [a, b] = [await ctx.player('lobby_poor_a', '11'), await ctx.player('lobby_poor_b', '50')];
+  const code = (await tablesOf(ctx, a.headers)).tables[0].code;
+  // b 坐 1 号（夹具里 1 号每局赢 1 豆），a 交 1 豆房费再输 4 局，剩 6 豆不够 10 豆门槛。
+  await ctx.rooms.join(b.actor, code);
+  const room = await ctx.rooms.join(a.actor, code);
+  for (let round = 1; round <= 4; round++) {
+    await ctx.rooms.ready(a.actor, room.id, true);
+    const started = await ctx.rooms.ready(b.actor, room.id, true);
+    await ctx.rooms.action(a.actor, room.id, `lobby-poor-settle-${round}`, { type: 'settle' }, started.stateVersion!, started.roundId!);
+  }
+  const balance = Number(await ctx.ledger.balance(a.actor.id));
+  assert.ok(balance < 10, String(balance));
+  const hold = (await ctx.app.inject({ method: 'GET', url: '/api/lobby/hold', headers: a.headers })).json().hold;
+  assert.equal(hold.enough, false); assert.equal(hold.threshold, '10');
+  await assert.rejects(ctx.rooms.join(a.actor, code), (error: any) => error.code === 'BELOW_THRESHOLD');
+
+  const released = await ctx.app.inject({ method: 'POST', url: '/api/lobby/hold/release', headers: a.headers });
+  assert.deepEqual(released.json(), { released: 1 });
+  assert.deepEqual((await ctx.app.inject({ method: 'POST', url: '/api/lobby/hold/release', headers: b.headers })).json(), { released: 1 });
+  await ctx.lobby.maintain();
+  const listing = await tablesOf(ctx, b.headers);
   assert.equal(listing.tables.length, 1);
-  assert.equal(listing.tables[0].seats.length, 0);
-  assert.notEqual(listing.tables[0].code, code);
+  assert.deepEqual([listing.tables[0].code, listing.tables[0].seats.length, listing.tables[0].matchSeq], [code, 0, 2]);
+});
+
+test('第三轮 R3：点哪个空位坐哪个，同一个座位只有一人坐上，另一人提示已被坐', async t => {
+  const ctx = await setup(); t.after(ctx.close);
+  await ctx.lobby.createTemplate(ctx.beans, template({ standingEmpty: 1, options: { baseBeans: '1', playerNum: 4, gameNum: 4 } }));
+  await ctx.lobby.maintain();
+  const [a, b, poor] = [await ctx.player('lobby_sit_a', '50'), await ctx.player('lobby_sit_b', '50'), await ctx.player('lobby_sit_poor', '3')];
+  const code = (await tablesOf(ctx, a.headers)).tables[0].code;
+  const sit = (headers: Record<string, string>, seat: number) => ctx.app.inject({ method: 'POST', url: '/api/lobby/sit', headers, payload: { code, seat } });
+  const [first, second] = await Promise.all([sit(a.headers, 3), sit(b.headers, 3)]);
+  const codes = [first.statusCode, second.statusCode].sort();
+  assert.deepEqual(codes, [200, 409]);
+  const loser = first.statusCode === 409 ? first : second;
+  assert.equal(loser.json().error.code, 'SEAT_TAKEN');
+  assert.equal(loser.json().error.message, '这个座位刚被人坐了，换一个吧。');
+  const seats = (await tablesOf(ctx, a.headers)).tables[0].seats;
+  assert.deepEqual(seats.map((seat: any) => seat.seat), [3]);
+  const below = await sit(poor.headers, 1);
+  assert.equal(below.json().error.code, 'BELOW_THRESHOLD');
+  assert.match(below.json().error.message, /还差 7 豆/);
+  assert.equal((await sit(first.statusCode === 409 ? a.headers : b.headers, 5)).statusCode, 400);
+});
+
+test('第三轮 R1/R2：只留大厅时玩家开房、输房号、好友私聊都回不支持', async t => {
+  const db = await openDatabase(); await migrate(db);
+  const created = await createApp(db, { staticFiles: false, engines: new EngineRegistry([fixture]), scheduler: false, rateLimit: false, lobbyOnly: true });
+  t.after(async () => { await created.app.close(); await db.close(); });
+  await created.auth.create('lobby_only_player', 'test-password-only', 'player');
+  const headers = { authorization: `Bearer ${(await created.auth.login('lobby_only_player', 'test-password-only')).token}` };
+  for (const [method, url, payload] of [['POST', '/api/rooms', { variantKey: '4:0', options: {} }], ['POST', '/api/rooms/join', { code: '123456' }],
+    ['GET', '/api/social/friends'], ['GET', '/api/social/pulse'], ['GET', '/api/friends']] as const) {
+    const response = await created.app.inject({ method, url, headers, ...(payload ? { payload } : {}) });
+    assert.equal(response.statusCode, 410, url);
+    assert.equal(response.json().error.code, 'UNSUPPORTED_OPERATION');
+  }
+  assert.equal((await created.app.inject({ method: 'GET', url: '/api/lobby/tables', headers })).statusCode, 200);
 });
 
 test('R2 AC4: a seat idle past the limit is cleared without charging beans and the player is told', async t => {
@@ -332,4 +425,20 @@ test('S2-AC2 S2-AC3 大厅每个座位带昵称、性别、数字 ID；每张有
   // 没设性别、还没进过游戏的人：性别 0、ID 空；桌上没人报位置就没有档位。
   assert.deepEqual(byCode[plainRoom.code].seats.map((seat: any) => [seat.sex, seat.uid]), [[0, null]]);
   assert.equal(byCode[plainRoom.code].nearby, undefined);
+});
+
+test('第三轮规则 v2：发布前开的新津空桌（v1）被收掉，按 v2 补开', async t => {
+  const ctx = await setup(); t.after(ctx.close);
+  const saved = await ctx.app.inject({ method: 'POST', url: '/api/admin/lobby-templates', headers: ctx.beansHeaders, payload: template() });
+  assert.equal(saved.statusCode, 200, saved.body);
+  await ctx.lobby.maintain();
+  const rooms = async () => (await ctx.db.query("SELECT id,rules->'xinjin'->>'scoring' AS scoring FROM rooms WHERE state='waiting' ORDER BY created_at")).rows;
+  const before = await rooms();
+  assert.deepEqual(before.map(room => room.scoring), ['v2', 'v2']);
+  await ctx.db.query("UPDATE rooms SET rules = rules #- '{xinjin,scoring}' WHERE id=$1", [before[0].id]);
+  await ctx.lobby.maintain();
+  const after = await rooms();
+  assert.equal(after.length, 2);
+  assert.ok(after.every(room => room.scoring === 'v2'));
+  assert.ok(!after.some(room => room.id === before[0].id));
 });

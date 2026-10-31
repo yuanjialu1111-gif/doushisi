@@ -1,6 +1,6 @@
 import { randomInt, randomUUID } from 'node:crypto';
 import { EventEmitter } from 'node:events';
-import { catalogue, supportsNewRoom, freezeQionglaiOptions, freezeYaanOptions, freezeXinjinOptions, XINJIN_V2_OPTIONS, freezeAnyueOptions, freezePujiangOptions, freezeAbaOptions, freezeScoreRegionOptions, freezeIndependentApproval, getVariant, validateRoomOptions, getDefaultOptions, getRoomSpec, baseScoreDecimal } from '@dss/rules';
+import { catalogue, isVisibleVariant, supportsNewRoom, freezeQionglaiOptions, freezeYaanOptions, freezeXinjinOptions, XINJIN_V2_OPTIONS, freezeAnyueOptions, freezePujiangOptions, freezeAbaOptions, freezeScoreRegionOptions, freezeIndependentApproval, getVariant, validateRoomOptions, getDefaultOptions, getRoomSpec, baseScoreDecimal } from '@dss/rules';
 import { encodeFrame, expectedBodyField, MSGEvent } from '@dss/protocol';
 import type { Database, Sql } from './database.js';
 import { requireRole, type Actor } from './auth.js';
@@ -9,6 +9,7 @@ import { EngineRegistry, projectOriginalNotifications, type ConfirmedScoreBatch,
 import { applyConfirmedScores, normalizeScores, totalConfirmedScores } from './confirmed-scores.js';
 import { appendOperation, balanceChanges, requestHash, type BalanceChange, type Posting } from './ledger.js';
 import { Decimal, amount, money } from './money.js';
+import { isXinjinV2 } from './game/xinjin-win.js';
 import { PolicyService } from './policies.js';
 import { TRANSFER_ROUNDING_VERSION } from './transfers.js';
 import { engineLegalActions, finishInteractions, nextScheduledAt, planInteractions, requireLegalAction, validateObservedDecision, type InteractionState, type ScheduledEngineAction } from './engine-interactions.js';
@@ -19,6 +20,8 @@ import { avatarUrl } from './avatars.js';
 export const SYSTEM_ACCOUNT_ID = '00000000-0000-4000-8000-000000000001';
 /** 玩家公开桌没有模板，入座门槛按默认 10 倍底分（R5 AC2）。 */
 export const DEFAULT_THRESHOLD_MULTIPLIER = 10;
+/** 一场打完留座：弹窗倒计时 15 秒，另加胡牌动画和小结算停的 2 秒（第三轮 R5「15 秒不选算离开」）。 */
+export const MATCH_HOLD_MS = 17_000;
 
 export interface DissolveState {
   initiatorId: string;
@@ -28,13 +31,11 @@ export interface DissolveState {
 
 export class RoomService extends EventEmitter {
   constructor(private db: Database, public engines: EngineRegistry, private policies: PolicyService, private now: () => number = Date.now) { super(); }
-  /** 第二轮 S6：每局结算后（同一个事务里）检查勋章，由 app 接上。 */
-  afterSettle?: (tx: Sql, userIds: string[]) => Promise<void>;
 
   games() { return catalogue.map(variant => ({ ...variant, defaults: getDefaultOptions(variant.key), fields: getRoomSpec(variant.key).fields, playable: this.engines.has(variant.key) })); }
 
   async current(userId: string) {
-    const found = await this.db.query("SELECT r.id FROM rooms r JOIN room_members m ON r.id=m.room_id WHERE m.user_id=$1 AND r.state <> 'closed' ORDER BY r.created_at DESC LIMIT 1", [userId]);
+    const found = await this.db.query("SELECT r.id FROM rooms r JOIN room_members m ON r.id=m.room_id WHERE m.user_id=$1 AND r.state <> 'closed' AND m.hold_until IS NULL ORDER BY r.created_at DESC LIMIT 1", [userId]);
     return found.rows[0] ? this.view(found.rows[0].id, userId) : null;
   }
 
@@ -132,7 +133,7 @@ export class RoomService extends EventEmitter {
     return this.db.transaction(tx => this.insertRoom(tx, SYSTEM_ACCOUNT_ID, prepared, 'public', templateId));
   }
 
-  async join(actor: Actor, code: string) {
+  async join(actor: Actor, code: string, wantedSeat?: number) {
     requireRole(actor, 'player');
     requireCondition(/^\d{6}$/.test(code), 'INVALID_ROOM_CODE', 'Room number must have six digits.');
     const id = await this.db.transaction(async tx => {
@@ -140,15 +141,27 @@ export class RoomService extends EventEmitter {
       const found = await tx.query("SELECT * FROM rooms WHERE code=$1 AND state <> 'closed' FOR UPDATE", [code]);
       requireCondition(found.rows[0], 'ROOM_NOT_FOUND', 'Room does not exist.', 404);
       const room = found.rows[0];
-      const members = await tx.query('SELECT user_id,seat FROM room_members WHERE room_id=$1', [room.id]);
-      if (members.rows.some(m => m.user_id === actor.id)) return room.id;
+      const members = await tx.query('SELECT user_id,seat,hold_until FROM room_members WHERE room_id=$1', [room.id]);
+      const mine = members.rows.find(m => m.user_id === actor.id);
+      if (mine && mine.hold_until) {
+        // 上一场的人点「再来一局」：认领留着的座位，豆子不够门槛就不让接着打（第三轮 R5 AC2）。
+        await this.requireThreshold(tx, actor.id, room);
+        await tx.query('UPDATE room_members SET hold_until=NULL,joined_at=now() WHERE room_id=$1 AND user_id=$2', [room.id, actor.id]);
+        return room.id as string;
+      }
+      if (mine) return room.id;
       requireCondition(supportsNewRoom(room.variant_key), 'GAME_REMOVED', 'This game is no longer accepting players.', 409);
       await this.requireNoRoom(tx, actor.id);
       requireCondition(room.state === 'waiting' && room.current_round === 0, 'ROOM_STARTED', 'This room has already started.', 409);
       requireCondition(members.rows.length < room.player_count, 'ROOM_FULL', 'Room is full.', 409);
       if (room.visibility === 'public') await this.requireThreshold(tx, actor.id, room);
       let seat = 1;
-      while (members.rows.some(m => m.seat === seat)) seat++;
+      if (wantedSeat !== undefined) {
+        // 点哪个空位坐哪个；同时点同一个，后到的人收到「已被坐」（第三轮 R3 AC1、AC2）。
+        requireCondition(Number.isInteger(wantedSeat) && wantedSeat >= 1 && wantedSeat <= room.player_count, 'INVALID_SEAT', '没有这个座位。');
+        requireCondition(!members.rows.some(m => m.seat === wantedSeat), 'SEAT_TAKEN', '这个座位刚被人坐了，换一个吧。', 409);
+        seat = wantedSeat;
+      } else while (members.rows.some(m => m.seat === seat)) seat++;
       await tx.query('INSERT INTO room_members(room_id,user_id,seat) VALUES($1,$2,$3)', [room.id, actor.id, seat]);
       await tx.query('DELETE FROM dissolve_votes WHERE room_id=$1', [room.id]);
       // 第二轮 S4-AC6：被邀请进这桌的，邀请卡写「已入座」。
@@ -173,6 +186,8 @@ export class RoomService extends EventEmitter {
   }
 
   private async requireNoRoom(tx: Sql, userId: string) {
+    // 去别的桌就是放弃上一场留着的座位。
+    await tx.query('DELETE FROM room_members WHERE user_id=$1 AND hold_until IS NOT NULL', [userId]);
     const active = await tx.query("SELECT r.id FROM rooms r JOIN room_members m ON r.id=m.room_id WHERE m.user_id=$1 AND r.state <> 'closed'", [userId]);
     requireCondition(!active.rows.length, 'ALREADY_IN_ROOM', 'Leave your current room before joining another.', 409);
   }
@@ -506,7 +521,7 @@ export class RoomService extends EventEmitter {
     await tx.query("UPDATE rounds SET state='settled',results=$2,settled_at=now(),end_reason=$3,next_action_at=NULL WHERE id=$1", [roundId, JSON.stringify(postings), endReason]);
     const closed = endReason === 'dissolved' || room.current_round >= room.rounds;
     await tx.query('UPDATE rooms SET state=$2,closed_at=CASE WHEN $3 THEN now() ELSE NULL END WHERE id=$1', [room.id, closed ? 'closed' : 'between_rounds', closed]);
-    await this.afterSettle?.(tx, ids);
+    if (closed && endReason === 'completed' && room.lobby_template_id) await this.nextMatch(tx, room);
     return balanceChanges(operation, operationSpec);
   }
 
@@ -521,6 +536,42 @@ export class RoomService extends EventEmitter {
     });
     this.emit('changed', roomId);
     return { ok: true };
+  }
+
+  /**
+   * 系统桌一场打完：同桌号开下一场，规则不变，上一场的人座位留 15 秒（第三轮 R5）。
+   * 模板停用了就不接着开，桌子照常关掉。
+   */
+  private async nextMatch(tx: Sql, room: Record<string, any>) {
+    const template = (await tx.query('SELECT enabled,variant_key FROM lobby_templates WHERE id=$1', [room.lobby_template_id])).rows[0];
+    if (!template?.enabled || !isVisibleVariant(room.variant_key) || !supportsNewRoom(room.variant_key)) return;
+    // 发布前开的新津老桌（v1）打完不再接着开，大家回大厅坐新规则的桌。
+    if (room.variant_key === '4:0' && !isXinjinV2(room.rules ?? {})) return;
+    const id = randomUUID();
+    await tx.query(`INSERT INTO rooms(id,code,owner_id,variant_key,rule_version,rules,player_count,rounds,fee_mode,state,visibility,lobby_template_id,match_seq,previous_room_id)
+      VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,'waiting',$10,$11,$12,$13)`, [id, room.code, room.owner_id, room.variant_key, room.rule_version, JSON.stringify(room.rules),
+      room.player_count, room.rounds, room.fee_mode, room.visibility, room.lobby_template_id, (room.match_seq ?? 1) + 1, room.id]);
+    await tx.query(`INSERT INTO room_members(room_id,user_id,seat,hold_until) SELECT $1,user_id,seat,$3::timestamptz FROM room_members WHERE room_id=$2`,
+      [id, room.id, new Date(this.now() + MATCH_HOLD_MS).toISOString()]);
+  }
+
+  /** 留座到时没点「再来一局」：座位空出来，大厅里别人能坐（第三轮 R5）。 */
+  async releaseHolds(userId?: string) {
+    const released = await this.db.query(`DELETE FROM room_members m USING rooms r WHERE r.id=m.room_id AND m.hold_until IS NOT NULL
+      AND (m.user_id=$1 OR ($1::uuid IS NULL AND m.hold_until <= $2::timestamptz)) RETURNING m.room_id`, [userId ?? null, new Date(this.now()).toISOString()]);
+    for (const roomId of new Set(released.rows.map(row => row.room_id as string))) this.emit('changed', roomId);
+    return released.rows.length;
+  }
+
+  /** 一场打完弹的「继续 / 离开」要的信息：留座的桌号、还剩几秒、豆子够不够。 */
+  async hold(userId: string) {
+    const row = (await this.db.query(`SELECT r.*,m.hold_until FROM room_members m JOIN rooms r ON r.id=m.room_id
+      WHERE m.user_id=$1 AND m.hold_until IS NOT NULL AND r.state <> 'closed' ORDER BY m.hold_until DESC LIMIT 1`, [userId])).rows[0];
+    if (!row) return { hold: null };
+    const required = await this.thresholdFor(this.db, row);
+    const balance = new Decimal((await this.db.query('SELECT balance::text FROM wallets WHERE user_id=$1', [userId])).rows[0]?.balance ?? '0');
+    return { hold: { code: row.code as string, matchSeq: row.match_seq as number, seconds: Math.max(0, Math.ceil((new Date(row.hold_until).getTime() - this.now()) / 1000)),
+      threshold: money(required), enough: balance.greaterThanOrEqualTo(required), short: money(Decimal.max(0, required.minus(balance))) } };
   }
 
   /** 系统桌清座：坐下超过时限还没开局就请离，不扣豆（R2 AC4）。 */

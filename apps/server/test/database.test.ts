@@ -51,7 +51,7 @@ test('version one databases upgrade in place without altering historical ledger 
     assert.deepEqual((await db.query('SELECT * FROM ledger_entries WHERE id=$1', [entry])).rows[0], original);
     assert.deepEqual((await db.query('SELECT state,snapshot,results,settled_at FROM rounds WHERE id=$1', [historicalRound])).rows[0], historical);
     assert.equal((await db.query('SELECT scoring_version FROM rounds WHERE id=$1', [historicalRound])).rows[0]!.scoring_version, 0);
-    assert.deepEqual((await db.query('SELECT version FROM schema_migrations ORDER BY version')).rows.map(row => row.version), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]);
+    assert.deepEqual((await db.query('SELECT version FROM schema_migrations ORDER BY version')).rows.map(row => row.version), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]);
     assert.equal((await db.query('SELECT next_round_context FROM rounds WHERE id=$1', [historicalRound])).rows[0]!.next_round_context, null);
   } finally { await db.close(); }
 });

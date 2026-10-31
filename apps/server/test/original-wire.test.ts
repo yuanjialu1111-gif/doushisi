@@ -500,3 +500,33 @@ test('owner kick removes the seated target, clears votes and broadcasts the orig
   assert.equal((await db.query('SELECT count(*)::int AS n FROM room_members WHERE room_id=$1', [roomId])).rows[0]!.n, 2);
   assert.equal((await rooms.current(identities[2]!.actor.id))!.members.length, 2);
 });
+
+test('第三轮 R5：只留大厅时，保留座位的人按房号进房就是继续（保留清掉），没座位的人进不来', async t => {
+  const db = await openDatabase(); await migrate(db);
+  const app = Fastify(); await app.register(websocket);
+  const auth = new AuthService(db); const ledger = new LedgerService(db); const policies = new PolicyService(db);
+  const rooms = new RoomService(db, new EngineRegistry(), policies);
+  await registerOriginalProtocol(app, { db, auth, ledger, policies, rooms, markOnline() {}, lobbyOnly: true });
+  const address = (await app.listen({ host: '127.0.0.1', port: 0 })).replace('http', 'ws') + '/ws/original';
+  const clients: Awaited<ReturnType<typeof openWireTestClient>>[] = [];
+  t.after(async () => { for (const client of clients) await client.close(); await app.close(); await db.close(); });
+  const owner = await auth.create('hold_wire_owner', 'test-password-only');
+  const held = await auth.create('hold_wire_held', 'test-password-only');
+  const stranger = await auth.create('hold_wire_stranger', 'test-password-only');
+  const beans = await auth.create('hold_wire_beans', 'test-password-only', 'beans_admin');
+  await ledger.adjust(beans, held.id, '50', 'hold wire funding', `hold-wire-${held.id}`);
+  const room = await rooms.create(owner, '4:0', { ...getDefaultOptions('4:0'), playerNum: 3, baseBeans: '1' });
+  await db.query("INSERT INTO room_members(room_id,user_id,seat,hold_until) VALUES($1,$2,2,now()+interval '15 seconds')", [room.id, held.id]);
+  async function enter(actor: typeof owner) {
+    const client = await openWireTestClient(address); clients.push(client);
+    await client.request(1, { hwRequestGameLogin: { token: (await auth.login(actor.username, 'test-password-only')).token } }, 2);
+    return client.request(5, { hwRequestEnterTable: { roomId: Number(room.code) } }, 6);
+  }
+  const continued = await enter(held);
+  assert.equal((continued.frame.data.hwResponseEnterTable as any).result, 1, JSON.stringify(continued.extension));
+  const row = (await db.query('SELECT seat,hold_until FROM room_members WHERE room_id=$1 AND user_id=$2', [room.id, held.id])).rows[0];
+  assert.deepEqual([row.seat, row.hold_until], [2, null]);
+  const refused = await enter(stranger);
+  assert.notEqual((refused.frame.data.hwResponseEnterTable as any).result, 1);
+  assert.equal((refused.extension as any)?.error?.code, 'UNSUPPORTED_OPERATION', JSON.stringify(refused.extension));
+});

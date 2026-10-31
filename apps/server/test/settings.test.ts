@@ -18,11 +18,10 @@ test('M0 后台改参数立刻生效，越界和不认识的键被拒绝，改�
   const { app, db, settings, login } = await setup();
   try {
     const beans = await login('settings_beans', 'beans_admin');
+    // 第三轮 R6：好友、私聊邀请的参数后台不再列出（库里的值留着），勋章参数整组去掉。
     const listed = (await app.inject({ method: 'GET', url: '/api/admin/settings', headers: beans })).json();
-    const friendLimit = listed.settings.find((item: { key: string }) => item.key === 'friendLimit');
-    assert.equal(friendLimit.value, 200);
-    assert.equal(friendLimit.defaultValue, 200);
-    assert.equal(listed.settings.length, 13);
+    assert.equal(listed.settings.length, 0);
+    assert.equal((await settings.get()).friendLimit, 200);
 
     const saved = await app.inject({ method: 'PUT', url: '/api/admin/settings', headers: beans, payload: { values: { friendLimit: 150, inviteSeconds: 90 } } });
     assert.equal(saved.statusCode, 200);
