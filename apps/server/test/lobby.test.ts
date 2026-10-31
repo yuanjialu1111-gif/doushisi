@@ -235,8 +235,9 @@ test('admin templates: Chinese validation messages, not-found code, role check, 
   assert.deepEqual(bad.json().error, { code: 'INVALID_TEMPLATE', message: '常驻空桌要在 0–20 张之间。' });
   const noBase = await post(template({ options: { playerNum: 2, gameNum: 4 } }));
   assert.equal(noBase.json().error.message, '这个玩法要填正数底分；需要选人数的还要选 2、3 或 4 人。');
+  // 第二轮只留新津（S1-AC5）：其他玩法先挡在「不显示」这一步。
   const notPlayable = await post(template({ variantKey: '5:0' }));
-  assert.equal(notPlayable.json().error.code, 'VARIANT_NOT_PLAYABLE');
+  assert.equal(notPlayable.json().error.code, 'VARIANT_HIDDEN');
   const missing = await ctx.app.inject({ method: 'PUT', url: '/api/admin/lobby-templates/00000000-0000-4000-8000-00000000abcd', headers: ctx.beansHeaders, payload: template() });
   assert.equal(missing.statusCode, 404);
   assert.equal(missing.json().error.code, 'TEMPLATE_NOT_FOUND');

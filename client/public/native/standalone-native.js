@@ -151,6 +151,10 @@
   // Expose every retained configuration whose runtime engine is registered and verified.
   var clientReadyAreaTypes = {};
   edition.gameIds.forEach(function (id) { clientReadyAreaTypes[id] = true; });
+  // 大厅和开房只露新津斗十四（DEC-20261031-单玩法去地区）；老房间、战绩、回放仍按上面全部玩法处理。
+  // 旧安装包自带的配置没有 visibleGameIds，按新津算。
+  var visibleAreaTypes = {};
+  (edition.visibleGameIds || [4]).forEach(function (id) { visibleAreaTypes[id] = true; });
   var manualPlayerAreas = { 14: true, 15: true };
   var wireCursor = null, wirePending = null, wireLastAction = null, wireRecovering = false, wireCreateRoom = null, wirePendingRoomOptions = null;
   var wireDecisionId = null;
@@ -899,6 +903,7 @@
     var Controller = cc.js.getClassByName('CreateRoomUIController');
     if (!Controller || Controller.prototype._standalonePublicLobby) return;
     Controller.prototype._standalonePublicLobby = true;
+    afterLoadUI('CreateRoomUIController', patchCreateRoomWindow);
     var onClickToggle = Controller.prototype.onClickToggle;
     Controller.prototype.onClickToggle = function (toggle, key) {
       var result = onClickToggle.apply(this, arguments);
@@ -1017,9 +1022,18 @@
     if (!Controller || Controller.prototype._standaloneLobbyInstalled) return;
     Controller.prototype._standaloneLobbyInstalled = true;
     var loadGames = Controller.prototype.loadGames, onClickGameBtn = Controller.prototype.onClickGameBtn;
-    // 列表最上面加一项「全部玩法」，每次打开默认选它。
+    // 原版按地区列出全部玩法，这里只留界面可见的；不止一种时最上面加一项「全部玩法」，每次打开默认选它。
     Controller.prototype.loadGames = function () {
       var result = loadGames.apply(this, arguments);
+      this._gameBtns = this._gameBtns.filter(function (node) {
+        if (visibleAreaTypes[node.data && node.data.gameId]) return true;
+        node.destroy();
+        return false;
+      });
+      if (this._gameBtns.length < 2) {
+        if (this._gameBtns.length) this.onClickGameBtn({ node: this._gameBtns[0] });
+        return result;
+      }
       var all = cc.instantiate(this.views.baseGameBtn);
       cc.mm.uitools.restNode(all);
       all.data = { name: LOBBY_ALL, gameId: 0, standaloneAll: true };
@@ -1045,6 +1059,7 @@
   function patchLobby(controller) {
     var lobby = controller._standaloneLobby || (controller._standaloneLobby = {});
     startLocationReports();
+    hide(controller.views, ['games/qiehuan']);
     // 每 2 秒问一次有没有变化。用普通定时器：窗口复用时原版会停掉组件定时器，
     // 浏览器窗口被遮挡时游戏帧也会降频；大厅不显示或已销毁就不发请求。
     function poll() {
@@ -1251,12 +1266,53 @@
       cc.mm.uitools.addBtnLister(node, function () { openLobby(controller); }, controller);
     });
   }
+  // 这张卡是骨骼动画，「好友约局」画在贴图里。换成照原卡重画的「进入大厅」图（tools/extra-art.mjs），
+  // 图从服务器取，取不到就保留原卡。图的中心比骨骼原点高 2。
+  var ENTER_LOBBY_CARD = '/client/extra/hall/enter-lobby.png';
+  function patchEnterLobbyCard(controller) {
+    Object.keys(controller.views).forEach(function (name) {
+      if (!/^games\/game_type_\d+\/haoyou$/.test(name)) return;
+      var node = controller.views[name];
+      if (node._standaloneEnterCard) return;
+      node._standaloneEnterCard = true;
+      cc.assetManager.loadRemote(apiOrigin + ENTER_LOBBY_CARD, { ext: '.png' }, function (error, texture) {
+        if (error || !cc.isValid(node)) return;
+        var skeleton = node.getComponent(sp.Skeleton);
+        if (skeleton) skeleton.enabled = false;
+        var card = new cc.Node('standaloneEnterLobby');
+        card.addComponent(cc.Sprite).spriteFrame = new cc.SpriteFrame(texture);
+        card.setPosition(0, 2);
+        node.addChild(card);
+      });
+    });
+  }
+  // 「更多」小窗按旧的底部按钮排法摆在固定位置；商城、邮件藏掉后「更多」挪到了最右边，
+  // 所以每次弹出前把小窗的箭头对准「更多」。最右边的分隔线后面已经没有按钮，也藏掉。
+  var HALL_MENU_ARROW = 17; // 箭头尖离小窗右边的距离，按设计分辨率量
+  function patchHallMenu(controller) {
+    var menu = controller.views.menunode, more = controller.views['hallDownBtns/btns/hallmensbtn'];
+    if (!menu || !more || more._standaloneMenuAlign) return;
+    more._standaloneMenuAlign = true;
+    hide(controller.views, ['menunode/hall_btn_statement/baoshan-hall-pic-more-di-fenge']);
+    more.off('click');
+    cc.mm.uitools.addBtnLister(more, function () {
+      var widget = menu.getComponent(cc.Widget), box = more.getBoundingBoxToWorld();
+      if (widget) widget.enabled = false;
+      var right = menu.parent.convertToNodeSpaceAR(cc.v2(box.x + box.width / 2 + HALL_MENU_ARROW, 0)).x;
+      menu.x = right - (1 - menu.anchorX) * menu.width * menu.scaleX;
+      controller.onClickMenuBtn();
+    }, controller);
+  }
+  // 开房和大厅左上角的「切换地区」按钮藏掉。
+  function patchCreateRoomWindow(controller) {
+    hide(controller.views, ['hall_room_center/games/qiehuan']);
+  }
 
-  var disabledWindows = new Set(['HallShopUI', 'HallIAPUI', 'CommonSelectPayUI', 'HallWeekCardUI', 'HallMonthUI', 'HallActivityUI', 'DoubleHolidayUI', 'HallTipUI', 'H5DownloadUI', 'BigUpdateUI', 'ForceUpdateUI', 'EventRecallResultUI', 'EventRecallUI', 'HallLiQuanUI', 'HallMatchUI', 'FirstPayUI', 'JoinFriendFail', 'SupplementUI', 'HallFriendUI', 'RecallFriend', 'HallAuthentication']);
+  var disabledWindows = new Set(['HallShopUI', 'HallIAPUI', 'CommonSelectPayUI', 'HallWeekCardUI', 'HallMonthUI', 'HallActivityUI', 'DoubleHolidayUI', 'HallTipUI', 'H5DownloadUI', 'BigUpdateUI', 'ForceUpdateUI', 'EventRecallResultUI', 'EventRecallUI', 'HallLiQuanUI', 'HallMatchUI', 'FirstPayUI', 'JoinFriendFail', 'SupplementUI', 'HallFriendUI', 'RecallFriend', 'HallAuthentication', 'HallMapUI']);
   window.Standalone = {
     supportsArea: function (id) {
       var area = areaNumber(id);
-      return area !== null && !!retainedAreaTypes[area] && !!clientReadyAreaTypes[area];
+      return area !== null && !!retainedAreaTypes[area] && !!clientReadyAreaTypes[area] && !!visibleAreaTypes[area];
     },
     qionglaiRuleSummary: function (rules) {
       if (!rules || Number(rules.areaType) !== 8) return '';
@@ -1621,20 +1677,24 @@
       Object.keys(controller.views).forEach(function (name) {
         if (/^games\/game_type_\d+\/dou14$/.test(name)) controller.views[name].active = false;
         var match = /^games\/game_type_(\d+)$/.exec(name);
-        if (match && !retainedAreaTypes[match[1]]) controller.views[name].active = false;
+        if (match && !visibleAreaTypes[match[1]]) controller.views[name].active = false;
       });
       hide(controller.views, ['games/game_2', 'games/game_other']);
-      hide(controller.views, ['hallDownBtns/btns/hall_mail_btn', 'common_marquee']);
+      // 地区固定新津，首页不再有「切换」入口。
+      hide(controller.views, ['hallDownBtns/btns/hall_mail_btn', 'common_marquee', 'common_location']);
       var gameGroups = Object.keys(controller.views).filter(function (name) { return /^games\/game_type_\d+$/.test(name); });
       if (controller.views.games && controller.views.games.active && !gameGroups.some(function (name) { return controller.views[name].active; })) {
-        var preferred = cc.mm.framemodel.xianName === '邛崃' ? 8 : 4;
-        controller.views['games/game_type_' + preferred].active = true;
+        var preferred = gameGroups.filter(function (name) { return visibleAreaTypes[name.split('_').pop()]; })[0];
+        if (preferred) controller.views[preferred].active = true;
       }
+      patchHallMenu(controller);
+      patchEnterLobbyCard(controller);
       // 开房面板的类在大厅包里，大厅出来时已注册；要赶在面板第一次绑定按钮之前装上。
       installPublicLobbyToggle();
       var create = cc.mm.uimanager.getWindow('CreateRoomUI');
       if (create) {
         hide(create.views, ['hall_room_center/left/createroom/dou-hall-pic-mianfei', 'hall_room_center/left/createroom/ad']);
+        patchCreateRoomWindow(create);
         hookCreateRoomRequest(cc.mm);
         prepareCreateRoom(create);
       }

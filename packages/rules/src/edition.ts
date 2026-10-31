@@ -22,6 +22,12 @@ export const EDITION_ID = 'dou14-regions-21-v1';
 export const RETAINED_GAME_IDS = Object.freeze([4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15, 16, 19, 20, 21, 22, 23, 24, 25, 26, 27]);
 export const RETAINED_VARIANT_KEYS = Object.freeze(RETAINED_GAME_IDS.map(id => `${id}:0`));
 export const supportsNewRoom = (key: string): boolean => RETAINED_VARIANT_KEYS.includes(key);
+// 第二轮只留新津斗十四（DEC-20261031-单玩法去地区）：界面只显示这些玩法、地区一律当新津；
+// 服务端照旧接受 RETAINED 里的全部，老房间、战绩、回放不受影响。
+export const VISIBLE_GAME_IDS = Object.freeze([4]);
+export const VISIBLE_VARIANT_KEYS = Object.freeze(VISIBLE_GAME_IDS.map(id => `${id}:0`));
+export const isVisibleVariant = (key: string): boolean => VISIBLE_VARIANT_KEYS.includes(key);
+export const XINJIN_REGION = Object.freeze({ shiName: '成都市', xianName: '新津' });
 export function freezeIndependentApproval(variantKey: string) {
   if (!supportsNewRoom(variantKey)) throw new Error('Independent authorization is limited to retained configurations');
   return { version: INDEPENDENT_APPROVAL_VERSION, variantKey, approvedAt: '2026-09-16',
@@ -176,5 +182,5 @@ export function freezeQionglaiOptions(options: Record<string, unknown>) {
     fanTable: { ...QIONGLAI_INDEPENDENT_FANS },
   };
 }
-export const clientEdition = Object.freeze({ id: EDITION_ID, gameIds: RETAINED_GAME_IDS,
+export const clientEdition = Object.freeze({ id: EDITION_ID, gameIds: RETAINED_GAME_IDS, visibleGameIds: VISIBLE_GAME_IDS,
   qionglaiVersion: QIONGLAI_OPTION_VERSION, qionglaiOptions: QIONGLAI_OPTIONS, qionglaiConditions: QIONGLAI_CONDITIONS });

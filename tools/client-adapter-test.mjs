@@ -14,12 +14,12 @@ const protobuf = require('protobufjs/minimal');
 const source = await readFile(resolve(project, 'client/public/standalone.js'), 'utf8');
 const dssSource = await readFile(resolve(project, 'client/public/assets/dss/index.js'), 'utf8');
 const hallSource = await readFile(resolve(project, 'client/public/assets/hall/index.js'), 'utf8');
-function adapter(native, nativeUrl) {
+function adapter(native, nativeUrl, edition = clientEdition) {
   const outgoing = [];
   function XMLHttpRequest() {}
   XMLHttpRequest.prototype.open = function (method, url) { outgoing.push(['xhr', url]); };
   function WebSocket(url) { outgoing.push(['ws', url]); }
-  const context = { Decimal, protobuf, Uint8Array, XMLHttpRequest, WebSocket, STANDALONE_EDITION: clientEdition, STANDALONE_CONFIG: { apiBase: 'https://game.example:443', wsUrl: 'wss://game.example/ws/original' } };
+  const context = { Decimal, protobuf, Uint8Array, XMLHttpRequest, WebSocket, STANDALONE_EDITION: edition, STANDALONE_CONFIG: { apiBase: 'https://game.example:443', wsUrl: 'wss://game.example/ws/original' } };
   if (!native) Object.assign(context, { URL, location: { href: 'https://game.example/client/' }, fetch: async url => { outgoing.push(['fetch', url]); }, navigator: { sendBeacon: url => { outgoing.push(['beacon', url]); return true; } } });
   else if (nativeUrl) context.URL = nativeUrl;
   context.window = context;
@@ -173,10 +173,14 @@ test('V2 room creation metadata carries only required exact bean and player fiel
 
 test('Qionglai response and replay restore exact options; another region cannot accept the snapshot', () => {
   const { api } = adapter(true);
-  assert.equal(api.supportsArea(8), true);
-  // 以现行版本的保留玩法为准：保留的都能开，已移除的都不能开。
-  for (const id of clientEdition.gameIds) assert.equal(api.supportsArea(id), true);
+  // S1-AC2：开房列表只露新津斗十四；其他保留玩法的老房间、回放照常（下面邛崃回放仍能还原）。已移除的都不能开。
+  assert.deepEqual(clientEdition.visibleGameIds, [4]);
+  for (const id of clientEdition.gameIds) assert.equal(api.supportsArea(id), id === 4, String(id));
   for (const id of [2, 3, 13, 17, 18, 101]) assert.equal(api.supportsArea(id), false);
+  // 旧安装包自带的配置没有 visibleGameIds，也只露新津。
+  const { visibleGameIds, ...oldEdition } = clientEdition;
+  assert.equal(adapter(true, undefined, oldEdition).api.supportsArea(8), false);
+  assert.equal(adapter(true, undefined, oldEdition).api.supportsArea(4), true);
   const qionglai = { version: clientEdition.qionglaiVersion, qlTianDiHu: 0, qlHongHeiHu: 1, qlHongHei50: 1 };
   const options = { baseBeans: '0.125', baseBeansSource: 'manual', playerNum: 3, playerNumSource: 'original', qionglai };
   const table = { roomId: 654321, playerNum: 3, areaType: 8 };

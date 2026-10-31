@@ -1,5 +1,5 @@
 import { createHash, randomUUID } from 'node:crypto';
-import { catalogue, getDefaultOptions, getRoomSpec, getVariant, supportsNewRoom } from '@dss/rules';
+import { catalogue, getDefaultOptions, getRoomSpec, getVariant, isVisibleVariant, supportsNewRoom, VISIBLE_VARIANT_KEYS } from '@dss/rules';
 import type { Database } from './database.js';
 import { requireRole, type Actor } from './auth.js';
 import { AppError, requireCondition } from './errors.js';
@@ -58,7 +58,7 @@ export class LobbyService {
   // ---------- 后台：桌模板 ----------
 
   private variants() {
-    return catalogue.filter(variant => supportsNewRoom(variant.key) && this.rooms.engines.has(variant.key)).map(variant => {
+    return catalogue.filter(variant => supportsNewRoom(variant.key) && isVisibleVariant(variant.key) && this.rooms.engines.has(variant.key)).map(variant => {
       const spec = getRoomSpec(variant.key);
       return { key: variant.key, name: variant.name, defaults: getDefaultOptions(variant.key),
         needsBaseBeans: spec.unresolvedFields.includes('basicTimes'), needsPlayerNum: spec.unresolvedFields.includes('playerNum') };
@@ -92,6 +92,8 @@ export class LobbyService {
     requireCondition(Number.isInteger(input.idleClearMinutes) && input.idleClearMinutes >= 1 && input.idleClearMinutes <= 120, 'INVALID_TEMPLATE', '清座时限要在 1–120 分钟之间。');
     requireCondition(Number.isInteger(input.sortOrder) && Math.abs(input.sortOrder) <= 999999, 'INVALID_TEMPLATE', '排序要是 ±999999 以内的整数。');
     requireCondition(this.rooms.engines.has(input.variantKey), 'VARIANT_NOT_PLAYABLE', '这个玩法还不能开局，不能做大厅桌。');
+    // 只留新津（S1 AC5）：其他玩法的老模板还能改成停用，不能新建或启用。
+    requireCondition(isVisibleVariant(input.variantKey) || !input.enabled, 'VARIANT_HIDDEN', '大厅桌只能用新津斗十四；其他玩法的模板只能停用。');
     // 和玩家开房走同一套校验，保存下来的模板一定开得出桌子。
     try { this.rooms.prepareRoom(input.variantKey, input.options); }
     catch (error) {
@@ -108,6 +110,7 @@ export class LobbyService {
 
   async createTemplate(admin: Actor, input: TemplateInput) {
     requireRole(admin, 'beans_admin');
+    requireCondition(isVisibleVariant(input.variantKey), 'VARIANT_HIDDEN', '大厅桌只能用新津斗十四。');
     this.validateTemplate(input);
     const id = randomUUID();
     await this.db.query(`INSERT INTO lobby_templates(id,variant_key,options,standing_empty,threshold_multiplier,idle_clear_minutes,enabled,sort_order)
@@ -165,7 +168,8 @@ export class LobbyService {
     for (const template of templates) {
       const empty = (await this.db.query(`SELECT r.id FROM rooms r WHERE r.lobby_template_id=$1 AND r.state='waiting' AND r.current_round=0
         AND NOT EXISTS(SELECT 1 FROM room_members m WHERE m.room_id=r.id) ORDER BY r.created_at`, [template.id])).rows;
-      const wanted = template.enabled ? template.standing_empty : 0;
+      // 其他玩法的老模板不再补桌，空桌收掉；模板本身留着不动（S1）。
+      const wanted = template.enabled && isVisibleVariant(template.variant_key) ? template.standing_empty : 0;
       for (const room of empty.slice(wanted).reverse()) await this.rooms.closeEmptySystemRoom(room.id);
       if (this.failedTemplates.has(template.id)) continue;
       for (let missing = wanted - empty.length; missing > 0; missing--) {
@@ -219,8 +223,8 @@ export class LobbyService {
       r.lobby_template_id,t.threshold_multiplier,t.sort_order,m.seat,a.id AS user_id,a.nickname,a.avatar_hash AS "avatarHash",a.avatar_status AS "avatarStatus"
       FROM rooms r LEFT JOIN lobby_templates t ON t.id=r.lobby_template_id
       LEFT JOIN room_members m ON m.room_id=r.id LEFT JOIN accounts a ON a.id=m.user_id
-      WHERE r.visibility='public' AND r.state <> 'closed' AND ($1::text IS NULL OR r.variant_key=$1)
-      ORDER BY r.created_at,r.id,m.seat`, [variant ?? null])).rows;
+      WHERE r.visibility='public' AND r.state <> 'closed' AND ($1::text IS NULL OR r.variant_key=$1) AND r.variant_key=ANY($2::text[])
+      ORDER BY r.created_at,r.id,m.seat`, [variant ?? null, VISIBLE_VARIANT_KEYS])).rows;
     const me = this.location(userId);
     const byRoom = new Map<string, any>();
     for (const row of rows) {
@@ -249,7 +253,7 @@ export class LobbyService {
     const tables = all.slice(0, 200).map(({ sortOrder, createdAt, nearestKm, ...table }) => table);
     const variants = (await this.db.query(`SELECT DISTINCT variant_key FROM lobby_templates WHERE enabled
       UNION SELECT DISTINCT variant_key FROM rooms WHERE visibility='public' AND state <> 'closed'`)).rows
-      .map(row => ({ key: row.variant_key as string, name: variantName(row.variant_key) })).sort((a, b) => a.key.localeCompare(b.key, 'en', { numeric: true }));
+      .filter(row => isVisibleVariant(row.variant_key)).map(row => ({ key: row.variant_key as string, name: variantName(row.variant_key) })).sort((a, b) => a.key.localeCompare(b.key, 'en', { numeric: true }));
     const body = { tables, variants, hasLocation: Boolean(me) };
     const version = createHash('sha1').update(JSON.stringify(body)).digest('hex').slice(0, 16);
     // 版本没变只回一个标记，大厅每 2 秒拉一次也几乎不占流量（R1 AC1）。
@@ -265,8 +269,8 @@ export class LobbyService {
     const balance = new Decimal((await this.db.query('SELECT balance::text FROM wallets WHERE user_id=$1', [actor.id])).rows[0]?.balance ?? '0');
     const candidates = (await this.db.query(`SELECT r.code,r.rules,r.player_count,t.threshold_multiplier,t.sort_order,r.created_at,COUNT(m.user_id)::int AS seated
       FROM rooms r LEFT JOIN lobby_templates t ON t.id=r.lobby_template_id LEFT JOIN room_members m ON m.room_id=r.id
-      WHERE r.visibility='public' AND r.state='waiting' AND r.current_round=0 AND ($1::text IS NULL OR r.variant_key=$1)
-      GROUP BY r.id,t.threshold_multiplier,t.sort_order HAVING COUNT(m.user_id) < r.player_count`, [variant ?? null])).rows;
+      WHERE r.visibility='public' AND r.state='waiting' AND r.current_round=0 AND ($1::text IS NULL OR r.variant_key=$1) AND r.variant_key=ANY($2::text[])
+      GROUP BY r.id,t.threshold_multiplier,t.sort_order HAVING COUNT(m.user_id) < r.player_count`, [variant ?? null, VISIBLE_VARIANT_KEYS])).rows;
     const need = (row: Record<string, any>) => new Decimal(row.rules?.baseBeans ?? '0').times(row.threshold_multiplier ?? DEFAULT_THRESHOLD_MULTIPLIER);
     const affordable = candidates.filter(row => balance.greaterThanOrEqualTo(need(row)))
       .sort((a, b) => b.seated - a.seated || (a.sort_order ?? Number.MAX_SAFE_INTEGER) - (b.sort_order ?? Number.MAX_SAFE_INTEGER) || new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
@@ -275,7 +279,7 @@ export class LobbyService {
       try { await this.rooms.join(actor, row.code); return { code: row.code as string, joined: true }; }
       catch (error) { if (!(error instanceof AppError) || !['ROOM_FULL', 'ROOM_STARTED', 'ROOM_NOT_FOUND', 'BELOW_THRESHOLD'].includes(error.code)) throw error; }
     }
-    const templates = (await this.db.query('SELECT * FROM lobby_templates WHERE enabled AND ($1::text IS NULL OR variant_key=$1) ORDER BY sort_order,created_at', [variant ?? null])).rows
+    const templates = (await this.db.query('SELECT * FROM lobby_templates WHERE enabled AND ($1::text IS NULL OR variant_key=$1) AND variant_key=ANY($2::text[]) ORDER BY sort_order,created_at', [variant ?? null, VISIBLE_VARIANT_KEYS])).rows
       .flatMap(template => {
         const summary = this.summary(template.variant_key, template.options);
         return summary ? [{ template, need: new Decimal(summary.baseBeans).times(template.threshold_multiplier) }] : [];

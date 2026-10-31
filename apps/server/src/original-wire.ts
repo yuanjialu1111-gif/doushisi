@@ -3,7 +3,7 @@ import type { WebSocket, RawData } from 'ws';
 import protobuf from 'protobufjs/minimal.js';
 import { z } from 'zod';
 import { decodeFrame, encodeFrame, assertCommandBody, expectedBodyField, MSGEvent, MAX_FRAME_BYTES } from '@dss/protocol';
-import { catalogue, supportsNewRoom, QIONGLAI_OPTION_VERSION, QIONGLAI_OPTIONS, getRoomSpec, resolveVariantKey, type RegionContext, type RoomOptions } from '@dss/rules';
+import { catalogue, supportsNewRoom, QIONGLAI_OPTION_VERSION, QIONGLAI_OPTIONS, getRoomSpec, resolveVariantKey, XINJIN_REGION, type RegionContext, type RoomOptions } from '@dss/rules';
 import type { Database } from './database.js';
 import { type Actor, type AuthService, requireRole } from './auth.js';
 import type { BalanceChange, LedgerService } from './ledger.js';
@@ -143,17 +143,8 @@ CREATE TABLE IF NOT EXISTS original_protocol_regions (
 );`;
 
 const ids = [...new Set(catalogue.map(variant => variant.gameId))];
-const DEFAULT_REGION = { shiName: '四川省', xianName: '其他区域' };
-const regionChoices: [string, string[]][] = [
-  ['四川省', ['其他区域']], ['成都市', ['新津', '蒲江', '邛崃', '其他区域']],
-  ['雅安市', ['汉源', '其他区域']],
-  ['阿坝州', ['金川', '马尔康', '小金', '汶川', '茂县', '其他区域']],
-  ['巴中市', ['通江', '其他区域']], ['遂宁市', ['射洪', '其他区域']],
-  ['自贡市', ['荣县', '其他区域']],
-  ['凉山州', ['越西', '雷波', '甘洛', '其他区域']], ['宜宾市', ['叙州', '筠连', '其他区域']],
-  ['昭通市', ['盐津', '其他区域']], ['资阳市', ['安岳']],
-  ['眉山', ['彭山', '其他区域']],
-];
+// 地区一律新津（S1）：不看客户端发来的、也不看库里存的；original_protocol_regions 老值留着不删。
+const DEFAULT_REGION: RegionContext = { ...XINJIN_REGION };
 const messages: Record<string, string> = {
   RULES_NOT_VERIFIED: '该玩法规则尚未完成原版核验，暂不能开始对局，未扣房费。',
   RULE_DEFAULT_NOT_VERIFIED: '该玩法的原服务端默认规则尚未核实，暂不能创建房间。',
@@ -483,8 +474,7 @@ export async function registerOriginalProtocol(app: FastifyInstance, services: O
       markOnline(actor.id, socket);
       connection.actor = actor; connection.token = token; connection.uid = uid; clearTimeout(authTimer);
       const peers = online.get(actor.id) ?? new Set<Connection>(); peers.add(connection); online.set(actor.id, peers);
-      const region = (await db.query('SELECT shi_name AS "shiName",xian_name AS "xianName" FROM original_protocol_regions WHERE user_id=$1', [actor.id])).rows[0];
-      connection.region = region && regionChoices.some(([city, counties]) => city === region.shiName && counties.includes(region.xianName)) ? region : DEFAULT_REGION;
+      connection.region = DEFAULT_REGION;
       const room = await rooms.current(actor.id);
       if (room) await attachRoom(connection, room.id);
       else {
@@ -581,13 +571,11 @@ export async function registerOriginalProtocol(app: FastifyInstance, services: O
           await queueRoom(metadata.roomId); return;
         }
         case MSGEvent.HWRequestRegion:
-          connection.send(MSGEvent.HWResponseRegion, { result: 1, shiInfo: regionChoices.map(([shiName, counties]) => ({ shiName, title: shiName, xianInfo: counties.map(xianName => ({ xianName, areaType: ids })) })) }); return;
-        case MSGEvent.HWRequestRegionChoice: {
-          requireCondition(regionChoices.some(([city, counties]) => city === body.shiName && counties.includes(body.xianName)), 'INVALID_REGION', 'Unknown region.');
-          connection.region = { shiName: body.shiName, xianName: body.xianName };
-          await db.query('INSERT INTO original_protocol_regions(user_id,shi_name,xian_name) VALUES($1,$2,$3) ON CONFLICT(user_id) DO UPDATE SET shi_name=EXCLUDED.shi_name,xian_name=EXCLUDED.xian_name', [actor.id, body.shiName, body.xianName]);
+          connection.send(MSGEvent.HWResponseRegion, { result: 1, shiInfo: [{ shiName: DEFAULT_REGION.shiName, title: DEFAULT_REGION.shiName, xianInfo: [{ xianName: DEFAULT_REGION.xianName, areaType: ids }] }] }); return;
+        // 旧客户端还可能发选地区：照样回成功，地区仍是新津，也不再存。
+        case MSGEvent.HWRequestRegionChoice:
+          connection.region = DEFAULT_REGION;
           connection.send(MSGEvent.HWResponseRegionChoice, { result: 1, areaType: ids }); return;
-        }
         case MSGEvent.HWRequestCreateTable: {
           if (services.profileRequired) await services.profiles!.requireComplete(actor.id);
           requireCondition(body.roomType === undefined || body.roomType === 100, 'UNSUPPORTED_OPERATION', 'Only host-created friend rooms are available.');
