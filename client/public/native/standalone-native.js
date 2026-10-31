@@ -1612,18 +1612,24 @@
         if (!controller.node.activeInHierarchy) return;
         if (layoutFriends(controller)) renderFriends(controller);
         friendsRefresh(controller);
+        if (friends.tab === 'messages') chatRefresh(controller);
       }, 5000);
       friendsRefresh(controller);
     }
+    installSocial();
+    if (social.pulse) { friends.unread = social.pulse.unread; friends.unreadFrom = social.pulse.unreadFrom; social.pulsedAt = 0; }
     if (friends.box) { friends.tab = 'friends'; renderFriends(controller); poll(); return; }
     friends.box = new cc.Node('standaloneFriendsBox'); controller.node.addChild(friends.box);
-    friends.tabs = [['friends', '好友'], ['requests', '申请']].map(function (entry) {
+    friends.tabs = [['friends', '好友'], ['requests', '申请'], ['messages', '消息']].map(function (entry) {
       var pen = lobbyPen(friends.box, 'standaloneFriendTab');
       pen.node.setContentSize(122, 52);
       pen.node.addComponent(cc.Button).transition = cc.Button.Transition.SCALE;
       var label = lobbyLabel(pen.node, entry[1], 0, 0, 25, rgb('#ffffff'), 0.5, true);
       var badge = friendBadge(pen.node, 52, 22);
-      cc.mm.uitools.addBtnLister(pen.node, function () { friends.tab = entry[0]; renderFriends(controller); }, controller);
+      cc.mm.uitools.addBtnLister(pen.node, function () {
+        friends.tab = entry[0]; renderFriends(controller);
+        if (entry[0] === 'messages') chatRefresh(controller, true);
+      }, controller);
       return { key: entry[0], node: pen.node, pen: pen, label: label, badge: badge };
     });
     friends.find = friendButton(friends.box, '', 0, 0, 176, 54, 'orange', function () { openFriendSearch(controller); }, controller);
@@ -1694,7 +1700,7 @@
     layoutFriends(controller);
     friends.tabs.forEach(function (tab) {
       drawLobbyTab(tab, tab.key === friends.tab);
-      tab.badge(tab.key === 'requests' ? requests.incoming.length : 0);
+      tab.badge(tab.key === 'requests' ? requests.incoming.length : tab.key === 'messages' ? friends.unread || 0 : 0);
     });
     if (data) friends.myId.set(data.myUid);
     friends.myId.node.active = !!data;
@@ -1703,11 +1709,16 @@
     if (friends.tab === 'friends') {
       var online = list.filter(function (friend) { return friend.status !== 'offline'; }).length;
       friends.summary.string = data ? '<outline color=#14203c width=2><b><color=#ffffff>好友 ' + list.length + ' / ' + data.limit + '</color><color=#c9d4ee> · </color><color=#4be08a>在线 ' + online + '</color></b></outline>' : '';
-    } else friends.summary.string = '<outline color=#14203c width=2><color=#dfe6f5><size=16>申请 7 天没人处理自动过期 · 被拒绝后 24 小时内不能再申请同一个人</size></color></outline>';
+    } else if (friends.tab === 'requests') friends.summary.string = '<outline color=#14203c width=2><color=#dfe6f5><size=16>申请 7 天没人处理自动过期 · 被拒绝后 24 小时内不能再申请同一个人</size></color></outline>';
+    else friends.summary.string = '<outline color=#14203c width=2><color=#dfe6f5><size=16>和好友聊天只能发常用语和表情 · 消息保留 30 天</size></color></outline>';
     friends.summary.node.active = !(friends.myId.narrow && friends.tab === 'requests');
     friends.empty.string = friends.failed ? '好友加载失败，稍后会自动重试' : !data ? '正在加载…'
       : friends.tab === 'friends' && !list.length ? '还没有好友，点右上角「找朋友」搜 ID 加好友' : '';
-    friends.empty.node.parent.active = !!friends.empty.string;
+    var chatting = friends.tab === 'messages';
+    friends.empty.node.parent.active = !chatting && !!friends.empty.string;
+    friends.scroll.active = !chatting;
+    if (friends.chat && cc.isValid(friends.chat.root)) friends.chat.root.active = chatting;
+    if (chatting) renderChat(controller);
     var content = friends.content, width = friends.areaWidth, keep = {}, height = 0;
     function place(key, signature, build, x, y) {
       var item = friends.items[key];
@@ -1723,7 +1734,8 @@
       var cardWidth = Math.floor((width - 22) / 2);
       list.forEach(function (friend, index) {
         var column = index % 2, row = Math.floor(index / 2);
-        place('friend:' + friend.uid, JSON.stringify([friend, cardWidth]), function () { return friendCard(controller, friend, cardWidth); },
+        var unread = friends.unreadFrom && friends.unreadFrom[friend.uid] || 0;
+        place('friend:' + friend.uid, JSON.stringify([friend, cardWidth, unread]), function () { return friendCard(controller, friend, cardWidth, unread); },
           -width / 2 + cardWidth / 2 + column * (cardWidth + 22), -row * (FRIEND_CARD_HEIGHT + FRIEND_GAP) - FRIEND_CARD_HEIGHT / 2);
       });
       height = Math.ceil(list.length / 2) * (FRIEND_CARD_HEIGHT + FRIEND_GAP);
@@ -1788,7 +1800,7 @@
     if (sex) lobbyPill(node, sex[0], textX + labelWidth(name) + 8, nameY + 10.5, 13, rgb(sex[1]), rgb('#ffffff'), 0);
     return { textX: textX, ring: ring };
   }
-  function friendCard(controller, friend, width) {
+  function friendCard(controller, friend, width, unread) {
     var height = FRIEND_CARD_HEIGHT, card = new cc.Node('standaloneFriendCard');
     card.setContentSize(width, height);
     friendGlass(card, width, height);
@@ -1798,6 +1810,8 @@
     lobbyLabel(card, 'ID ' + friend.uid + ' · ' + (FRIEND_SOURCE[friend.source] || FRIEND_SOURCE.search), who.textX, -4, 15, rgb('#c9d4ee'), 0, false);
     var text = friend.status === 'playing' && friend.round ? '游戏中 · 第 ' + friend.round.current + '/' + friend.round.total + ' 局' : status[0];
     lobbyLabel(card, text, who.textX, -27, 15, rgb(status[1]), 0, true);
+    var talk = friendButton(card, '发消息', width / 2 - 16 - 56, 0, 112, 44, 'yellow', function () { openFriendChat(controller, friend.uid); }, controller);
+    friendBadge(talk.node, 52, 20)(unread || 0);
     card._standaloneFriend = friend;
     return card;
   }
@@ -1838,6 +1852,664 @@
       if (done) done(result);
     }, function (error) { toast(error.message); });
   }
+  // 私聊与邀请（第二轮 S4）：消息只有常用语、表情、邀请卡三种，没有打字框（S4-AC1）。
+  // 每 5 秒拉一次 /api/social/pulse，管大厅好友键红点和收邀请弹窗；牌局进行中不拉（S4-AC3）。
+  var SOCIAL_PHRASES = ['不好意思我要离开一会儿', '不要吵了，不要吵了', '不要走决战到天亮', '大家好很高兴见到各位', '底牌亮出来绝对吓死你', '风水轮流转，底裤都输光了',
+    '和你合作真是太愉快了', '快点啊，等的花儿都谢了', '你的牌打的也太好了', '我早就猜出你的牌了', '再见了，我会想念大家的', '怎么又断线，网络怎么差',
+    '来一把？', '马上来', '等我一下', '今天不打了', '谢谢', '好的'];
+  var SOCIAL_PHRASE_ORDER = [12, 13, 14, 15, 16, 17, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+  var SOCIAL_FACES = 15;
+  var LIGHT_STATUS = { idle: ['在线 · 空闲', '#25a55a'], playing: ['游戏中', '#e0702a'], offline: ['离线', '#9aa4b8'] };
+  var INVITE_STATE = { pending: ['等对方回应', '#e0702a'], joined: ['已入座', '#25a55a'], rejected: ['已拒绝', '#9aa4b8'], expired: ['已过期', '#9aa4b8'], full: ['桌已满', '#e0702a'] };
+  var CHAT_TOP = 245, CHAT_BOTTOM = -357, CHAT_HEADER = 72, CHAT_BAR = 120, CHAT_ROW = 86;
+  var social = { offset: 0, shown: {}, invited: {}, table: null }, faceCache = {};
+  function socialNow() { return Date.now() + social.offset; }
+  function socialLeft(expiresAt) { return Math.max(0, Math.ceil((new Date(expiresAt).getTime() - socialNow()) / 1000)); }
+  function socialStatus(user, map) {
+    var status = map[user.status] || map.offline;
+    return user.status === 'playing' && user.round ? '游戏中 · 第 ' + user.round.current + '/' + user.round.total + ' 局' : status[0];
+  }
+  function myAvatar() { return profileView && profileView.avatarUrl || cc.mm.framemodel && cc.mm.framemodel.picUrl; }
+  function liveRoomCode() {
+    var room = cc.mm.gameserver && cc.mm.gameserver.room_data;
+    return room && room.roomId ? String(room.roomId) : '';
+  }
+  function seatedCount(model) {
+    var valid = typeof model.getValidPlayer === 'function' ? model.getValidPlayer() : null;
+    return valid && valid.length !== undefined ? valid.length : Number(valid) || 0;
+  }
+  function tableController() {
+    var table = social.table;
+    if (!(table && cc.isValid(table.node)) && window.Standalone.hasLiveRoom()) {
+      var scene = cc.director.getScene();
+      table = social.table = scene && scene.getComponentInChildren('dss_gameController');
+    }
+    return table && cc.isValid(table.node) && table.node.activeInHierarchy ? table : null;
+  }
+  function installSocial() {
+    if (!social.timer) social.timer = setInterval(socialTick, 1000);
+  }
+  function socialTick() {
+    try { watchTableInvite(); tickInviteDrawer(); tickInvitePopup(); } catch (error) { console.error(error); }
+    if (social.pulsing || Date.now() - (social.pulsedAt || 0) < 5000) return;
+    if (!cc.mm || !cc.mm.framemodel || !cc.mm.framemodel.token) return;
+    var table = tableController();
+    if (table && table.model && table.model.isStart) return;
+    social.pulsing = true; social.pulsedAt = Date.now();
+    apiRequest('GET', '/api/social/pulse').then(function (data) {
+      social.pulsing = false;
+      if (data) applyPulse(data);
+    }, function () { social.pulsing = false; });
+  }
+  function applyPulse(data) {
+    social.offset = new Date(data.now).getTime() - Date.now() || 0;
+    social.pulse = data;
+    var hall = cc.mm.uimanager.getWindow('HallUI'), button = hall && hall.views && hall.views['hallDownBtns/btns/hall-button-haoyou'];
+    if (button && cc.isValid(button)) {
+      if (!button._standaloneBadge) button._standaloneBadge = friendBadge(button, 24, 30);
+      button._standaloneBadge(data.requests + data.unread);
+    }
+    var list = cc.mm.uimanager.getWindow('FriendListUI');
+    if (list && list._standaloneFriends && list._standaloneFriends.box && cc.isValid(list.node)) friendsPulse(list, data);
+    data.invites.forEach(function (invite) {
+      if (!invite.popup || social.shown[invite.id] || !canPopInvite()) return;
+      social.shown[invite.id] = true;
+      openInvitePopup(invite);
+    });
+  }
+  function canPopInvite() {
+    var hall = cc.mm.uimanager.getWindow('HallUI');
+    return !!(hall && cc.isValid(hall.node) && hall.node.activeInHierarchy && !window.Standalone.hasLiveRoom() && !tableController()
+      && !(social.popup && cc.isValid(social.popup.layer)));
+  }
+  function friendsPulse(controller, data) {
+    var friends = controller._standaloneFriends, signature = JSON.stringify([data.unread, data.unreadFrom]);
+    if (friends.unreadSignature === signature) return;
+    friends.unreadSignature = signature; friends.unread = data.unread; friends.unreadFrom = data.unreadFrom;
+    if (!controller.node.activeInHierarchy) return;
+    renderFriends(controller);
+    if (friends.tab === 'messages') chatRefresh(controller);
+  }
+  // 整屏的层：挂在场景上，盖住大厅或牌桌（和原版文字提示同一套做法）。
+  function sceneLayer(name, zIndex) {
+    var canvas = cc.Canvas.instance.node, layer = new cc.Node(name);
+    layer.setContentSize(canvas.getContentSize()); layer.setPosition(canvas.position);
+    cc.director.getScene().addChild(layer, zIndex);
+    layer.addComponent(cc.BlockInputEvents);
+    return layer;
+  }
+  function closeMark(parent, x, y, color, onClick) {
+    var close = lobbyPen(parent, 'close', x, y);
+    close.node.setContentSize(44, 44);
+    close.fillColor = color; close.circle(0, 0, 18); close.fill();
+    close.lineWidth = 3.5; close.strokeColor = rgb('#ffffff');
+    close.moveTo(-7, -7); close.lineTo(7, 7); close.moveTo(-7, 7); close.lineTo(7, -7); close.stroke();
+    var button = close.node.addComponent(cc.Button); button.transition = cc.Button.Transition.SCALE;
+    cc.mm.uitools.addBtnLister(close.node, onClick);
+    return close.node;
+  }
+  function faceNode(parent, ref, scale) {
+    var node = new cc.Node('standaloneFace');
+    node.setScale(scale); parent.addChild(node);
+    var skeleton = node.addComponent(sp.Skeleton);
+    function apply(data) {
+      if (!cc.isValid(node)) return;
+      skeleton.skeletonData = data; skeleton.setSkin('default'); skeleton.setAnimation(0, 'animation', true);
+    }
+    if (faceCache[ref]) apply(faceCache[ref]);
+    else cc.loader.loadRes('faces/res_dss_chat_' + ref, sp.SkeletonData, function (error, data) {
+      if (error || !data) return;
+      faceCache[ref] = data; apply(data);
+    });
+    return node;
+  }
+  function verticalScroll(parent, width, height) {
+    var node = new cc.Node('scroll'); node.setContentSize(width, height); parent.addChild(node);
+    var view = new cc.Node('view'); view.setContentSize(width, height); view.addComponent(cc.Mask); node.addChild(view);
+    var content = new cc.Node('content'); content.anchorY = 1; content.setContentSize(width, height); content.y = height / 2; view.addChild(content);
+    var scroll = node.addComponent(cc.ScrollView);
+    scroll.content = content; scroll.horizontal = false; scroll.vertical = true; scroll.inertia = true; scroll.elastic = true; scroll.brake = 0.75;
+    return { node: node, view: view, content: content, scroll: scroll };
+  }
+  function horizontalScroll(parent, width, height) {
+    var node = new cc.Node('scroll'); node.setContentSize(width, height); parent.addChild(node);
+    var view = new cc.Node('view'); view.setContentSize(width, height); view.addComponent(cc.Mask); node.addChild(view);
+    var content = new cc.Node('content'); content.anchorX = 0; content.setContentSize(width, height); content.x = -width / 2; view.addChild(content);
+    var scroll = node.addComponent(cc.ScrollView);
+    scroll.content = content; scroll.horizontal = true; scroll.vertical = false; scroll.inertia = true; scroll.elastic = true; scroll.brake = 0.75;
+    return { node: node, view: view, content: content, scroll: scroll };
+  }
+  function statusDot(parent, x, y, color) {
+    var dot = lobbyPen(parent, 'dot', x, y);
+    dot.fillColor = rgb(color); dot.circle(0, 0, 7); dot.fill();
+    dot.lineWidth = 2; dot.strokeColor = rgb('#ffffff'); dot.circle(0, 0, 7); dot.stroke();
+  }
+  function chatClock(time) {
+    var date = new Date(time), now = new Date(socialNow());
+    var clock = twoDigits(date.getHours()) + ':' + twoDigits(date.getMinutes());
+    var day = Math.round((new Date(now.getFullYear(), now.getMonth(), now.getDate()) - new Date(date.getFullYear(), date.getMonth(), date.getDate())) / 86400000);
+    return { day: day, clock: clock, date: twoDigits(date.getMonth() + 1) + '-' + twoDigits(date.getDate()) };
+  }
+  function chatTime(value) { var t = chatClock(value); return t.day === 0 ? t.clock : t.day === 1 ? '昨天' : t.date; }
+  function chatStamp(value) { var t = chatClock(value); return (t.day === 0 ? '今天' : t.day === 1 ? '昨天' : t.date) + ' ' + t.clock; }
+  function chatPreview(message) {
+    if (!message) return '还没聊过，打个招呼吧';
+    if (message.kind === 'phrase') return SOCIAL_PHRASES[message.ref] || '[消息]';
+    if (message.kind === 'face') return '[表情]';
+    var room = message.invite && message.invite.room;
+    return '[邀请] ' + (room ? room.name + ' 房号 ' + room.code : '');
+  }
+
+  // 收邀请弹窗（S4-AC3）：只在大厅、没在房间里时弹；「加入」先问服务端，再走原版输房号进房。
+  function closeInvitePopup() {
+    if (social.popup && cc.isValid(social.popup.layer)) social.popup.layer.destroy();
+    social.popup = null;
+  }
+  function inviteRoomLines(room) {
+    var seated = room.seated || 0, total = room.playerCount || 0;
+    return [(room.name || '新津斗十四') + ' · 房号 ' + room.code,
+      '底分 ' + room.baseBeans + ' · ' + room.rounds + ' 局' + (room.threshold ? ' · 门槛 ' + room.threshold + ' 豆' : ''),
+      '已有 ' + seated + ' 人，还差 ' + Math.max(0, total - seated) + ' 人'];
+  }
+  function openInvitePopup(invite) {
+    closeInvitePopup();
+    var layer = sceneLayer('standaloneInvitePopup', 950), size = layer.getContentSize();
+    var dim = lobbyPen(layer, 'dim');
+    dim.fillColor = cc.color(10, 20, 40, 150); dim.rect(-size.width / 2, -size.height / 2, size.width, size.height); dim.fill();
+    var width = 560, height = 500, half = height / 2;
+    var panel = lobbyPen(layer, 'panel');
+    panel.node.setContentSize(width, height);
+    fillRound(panel, -width / 2, -half - 8, width, height, 24, cc.color(20, 30, 70, 90));
+    fillRound(panel, -width / 2, -half, width, height, 24, rgb('#fffaf0'));
+    fillRound(panel, -width / 2, half - 64, width, 64, 24, rgb('#2f9a6c'));
+    panel.fillColor = rgb('#2f9a6c'); panel.rect(-width / 2, half - 64, width, 30); panel.fill();
+    fillRound(panel, -width / 2 + 6, half - 30, width - 12, 24, 12, rgb('#5cc596', 0.5));
+    var title = lobbyLabel(panel.node, '好友邀请', 0, half - 32, 28, rgb('#ffffff'), 0.5, true);
+    var outline = title.node.addComponent(cc.LabelOutline); outline.color = rgb('#1f7653'); outline.width = 2;
+    closeMark(panel.node, width / 2 - 38, half - 32, cc.color(10, 60, 40, 80), closeInvitePopup);
+    var from = invite.from || {};
+    var frame = lobbyPen(panel.node, 'frame', 0, 120);
+    fillRound(frame, -48, -48, 96, 96, 20, rgb('#f0dfbd'));
+    roundAvatar(panel.node, 0, 120, 92, 18, from.avatarUrl);
+    var name = lobbyLabel(panel.node, shortName(from.nickname, 8), 0, 50, 24, rgb('#5a3200'), 0.5, true), sex = SEX_TAGS[from.sex];
+    if (sex) { var nameWidth = labelWidth(name); name.node.x = -18; lobbyPill(panel.node, sex[0], -18 + nameWidth / 2 + 8, 50 + 10.5, 14, rgb(sex[1]), rgb('#ffffff'), 0); }
+    lobbyLabel(panel.node, '邀请你一起打牌', 0, 18, 18, rgb('#8d7a62'), 0.5, false);
+    var box = lobbyPen(panel.node, 'room', 0, -62), lines = inviteRoomLines(invite.room || {});
+    fillRound(box, -240, -56, 480, 112, 18, rgb('#fff1d2'));
+    strokeRound(box, -240, -56, 480, 112, 18, rgb('#f3d9a6'), 2);
+    lobbyLabel(box.node, lines[0], 0, 30, 20, rgb('#5a3200'), 0.5, true);
+    lobbyLabel(box.node, lines[1], 0, 0, 16, rgb('#8d7a62'), 0.5, false);
+    lobbyLabel(box.node, lines[2], 0, -30, 16, rgb('#e0702a'), 0.5, true);
+    var popup = social.popup = { layer: layer, invite: invite };
+    friendButton(panel.node, '忽略', -150, -166, 200, 60, 'grey', function () {
+      closeInvitePopup();
+      rejectInvite(invite);
+    });
+    popup.join = friendButton(panel.node, '加入', 110, -166, 280, 60, 'orange', function () {
+      closeInvitePopup();
+      acceptInvite(invite);
+    });
+    lobbyLabel(panel.node, '正在打牌时不弹窗，邀请会放进「消息」里', 0, -224, 14, rgb('#b9a98c'), 0.5, false);
+    panel.node.scale = 0.92; panel.node.opacity = 0;
+    cc.tween(panel.node).to(0.14, { scale: 1, opacity: 255 }).start();
+    tickInvitePopup();
+  }
+  function tickInvitePopup() {
+    var popup = social.popup;
+    if (!popup || !cc.isValid(popup.layer)) return;
+    if (tableController()) return closeInvitePopup();
+    var left = socialLeft(popup.invite.expiresAt);
+    if (!left) { closeInvitePopup(); return toast('邀请已过期'); }
+    popup.join.label.string = '加入 ' + left + 's';
+  }
+  function acceptInvite(invite, done) {
+    if (social.accepting) return;
+    social.accepting = true;
+    apiRequest('POST', '/api/social/invites/' + invite.id + '/accept').then(function (result) {
+      social.accepting = false;
+      if (done) done(result);
+      if (!result.ok) return toast(result.result === 'full' ? '这桌已经满了，下次早点来' : '邀请已过期');
+      cc.mm.hallserver.requestJoinRoom(String(result.code));
+    }, function (error) {
+      social.accepting = false;
+      toast(error.message);
+      if (done) done(null);
+    });
+  }
+  function rejectInvite(invite, done) {
+    apiRequest('POST', '/api/social/invites/' + invite.id + '/reject').then(function () { if (done) done(); }, function (error) { toast(error.message); if (done) done(); });
+  }
+
+  // 牌桌「邀请好友」（S4-AC2）：没开局、还有空座时，在原版邀请键的位置放黄色按钮，点开右侧抽屉。
+  function watchTableInvite() {
+    var table = tableController(), views = table && table.views, model = table && table.model, anchor = views && views.invateBtn;
+    var replay = window.StandaloneReplay && StandaloneReplay.active();
+    var open = !!(anchor && model && !replay && !model.isStart && window.Standalone.hasLiveRoom() && seatedCount(model) < model.playerNum);
+    if (!open) {
+      if (table && table._standaloneInvite && cc.isValid(table._standaloneInvite)) table._standaloneInvite.active = false;
+      return closeInviteDrawer();
+    }
+    var button = table._standaloneInvite;
+    if (!button || !cc.isValid(button)) button = table._standaloneInvite = friendButton(anchor.parent, '邀请好友', 0, 0, 236, 76, 'yellow', openInviteDrawer).node;
+    button.setPosition(anchor.x + (0.5 - anchor.anchorX) * anchor.width * anchor.scaleX, anchor.y + (0.5 - anchor.anchorY) * anchor.height * anchor.scaleY);
+    button.active = true;
+  }
+  function closeInviteDrawer() {
+    if (social.drawer && cc.isValid(social.drawer.layer)) social.drawer.layer.destroy();
+    social.drawer = null;
+  }
+  function dashedRect(pen, x, y, width, height, color) {
+    pen.lineWidth = 2; pen.strokeColor = color;
+    function line(x1, y1, x2, y2) {
+      var length = Math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1)), steps = Math.floor(length / 13);
+      for (var i = 0; i <= steps; i++) {
+        var a = i * 13 / length, b = Math.min(1, (i * 13 + 7) / length);
+        pen.moveTo(x1 + (x2 - x1) * a, y1 + (y2 - y1) * a); pen.lineTo(x1 + (x2 - x1) * b, y1 + (y2 - y1) * b);
+      }
+    }
+    line(x, y, x + width, y); line(x + width, y, x + width, y + height); line(x + width, y + height, x, y + height); line(x, y + height, x, y);
+    pen.stroke();
+  }
+  function openInviteDrawer() {
+    var table = tableController();
+    if (!table) return;
+    closeInviteDrawer();
+    var layer = sceneLayer('standaloneInviteDrawer', 900), size = layer.getContentSize(), width = 480, height = size.height, half = height / 2;
+    var dim = lobbyPen(layer, 'dim');
+    dim.node.setContentSize(size.width, height);
+    dim.fillColor = cc.color(10, 20, 40, 110); dim.rect(-size.width / 2, -half, size.width, height); dim.fill();
+    dim.node.addComponent(cc.Button);
+    cc.mm.uitools.addBtnLister(dim.node, closeInviteDrawer, null, false);
+    var panel = lobbyPen(layer, 'panel', size.width / 2 - width / 2, 0);
+    panel.node.setContentSize(width, height);
+    panel.node.addComponent(cc.BlockInputEvents);
+    fillRound(panel, -width / 2 - 8, -half, width + 40, height, 24, cc.color(10, 20, 50, 70));
+    fillRound(panel, -width / 2, -half, width + 40, height, 24, rgb('#fffaf0'));
+    var left = -width / 2 + 28;
+    lobbyLabel(panel.node, '邀请好友', left, half - 46, 28, rgb('#5a3200'), 0, true);
+    var drawer = social.drawer = { layer: layer, tab: 'online', rows: {}, data: null };
+    drawer.sub = lobbyLabel(panel.node, '', left, half - 82, 17, rgb('#e0702a'), 0, true);
+    closeMark(panel.node, width / 2 - 42, half - 50, cc.color(140, 90, 20, 70), closeInviteDrawer);
+    drawer.tabs = [['online', -101], ['all', 101]].map(function (entry) {
+      var pen = lobbyPen(panel.node, 'tab', entry[1], half - 126);
+      pen.node.setContentSize(196, 44);
+      pen.node.addComponent(cc.Button).transition = cc.Button.Transition.SCALE;
+      var label = lobbyLabel(pen.node, '', 0, 0, 18, rgb('#7a3a00'), 0.5, true);
+      cc.mm.uitools.addBtnLister(pen.node, function () { drawer.tab = entry[0]; renderInviteDrawer(); });
+      return { key: entry[0], pen: pen, label: label };
+    });
+    var top = half - 160, bottom = -half + 100;
+    drawer.list = verticalScroll(panel.node, 440, top - bottom);
+    drawer.list.node.y = (top + bottom) / 2;
+    drawer.empty = lobbyLabel(panel.node, '', 0, (top + bottom) / 2 + 60, 18, rgb('#a38b6d'), 0.5, false);
+    var footer = lobbyPen(panel.node, 'footer', 0, -half + 54);
+    fillRound(footer, -216, -34, 432, 68, 16, rgb('#fff4dc'));
+    dashedRect(footer, -212, -30, 424, 60, rgb('#e6c88c'));
+    var code = liveRoomCode();
+    var tip = friendRich(footer.node, '<color=#8d7a62>好友不在线？把房号发给他 </color><b><color=#5a3200>' + code + '</color></b>', -200, 0, 16);
+    tip.node.anchorX = 0;
+    friendButton(footer.node, '复制房号', 200 - 60, 0, 120, 40, 'yellow', function () {
+      var current = tableController();
+      if (current && typeof current.onClickInvateBtn === 'function') current.onClickInvateBtn();
+      else if (code) copyText(code);
+    });
+    panel.node.x += width;
+    cc.tween(panel.node).to(0.18, { x: size.width / 2 - width / 2 }, { easing: 'quadOut' }).start();
+    renderInviteDrawer();
+    inviteDrawerRefresh();
+  }
+  function tickInviteDrawer() {
+    var drawer = social.drawer;
+    if (!drawer || !cc.isValid(drawer.layer)) return;
+    if (Date.now() - (drawer.loadedAt || 0) >= 5000) inviteDrawerRefresh();
+    renderInviteDrawer();
+  }
+  function inviteDrawerRefresh() {
+    var drawer = social.drawer;
+    if (!drawer || drawer.loading) return;
+    drawer.loading = true; drawer.loadedAt = Date.now();
+    apiRequest('GET', '/api/social/friends').then(function (data) {
+      drawer.loading = false;
+      if (social.drawer !== drawer) return;
+      drawer.data = data;
+      renderInviteDrawer();
+    }, function () { drawer.loading = false; });
+  }
+  function renderInviteDrawer() {
+    var drawer = social.drawer;
+    if (!drawer || !cc.isValid(drawer.layer)) return;
+    var table = tableController(), model = table && table.model;
+    drawer.sub.string = '房号 ' + liveRoomCode() + ' · 还差 ' + (model ? Math.max(0, model.playerNum - seatedCount(model)) : 0) + ' 人';
+    var order = { idle: 0, playing: 1, offline: 2 }, all = drawer.data ? drawer.data.friends.slice() : [];
+    all.sort(function (a, b) { return (a.status in order ? order[a.status] : 2) - (b.status in order ? order[b.status] : 2); });
+    var online = all.filter(function (friend) { return friend.status !== 'offline'; });
+    drawer.tabs[0].label.string = '在线好友 ' + online.length;
+    drawer.tabs[1].label.string = '全部好友 ' + all.length;
+    drawer.tabs.forEach(function (tab) {
+      var on = tab.key === drawer.tab;
+      tab.pen.clear();
+      fillRound(tab.pen, -98, -22, 196, 44, 22, on ? rgb('#ffc72c') : rgb('#f3e6c8'));
+      tab.label.node.color = on ? rgb('#7a3a00') : rgb('#a38b6d');
+    });
+    var list = drawer.tab === 'online' ? online : all, content = drawer.list.content, keep = {}, y = 0;
+    list.forEach(function (friend) {
+      var left = social.invited[friend.uid] ? socialLeft(social.invited[friend.uid]) : 0, signature = JSON.stringify([friend, left > 0]);
+      var row = drawer.rows[friend.uid];
+      if (!row || row.signature !== signature || !cc.isValid(row.node)) {
+        if (row && cc.isValid(row.node)) row.node.destroy();
+        row = drawer.rows[friend.uid] = inviteRow(friend, left > 0);
+        row.signature = signature;
+        content.addChild(row.node);
+      }
+      row.node.setPosition(0, y - 40);
+      if (row.countdown) row.countdown.string = '已邀请 ' + left + 's';
+      keep[friend.uid] = true;
+      y -= 80;
+    });
+    Object.keys(drawer.rows).forEach(function (uid) {
+      if (keep[uid]) return;
+      if (cc.isValid(drawer.rows[uid].node)) drawer.rows[uid].node.destroy();
+      delete drawer.rows[uid];
+    });
+    content.height = Math.max(drawer.list.view.height, -y);
+    drawer.empty.string = !drawer.data ? '正在加载…' : list.length ? '' : drawer.tab === 'online' ? '现在没有在线的好友' : '还没有好友，去大厅「好友」里找朋友';
+  }
+  function inviteRow(friend, invited) {
+    var width = 440, node = new cc.Node('standaloneInviteRow'), status = LIGHT_STATUS[friend.status] || LIGHT_STATUS.offline;
+    node.setContentSize(width, 80);
+    var line = lobbyPen(node, 'line');
+    line.fillColor = rgb('#f0e2c4'); line.rect(-width / 2 + 8, -40, width - 16, 1.5); line.fill();
+    roundAvatar(node, -width / 2 + 8 + 29, 0, 58, 12, friend.avatarUrl);
+    statusDot(node, -width / 2 + 8 + 52, -22, status[1]);
+    var textX = -width / 2 + 8 + 58 + 14;
+    var name = lobbyLabel(node, shortName(friend.nickname, 6), textX, 13, 20, rgb('#5a3200'), 0, true), sex = SEX_TAGS[friend.sex];
+    if (sex) lobbyPill(node, sex[0], textX + labelWidth(name) + 8, 13 + 10.5, 13, rgb(sex[1]), rgb('#ffffff'), 0);
+    lobbyLabel(node, socialStatus(friend, LIGHT_STATUS), textX, -14, 15, rgb(status[1]), 0, true);
+    var row = { node: node };
+    if (friend.status === 'offline') node.opacity = 130;
+    else if (invited) row.countdown = friendButton(node, '', width / 2 - 8 - 64, 0, 128, 42, 'grey').label;
+    else friendButton(node, '邀请', width / 2 - 8 - 50, 0, 100, 42, 'blue', function () { inviteFriend(friend); });
+    return row;
+  }
+  function inviteFriend(friend) {
+    apiRequest('POST', '/api/social/invites', { uid: String(friend.uid) }).then(function (result) {
+      social.offset = new Date(result.now).getTime() - Date.now() || social.offset;
+      social.invited[friend.uid] = result.expiresAt;
+      toast(result.status === 'playing' ? '对方正在打牌，邀请放进了他的消息里' : '邀请已发出，等对方加入');
+      renderInviteDrawer();
+    }, function (error) { toast(error.message); });
+  }
+
+  // 「消息」标签（S4-AC1、S4-AC4、S4-AC5）：左边会话列表，右边对话；底下只有常用语和表情两排可点。
+  function chatBox(controller) {
+    var friends = controller._standaloneFriends;
+    if (!friends.chat || !cc.isValid(friends.chat.root)) {
+      friends.chat = { root: new cc.Node('standaloneChat'), selected: null, conversations: null, thread: null };
+      friends.box.addChild(friends.chat.root);
+    }
+    return friends.chat;
+  }
+  function openFriendChat(controller, uid) {
+    var friends = controller._standaloneFriends, chat = chatBox(controller);
+    friends.tab = 'messages';
+    if (chat.selected !== String(uid)) { chat.selected = String(uid); chat.thread = null; }
+    renderFriends(controller);
+    chatRefresh(controller, true);
+  }
+  function chatRefresh(controller, force) {
+    var friends = controller._standaloneFriends, chat = friends.chat;
+    if (!chat || !cc.isValid(controller.node)) return;
+    if (chat.loading) { chat.again = chat.again || force; return; }
+    chat.loading = true;
+    var uid = chat.selected;
+    (uid ? apiRequest('GET', '/api/social/messages?uid=' + encodeURIComponent(uid)) : Promise.resolve(null)).then(function (thread) {
+      return apiRequest('GET', '/api/social/conversations').then(function (list) { return [thread, list]; });
+    }).then(function (results) {
+      chat.loading = false; chat.failed = false;
+      if (!cc.isValid(controller.node)) return;
+      if (chat.again) { chat.again = false; return chatRefresh(controller); }
+      chat.conversations = results[1].conversations;
+      if (uid && uid === chat.selected) chat.thread = results[0];
+      if (uid && friends.unreadFrom && friends.unreadFrom[uid]) social.pulsedAt = 0;
+      if (!chat.selected && chat.conversations.length) {
+        chat.selected = String(chat.conversations[0].user.uid);
+        renderChat(controller);
+        return chatRefresh(controller);
+      }
+      if (friends.tab === 'messages') renderChat(controller);
+    }, function () {
+      chat.loading = false; chat.failed = true;
+      if (cc.isValid(controller.node) && friends.tab === 'messages') renderChat(controller);
+    });
+  }
+  function buildChat(controller, chat, areaWidth) {
+    chat.root.removeAllChildren();
+    var height = CHAT_TOP - CHAT_BOTTOM, listWidth = Math.min(380, Math.floor(areaWidth * 0.33)), gap = 20, panelWidth = areaWidth - listWidth - gap;
+    var left = -areaWidth / 2, half = height / 2;
+    chat.root.setPosition(0, (CHAT_TOP + CHAT_BOTTOM) / 2);
+    chat.size = { listWidth: listWidth, panelWidth: panelWidth, height: height };
+    var listNode = new cc.Node('list'); listNode.setPosition(left + listWidth / 2, 0); chat.root.addChild(listNode);
+    friendGlass(listNode, listWidth, height);
+    chat.list = verticalScroll(listNode, listWidth - 20, height - 20);
+    chat.listEmpty = lobbyLabel(listNode, '', 0, 40, 18, rgb('#dfe6f5'), 0.5, true);
+    var panel = lobbyPen(chat.root, 'panel', left + listWidth + gap + panelWidth / 2, 0);
+    panel.node.setContentSize(panelWidth, height);
+    fillRound(panel, -panelWidth / 2, -half - 6, panelWidth, height, 20, cc.color(10, 20, 60, 70));
+    fillRound(panel, -panelWidth / 2, -half, panelWidth, height, 20, rgb('#fffaf0'));
+    fillRound(panel, -panelWidth / 2, -half, panelWidth, CHAT_BAR, 20, rgb('#fdf4e0'));
+    panel.fillColor = rgb('#fdf4e0'); panel.rect(-panelWidth / 2, -half + CHAT_BAR - 24, panelWidth, 24); panel.fill();
+    panel.fillColor = rgb('#f0e2c4');
+    panel.rect(-panelWidth / 2, half - CHAT_HEADER, panelWidth, 1.5); panel.rect(-panelWidth / 2, -half + CHAT_BAR, panelWidth, 1.5); panel.fill();
+    chat.header = new cc.Node('header'); chat.header.setPosition(0, half - CHAT_HEADER / 2); panel.node.addChild(chat.header);
+    var messageHeight = height - CHAT_HEADER - CHAT_BAR - 4;
+    chat.messages = verticalScroll(panel.node, panelWidth - 8, messageHeight);
+    chat.messages.node.y = (half - CHAT_HEADER + (-half + CHAT_BAR)) / 2;
+    chat.note = lobbyLabel(panel.node, '', 0, chat.messages.node.y, 18, rgb('#b9a98c'), 0.5, true);
+    chat.bar = new cc.Node('bar'); chat.bar.setPosition(0, -half + CHAT_BAR / 2); panel.node.addChild(chat.bar);
+    buildChatBar(controller, chat, panelWidth);
+    chat.listSignature = chat.threadSignature = chat.headerSignature = null;
+  }
+  function buildChatBar(controller, chat, width) {
+    var inner = width - 44, phrases = horizontalScroll(chat.bar, inner, 40), x = 0;
+    phrases.node.y = 27;
+    SOCIAL_PHRASE_ORDER.forEach(function (ref) {
+      var chip = lobbyPen(phrases.content, 'chip'), label = lobbyLabel(chip.node, SOCIAL_PHRASES[ref], 0, 0, 15, rgb('#8a5a1a'), 0.5, true);
+      var chipWidth = labelWidth(label) + 28;
+      chip.node.setContentSize(chipWidth, 34); chip.node.setPosition(x + chipWidth / 2, 0);
+      fillRound(chip, -chipWidth / 2, -17, chipWidth, 34, 17, rgb('#fff0cc'));
+      strokeRound(chip, -chipWidth / 2, -17, chipWidth, 34, 17, rgb('#f0d49a'), 1.5);
+      var button = chip.node.addComponent(cc.Button); button.transition = cc.Button.Transition.SCALE; button.zoomScale = 0.94;
+      cc.mm.uitools.addBtnLister(chip.node, function () { chatSend(controller, 'phrase', ref); }, controller);
+      x += chipWidth + 10;
+    });
+    phrases.content.width = Math.max(inner, x - 10);
+    var faces = horizontalScroll(chat.bar, inner, 58);
+    faces.node.y = -25;
+    for (var ref = 0; ref < SOCIAL_FACES; ref++) (function (ref) {
+      var holder = lobbyPen(faces.content, 'face', ref * 64 + 28, 0);
+      holder.node.setContentSize(56, 56);
+      fillRound(holder, -28, -28, 56, 56, 28, rgb('#fff0cc'));
+      strokeRound(holder, -28, -28, 56, 56, 28, rgb('#f0d49a'), 1.5);
+      faceNode(holder.node, ref, 0.72);
+      var button = holder.node.addComponent(cc.Button); button.transition = cc.Button.Transition.SCALE; button.zoomScale = 0.9;
+      cc.mm.uitools.addBtnLister(holder.node, function () { chatSend(controller, 'face', ref); }, controller);
+    })(ref);
+    faces.content.width = Math.max(inner, SOCIAL_FACES * 64 - 8);
+    chat.barNote = lobbyLabel(chat.bar, '', 0, 0, 18, rgb('#a38b6d'), 0.5, true);
+    chat.barItems = [phrases.node, faces.node];
+  }
+  function chatConversations(controller, chat) {
+    var friends = controller._standaloneFriends, list = (chat.conversations || []).slice();
+    if (chat.selected && !list.some(function (item) { return String(item.user.uid) === chat.selected; })) {
+      var user = chat.thread && String(chat.thread.user.uid) === chat.selected ? chat.thread.user
+        : (friends.data && friends.data.friends || []).filter(function (friend) { return String(friend.uid) === chat.selected; })[0];
+      if (user) list.unshift({ user: user, last: null, unread: 0 });
+    }
+    return list;
+  }
+  function renderChat(controller) {
+    var friends = controller._standaloneFriends, chat = chatBox(controller);
+    if (chat.areaWidth !== friends.areaWidth) { chat.areaWidth = friends.areaWidth; buildChat(controller, chat, friends.areaWidth); }
+    var items = chatConversations(controller, chat), selected = items.filter(function (item) { return String(item.user.uid) === chat.selected; })[0];
+    var thread = chat.thread && String(chat.thread.user.uid) === chat.selected ? chat.thread : null, user = thread ? thread.user : selected && selected.user;
+    var listSignature = JSON.stringify([items, chat.selected]);
+    if (listSignature !== chat.listSignature) {
+      chat.listSignature = listSignature;
+      var content = chat.list.content, width = chat.list.view.width;
+      content.removeAllChildren();
+      items.forEach(function (item, index) {
+        var row = chatListRow(controller, chat, item, width);
+        row.setPosition(0, -index * (CHAT_ROW + 4) - CHAT_ROW / 2);
+        content.addChild(row);
+      });
+      content.height = Math.max(chat.list.view.height, items.length * (CHAT_ROW + 4));
+    }
+    chat.listEmpty.string = !chat.conversations ? (chat.failed ? '消息加载失败\n稍后自动重试' : '正在加载…') : items.length ? '' : '还没有消息';
+    chat.header.active = chat.messages.node.active = chat.bar.active = !!user;
+    if (user) renderChatHeader(chat, user);
+    if (thread) renderChatThread(controller, chat, thread);
+    else if (chat.threadSignature) { chat.threadSignature = null; chat.messages.content.removeAllChildren(); }
+    chat.note.string = !user ? (chat.conversations ? '在「好友」里点好友卡片上的「发消息」开始聊天' : '') : !thread ? '正在加载…'
+      : thread.messages.length ? '' : '还没聊过，点下面的常用语或表情打个招呼';
+    var blocked = !!(thread && thread.user.isFriend === false);
+    chat.barItems.forEach(function (node) { node.active = !blocked; });
+    chat.barNote.string = blocked ? '你们已经不是好友了，不能再发消息' : '';
+  }
+  function chatListRow(controller, chat, item, width) {
+    var row = new cc.Node('standaloneChatRow'), height = CHAT_ROW, user = item.user, status = FRIEND_STATUS[user.status] || FRIEND_STATUS.offline;
+    row.setContentSize(width, height);
+    var pen = lobbyPen(row, 'bg');
+    if (String(user.uid) === chat.selected) {
+      fillRound(pen, -width / 2, -height / 2, width, height, 14, rgb('#ffe25a', 0.22));
+      fillRound(pen, -width / 2, -height / 2 + 10, 5, height - 20, 2.5, rgb('#ffd84a'));
+    }
+    var avatarX = -width / 2 + 14 + 30;
+    roundAvatar(row, avatarX, 0, 60, 11, user.avatarUrl);
+    var ring = lobbyPen(row, 'ring', avatarX, 0);
+    strokeRound(ring, -30, -30, 60, 60, 11, cc.color(255, 255, 255, 200), 2);
+    statusDot(row, avatarX + 25, -25, status[1]);
+    var textX = -width / 2 + 14 + 60 + 14, room = width / 2 - 14 - textX;
+    lobbyLabel(row, shortName(user.nickname, 6), textX, 14, 20, rgb('#ffffff'), 0, true);
+    lobbyLabel(row, shortName(chatPreview(item.last), Math.max(4, Math.floor((room - 34) / 15))), textX, -14, 15, rgb('#cfe0ff'), 0, true);
+    if (item.last) lobbyLabel(row, chatTime(item.last.createdAt), width / 2 - 14, 24, 13, rgb('#aab6cf'), 1, true);
+    friendBadge(row, width / 2 - 26, -16)(item.unread);
+    var button = row.addComponent(cc.Button); button.transition = cc.Button.Transition.NONE;
+    cc.mm.uitools.addBtnLister(row, function () {
+      if (chat.selected === String(user.uid)) return;
+      chat.selected = String(user.uid); chat.thread = null;
+      renderChat(controller);
+      chatRefresh(controller, true);
+    }, controller);
+    return row;
+  }
+  function renderChatHeader(chat, user) {
+    var width = chat.size.panelWidth, signature = JSON.stringify([user.uid, user.nickname, user.avatarUrl, user.sex, user.status, user.round, width]);
+    if (signature === chat.headerSignature) return;
+    chat.headerSignature = signature;
+    var header = chat.header, x = -width / 2 + 22, status = LIGHT_STATUS[user.status] || LIGHT_STATUS.offline;
+    header.removeAllChildren();
+    roundAvatar(header, x + 24, 0, 48, 10, user.avatarUrl);
+    var name = lobbyLabel(header, shortName(user.nickname, 8), x + 48 + 12, 11, 22, rgb('#5a3200'), 0, true), sex = SEX_TAGS[user.sex];
+    if (sex) lobbyPill(header, sex[0], x + 60 + labelWidth(name) + 8, 11 + 10.5, 13, rgb(sex[1]), rgb('#ffffff'), 0);
+    lobbyLabel(header, '● ' + socialStatus(user, LIGHT_STATUS), x + 60, -15, 15, rgb(status[1]), 0, true);
+    lobbyLabel(header, '只能发常用语和表情', width / 2 - 22, 0, 15, rgb('#b9a98c'), 1, false);
+  }
+  function renderChatThread(controller, chat, thread) {
+    var content = chat.messages.content, width = chat.messages.view.width;
+    var signature = JSON.stringify([thread.messages, thread.user.avatarUrl, width]);
+    if (signature === chat.threadSignature) return;
+    chat.threadSignature = signature;
+    content.removeAllChildren();
+    var y = -10, last = 0;
+    if (thread.more) { lobbyLabel(content, '只显示最近 50 条', 0, y - 10, 13, rgb('#c9b998'), 0.5, false); y -= 30; }
+    thread.messages.forEach(function (message) {
+      var time = new Date(message.createdAt).getTime();
+      if (time - last > 5 * 60000) { lobbyLabel(content, chatStamp(time), 0, y - 10, 13, rgb('#b9a98c'), 0.5, true); y -= 32; }
+      last = time;
+      var node = chatMessage(controller, message, thread.user, width);
+      node.setPosition(0, y - node.height / 2);
+      content.addChild(node);
+      y -= node.height + 14;
+    });
+    content.height = Math.max(chat.messages.view.height, -y);
+    chat.messages.scroll.scrollToBottom(0);
+  }
+  function chatMessage(controller, message, user, width) {
+    var node = new cc.Node('standaloneChatMessage'), side = message.fromMe ? 1 : -1, avatar = 44;
+    var body = chatBody(controller, message, Math.min(380, width - 2 * (20 + avatar + 10) - 40));
+    var height = Math.max(avatar, body.height);
+    node.setContentSize(width, height);
+    roundAvatar(node, side * (width / 2 - 20 - avatar / 2), height / 2 - avatar / 2, avatar, 9, message.fromMe ? myAvatar() : user.avatarUrl);
+    var edge = side * (width / 2 - 20 - avatar - 10);
+    body.setPosition(edge - side * body.width / 2, height / 2 - body.height / 2);
+    node.addChild(body);
+    return node;
+  }
+  function chatBody(controller, message, maxWidth) {
+    var body = new cc.Node('body');
+    if (message.kind === 'face') {
+      body.setContentSize(84, 84);
+      faceNode(body, message.ref, 1.15);
+      return body;
+    }
+    if (message.kind === 'invite') return chatInviteCard(controller, message, maxWidth);
+    var pen = body.addComponent(cc.Graphics), mine = message.fromMe;
+    var label = lobbyLabel(body, SOCIAL_PHRASES[message.ref] || '[消息]', 0, 0, 18, rgb('#3a2a10'), 0.5, true);
+    var textWidth = labelWidth(label);
+    if (textWidth > maxWidth - 32) {
+      label.overflow = cc.Label.Overflow.RESIZE_HEIGHT; label.horizontalAlign = cc.Label.HorizontalAlign.LEFT;
+      label.node.width = textWidth = maxWidth - 32;
+      if (label._forceUpdateRenderData) label._forceUpdateRenderData(true);
+    }
+    var width = textWidth + 32, height = Math.max(44, label.node.height + 18);
+    body.setContentSize(width, height);
+    fillRound(pen, -width / 2, -height / 2, width, height, 16, rgb(mine ? '#ffe27a' : '#ffffff'));
+    strokeRound(pen, -width / 2, -height / 2, width, height, 16, rgb(mine ? '#f3cc4a' : '#eedfc0'), 1.5);
+    return body;
+  }
+  function chatInviteCard(controller, message, maxWidth) {
+    var invite = message.invite || {}, room = invite.room || {}, mine = message.fromMe, width = Math.min(330, maxWidth);
+    var join = !mine && invite.state === 'pending', height = 40 + 12 + 74 + 10 + (join ? 44 : 30) + 14, half = height / 2;
+    var card = new cc.Node('standaloneInviteCard'), pen = card.addComponent(cc.Graphics), lines = inviteRoomLines(room);
+    card.setContentSize(width, height);
+    fillRound(pen, -width / 2, -half, width, height, 16, rgb('#ffffff'));
+    fillRound(pen, -width / 2, half - 40, width, 40, 16, rgb('#2a8a60'));
+    pen.fillColor = rgb('#2a8a60'); pen.rect(-width / 2, half - 40, width, 20); pen.fill();
+    strokeRound(pen, -width / 2, -half, width, height, 16, rgb('#e6cf9c'), 2);
+    var x = -width / 2 + 14;
+    fillRound(pen, x + 4, half - 30, 13, 18, 3, cc.color(255, 255, 255, 140));
+    fillRound(pen, x, half - 31, 13, 18, 3, rgb('#ffffff'));
+    lobbyLabel(card, mine ? '我发出的邀请' : '邀请你一起打牌', x + 26, half - 20, 17, rgb('#ffffff'), 0, true);
+    var top = half - 40 - 12;
+    lobbyLabel(card, lines[0], x, top - 12, 18, rgb('#5a3200'), 0, true);
+    lobbyLabel(card, lines[1], x, top - 38, 15, rgb('#8d7a62'), 0, false);
+    lobbyLabel(card, lines[2], x, top - 62, 15, rgb('#e0702a'), 0, true);
+    var bottomY = -half + 14 + (join ? 22 : 15);
+    if (join) friendButton(card, '加入房间', 0, bottomY, width - 28, 44, 'orange', function () {
+      acceptInvite(invite, function () { chatRefresh(controller, true); });
+    }, controller);
+    else {
+      var state = INVITE_STATE[invite.state] || INVITE_STATE.expired, pill = lobbyPen(card, 'state', x, bottomY);
+      var label = lobbyLabel(pill.node, state[0], 14, 0, 15, rgb(state[1]), 0, true), pillWidth = labelWidth(label) + 28;
+      fillRound(pill, 0, -15, pillWidth, 30, 15, rgb(state[1], 0.12));
+      strokeRound(pill, 0, -15, pillWidth, 30, 15, rgb(state[1], 0.6), 1.5);
+    }
+    return card;
+  }
+  function chatSend(controller, kind, ref) {
+    var chat = controller._standaloneFriends.chat;
+    if (!chat || !chat.selected || Date.now() - (chat.sentAt || 0) < 800) return;
+    chat.sentAt = Date.now();
+    var uid = chat.selected;
+    apiRequest('POST', '/api/social/messages', { uid: uid, kind: kind, ref: ref }).then(function (result) {
+      if (chat.selected === uid && chat.thread && String(chat.thread.user.uid) === uid) {
+        chat.thread.messages = chat.thread.messages.concat([result.message]);
+        renderChat(controller);
+      }
+      chatRefresh(controller, true);
+    }, function (error) { toast(error.message); });
+  }
+
   // 找朋友弹窗：输数字 ID 搜人、申请；下面列最近同桌（S3-AC1、S3-AC4）。
   function closeFriendSearch(friends) {
     if (friends && friends.search && cc.isValid(friends.search.layer)) friends.search.layer.destroy();
@@ -2320,6 +2992,9 @@
     },
     table: function (controller) {
       hide(controller.views, ['qifu-button', 'qifu-dikuang', 'buchongdou', 'invateBtn']);
+      // 原版邀请键（复制分享文字）藏起来，同一位置换成「邀请好友」抽屉（第二轮 S4）。
+      social.table = controller;
+      installSocial();
       // 牌桌不显示距离（R11 AC1）：原版进房时会重新打开定位按钮，透明度清零免得闪一下。
       var locationButton = controller.views.locationbtn;
       if (locationButton) { locationButton.opacity = 0; locationButton.active = false; }
@@ -2399,6 +3074,7 @@
       // 开房面板的类在大厅包里，大厅出来时已注册；要赶在面板第一次绑定按钮之前装上。
       installPublicLobbyToggle();
       installFriends();
+      installSocial();
       var create = cc.mm.uimanager.getWindow('CreateRoomUI');
       if (create) {
         hide(create.views, ['hall_room_center/left/createroom/dou-hall-pic-mianfei', 'hall_room_center/left/createroom/ad']);

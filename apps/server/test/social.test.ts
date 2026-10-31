@@ -182,3 +182,147 @@ test('S3-AC5 老的同桌好友保留，来源显示同桌对局；好友列表�
     assert.equal(list[0].sex, 1);
   } finally { await ctx.close(); }
 });
+
+// 第二轮 S4：私聊和邀请入座。
+async function chatSetup() {
+  const ctx = await setup();
+  const befriend = async (a: { id: string }, b: { id: string }) => {
+    for (const [x, y] of [[a.id, b.id], [b.id, a.id]]) await ctx.db.query("INSERT INTO friends(user_id,friend_id,source) VALUES($1,$2,'search')", [x, y]);
+  };
+  const online = (...users: { id: string }[]) => { for (const user of users) ctx.live.set(user.id, new Set([{ close() {} } as any])); };
+  let codes = 200000;
+  const waitingRoom = async (owner: { id: string }, playerCount = 2) => {
+    const roomId = randomUUID(), code = String(codes++);
+    await ctx.db.query(`INSERT INTO rooms(id,code,owner_id,variant_key,rule_version,rules,player_count,rounds,fee_mode,state,visibility)
+      VALUES($1,$2,$3,'4:0','v1','{"baseBeans":"2"}',$4,8,'aa','waiting','private')`, [roomId, code, owner.id, playerCount]);
+    await ctx.db.query('INSERT INTO room_members(room_id,user_id,seat) VALUES($1,$2,1)', [roomId, owner.id]);
+    return { roomId, code };
+  };
+  return { ...ctx, befriend, online, waitingRoom };
+}
+
+test('S4-AC1 私聊只能发常用语、表情；带文字、越界编号、不是好友都被拒', async () => {
+  const ctx = await chatSetup();
+  try {
+    const a = await ctx.player('chat_text_a'), b = await ctx.player('chat_text_b'), c = await ctx.player('chat_text_c');
+    await ctx.befriend(a, b);
+    for (const payload of [{ uid: b.uid, text: '加我微信' }, { uid: b.uid, kind: 'phrase', ref: 0, message: '你好' }, { uid: b.uid, content: 'hi' }]) {
+      const rejected = await ctx.call('POST', '/api/social/messages', a.headers, payload);
+      assert.equal(rejected.status, 400); assert.equal(rejected.body.error.code, 'TEXT_NOT_ALLOWED');
+    }
+    assert.equal((await ctx.call('POST', '/api/social/messages', a.headers, { uid: b.uid, kind: 'invite', ref: 0 })).status, 400, '邀请卡只能走邀请接口');
+    assert.equal((await ctx.call('POST', '/api/social/messages', a.headers, { uid: b.uid, kind: 'phrase', ref: 18 })).body.error.code, 'INVALID_MESSAGE');
+    assert.equal((await ctx.call('POST', '/api/social/messages', a.headers, { uid: b.uid, kind: 'face', ref: 15 })).body.error.code, 'INVALID_MESSAGE');
+    assert.equal((await ctx.call('POST', '/api/social/messages', a.headers, { uid: c.uid, kind: 'phrase', ref: 1 })).body.error.code, 'NOT_FRIENDS');
+    const sent = await ctx.call('POST', '/api/social/messages', a.headers, { uid: b.uid, kind: 'phrase', ref: 12 });
+    assert.equal(sent.status, 200, JSON.stringify(sent.body));
+    assert.equal((await ctx.call('POST', '/api/social/messages', a.headers, { uid: b.uid, kind: 'face', ref: 14 })).status, 200);
+    const stored = (await ctx.db.query('SELECT kind,ref FROM friend_messages ORDER BY created_at')).rows;
+    assert.deepEqual(stored, [{ kind: 'phrase', ref: '12' }, { kind: 'face', ref: '14' }], '库里只存编号');
+  } finally { await ctx.close(); }
+});
+
+test('S4-AC2 S4-AC3 对方不在线也能收；登录后「消息」有未读，打开会话就清；30 天前的消息被清掉', async () => {
+  const ctx = await chatSetup();
+  try {
+    const a = await ctx.player('chat_unread_a', '阿甲'), b = await ctx.player('chat_unread_b', '阿乙');
+    await ctx.befriend(a, b);
+    for (const ref of [0, 13, 7]) assert.equal((await ctx.call('POST', '/api/social/messages', a.headers, { uid: b.uid, kind: ref === 7 ? 'face' : 'phrase', ref })).status, 200);
+    const pulse = (await ctx.call('GET', '/api/social/pulse', b.headers)).body;
+    assert.equal(pulse.unread, 3);
+    assert.deepEqual(pulse.unreadFrom, { [a.uid]: 3 });
+    const list = (await ctx.call('GET', '/api/social/conversations', b.headers)).body.conversations;
+    assert.equal(list.length, 1);
+    assert.equal(list[0].user.nickname, '阿甲'); assert.equal(list[0].unread, 3);
+    assert.deepEqual({ kind: list[0].last.kind, ref: list[0].last.ref, fromMe: list[0].last.fromMe }, { kind: 'face', ref: 7, fromMe: false });
+    const opened = (await ctx.call('GET', `/api/social/messages?uid=${a.uid}`, b.headers)).body;
+    assert.deepEqual(opened.messages.map((m: any) => [m.kind, m.ref, m.fromMe]), [['phrase', 0, false], ['phrase', 13, false], ['face', 7, false]]);
+    assert.equal(opened.user.status, 'offline');
+    assert.equal((await ctx.call('GET', '/api/social/pulse', b.headers)).body.unread, 0, '打开会话后已读');
+    assert.equal((await ctx.call('GET', `/api/social/messages?uid=${b.uid}`, a.headers)).body.messages.every((m: any) => m.fromMe), true);
+
+    await ctx.db.query("UPDATE friend_messages SET created_at=now() - interval '31 days' WHERE ref='0'");
+    assert.equal((await ctx.call('GET', `/api/social/messages?uid=${a.uid}`, b.headers)).body.messages.length, 2, '超期的不再显示');
+    await ctx.social.cleanup();
+    assert.equal((await ctx.db.query('SELECT COUNT(*)::int AS count FROM friend_messages')).rows[0]!.count, 2, '清理后库里也没了');
+  } finally { await ctx.close(); }
+});
+
+test('S4-AC4 S4-AC5 牌桌上邀请：只能邀请在线好友；空闲的弹窗、打牌中的不弹；同一好友 60 秒一次', async () => {
+  const ctx = await chatSetup();
+  try {
+    const a = await ctx.player('invite_a', '房主'), b = await ctx.player('invite_b'), c = await ctx.player('invite_c'), d = await ctx.player('invite_d'), e = await ctx.player('invite_e');
+    for (const other of [b, c, d]) await ctx.befriend(a, other);
+    assert.equal((await ctx.call('POST', '/api/social/invites', a.headers, { uid: b.uid })).body.error.code, 'TARGET_OFFLINE');
+    ctx.online(b, c, e);
+    assert.equal((await ctx.call('POST', '/api/social/invites', a.headers, { uid: b.uid })).body.error.code, 'INVITE_NEEDS_ROOM', '自己没在桌上不能邀请');
+    assert.equal((await ctx.call('POST', '/api/social/invites', a.headers, { uid: e.uid })).body.error.code, 'NOT_FRIENDS');
+    const { code } = await ctx.waitingRoom(a, 4);
+    const sent = await ctx.call('POST', '/api/social/invites', a.headers, { uid: b.uid });
+    assert.equal(sent.status, 200, JSON.stringify(sent.body));
+    const seconds = (new Date(sent.body.expiresAt).getTime() - new Date(sent.body.now).getTime()) / 1000;
+    assert.ok(seconds > 58 && seconds <= 60, `有效期 60 秒，实际 ${seconds}`);
+    const again = await ctx.call('POST', '/api/social/invites', a.headers, { uid: b.uid });
+    assert.equal(again.status, 429); assert.equal(again.body.error.code, 'INVITE_COOLDOWN');
+    assert.match(again.body.error.message, /秒后/);
+
+    const idle = (await ctx.call('GET', '/api/social/pulse', b.headers)).body;
+    assert.equal(idle.invites.length, 1);
+    assert.equal(idle.invites[0].popup, true, '空闲的弹窗');
+    assert.equal(idle.invites[0].from.nickname, '房主');
+    assert.deepEqual({ code: idle.invites[0].room.code, name: idle.invites[0].room.name, seated: idle.invites[0].room.seated, playerCount: idle.invites[0].room.playerCount },
+      { code, name: '新津斗十四', seated: 1, playerCount: 4 });
+    assert.equal(idle.unread, 1, '邀请卡也进「消息」');
+
+    // c 在另一桌打牌：不弹窗，只进「消息」。
+    const other = await ctx.waitingRoom(d, 2);
+    await ctx.db.query('INSERT INTO room_members(room_id,user_id,seat) VALUES($1,$2,2)', [other.roomId, c.id]);
+    await ctx.db.query("UPDATE rooms SET state='playing',current_round=1 WHERE id=$1", [other.roomId]);
+    const busySent = await ctx.call('POST', '/api/social/invites', a.headers, { uid: c.uid });
+    assert.equal(busySent.body.status, 'playing');
+    const busy = (await ctx.call('GET', '/api/social/pulse', c.headers)).body;
+    assert.equal(busy.invites[0].popup, false, '打牌中不弹窗');
+    const card = (await ctx.call('GET', `/api/social/messages?uid=${a.uid}`, c.headers)).body.messages.at(-1);
+    assert.equal(card.kind, 'invite'); assert.equal(card.invite.state, 'pending'); assert.equal(card.invite.room.code, code);
+
+    await ctx.setSettings({ inviteSeconds: 10 });
+    await ctx.db.query("UPDATE room_invites SET created_at=now() - interval '11 seconds',expires_at=now() - interval '1 second' WHERE to_id=$1", [b.id]);
+    assert.equal((await ctx.call('POST', '/api/social/invites', a.headers, { uid: b.uid })).status, 200, '间隔按后台秒数，过了就能再邀请');
+  } finally { await ctx.close(); }
+});
+
+test('S4-AC6 接受邀请再查一遍：拿到房号入座后卡片写已入座；拒绝、超时、桌满分别写原因', async () => {
+  const ctx = await chatSetup();
+  try {
+    const a = await ctx.player('accept_a'), b = await ctx.player('accept_b'), c = await ctx.player('accept_c'), d = await ctx.player('accept_d');
+    for (const other of [b, c, d]) await ctx.befriend(a, other);
+    ctx.online(b, c, d);
+    const { roomId, code } = await ctx.waitingRoom(a, 2);
+    const toB = (await ctx.call('POST', '/api/social/invites', a.headers, { uid: b.uid })).body.inviteId;
+    const toC = (await ctx.call('POST', '/api/social/invites', a.headers, { uid: c.uid })).body.inviteId;
+    const toD = (await ctx.call('POST', '/api/social/invites', a.headers, { uid: d.uid })).body.inviteId;
+    assert.equal((await ctx.call('POST', `/api/social/invites/${toB}/accept`, c.headers)).body.error.code, 'INVITE_NOT_FOUND', '不能替别人接受');
+
+    const accepted = await ctx.call('POST', `/api/social/invites/${toB}/accept`, b.headers);
+    assert.deepEqual({ ok: accepted.body.ok, code: accepted.body.code }, { ok: true, code });
+    await ctx.rooms.join({ id: b.id, username: 'accept_b', nickname: 'b', role: 'player' }, code);
+    const state = async (inviteId: string) => (await ctx.db.query('SELECT result FROM room_invites WHERE id=$1', [inviteId])).rows[0]!.result;
+    assert.equal(await state(toB), 'joined', '入座后写已入座');
+
+    const full = await ctx.call('POST', `/api/social/invites/${toC}/accept`, c.headers);
+    assert.deepEqual(full.body, { ok: false, result: 'full' }, '两人桌已满');
+    assert.equal((await ctx.call('POST', `/api/social/invites/${toC}/accept`, c.headers)).body.error.code, 'INVITE_HANDLED');
+
+    await ctx.db.query('DELETE FROM room_members WHERE room_id=$1 AND user_id=$2', [roomId, b.id]);
+    await ctx.db.query("UPDATE room_invites SET expires_at=now() - interval '1 second' WHERE id=$1", [toD]);
+    assert.deepEqual((await ctx.call('POST', `/api/social/invites/${toD}/accept`, d.headers)).body, { ok: false, result: 'expired' });
+
+    const toD2 = await ctx.db.query("INSERT INTO room_invites(id,from_id,to_id,room_id,expires_at) VALUES($1,$2,$3,$4,now() + interval '60 seconds') RETURNING id", [randomUUID(), a.id, d.id, roomId]);
+    const rejected = await ctx.call('POST', `/api/social/invites/${toD2.rows[0]!.id}/reject`, d.headers);
+    assert.equal(rejected.status, 200);
+    assert.equal(await state(toD2.rows[0]!.id), 'rejected');
+    const cards = (await ctx.call('GET', `/api/social/messages?uid=${c.uid}`, a.headers)).body.messages;
+    assert.equal(cards[0].invite.state, 'full', '发邀请的人看到桌已满');
+    assert.equal((await ctx.call('GET', '/api/social/pulse', d.headers)).body.invites.length, 0, '处理过的不再弹');
+  } finally { await ctx.close(); }
+});

@@ -77,7 +77,7 @@ export async function createApp(db: Database, options: {
   app.addHook('onReady', async () => { scheduler?.start(); if (scheduler) { lobby.start(); social.start(); } });
   const live = new Map<string, Set<WebSocket>>();
   const isOnline = (userId: string) => Boolean(live.get(userId)?.size);
-  const social = new SocialService(db, settings, { isOnline });
+  const social = new SocialService(db, settings, { isOnline, thresholdFor: (sql, room) => rooms.thresholdFor(sql, room) });
   const markOnline = (userId: string, socket: WebSocket) => {
     const connections = live.get(userId) ?? new Set<WebSocket>();
     requireCondition(connections.size < 5, 'TOO_MANY_CONNECTIONS', 'Too many sessions for this account.', 429);
@@ -312,6 +312,28 @@ export async function createApp(db: Database, options: {
     return social.decide(user.id, idSchema.parse((request.params as any).id), accept);
   });
   app.get('/api/social/recent', { config: perToken }, async request => social.recent((await actor(request, 'player')).id));
+  // 第二轮 S4：私聊只收编号；带文字一律拒（S4-AC1）。
+  app.post('/api/social/messages', { config: perToken }, async request => {
+    const user = await actor(request, 'player');
+    const body = (request.body ?? {}) as Record<string, unknown>;
+    if (['text', 'message', 'content'].some(key => key in body)) throw new AppError('TEXT_NOT_ALLOWED', '私聊只能发常用语和表情，不能打字。', 400);
+    const input = z.object({ uid: z.string().regex(/^\d{1,10}$/), kind: z.enum(['phrase', 'face']), ref: z.number().int().min(0).max(99) }).strict().parse(body);
+    return social.send(user.id, input.uid, input.kind, input.ref);
+  });
+  app.get('/api/social/messages', { config: perToken }, async request => {
+    const user = await actor(request, 'player');
+    const input = z.object({ uid: z.string().regex(/^\d{1,10}$/), before: z.string().datetime({ offset: true }).optional() }).strict().parse(request.query);
+    return social.messages(user.id, input.uid, input.before);
+  });
+  app.get('/api/social/conversations', { config: perToken }, async request => social.conversations((await actor(request, 'player')).id));
+  app.get('/api/social/pulse', { config: perToken }, async request => social.pulse((await actor(request, 'player')).id));
+  app.post('/api/social/invites', { config: perToken }, async request => {
+    const user = await actor(request, 'player');
+    const { uid } = z.object({ uid: z.string().regex(/^\d{1,10}$/) }).strict().parse(request.body);
+    return social.invite(user.id, uid);
+  });
+  app.post('/api/social/invites/:id/accept', { config: perToken }, async request => social.acceptInvite((await actor(request, 'player')).id, idSchema.parse((request.params as any).id)));
+  app.post('/api/social/invites/:id/reject', { config: perToken }, async request => social.rejectInvite((await actor(request, 'player')).id, idSchema.parse((request.params as any).id)));
   app.get('/api/records', async request => {
     const user = await actor(request, 'player');
     const { page } = pageSchema.parse(request.query);

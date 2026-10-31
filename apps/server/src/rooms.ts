@@ -147,6 +147,8 @@ export class RoomService extends EventEmitter {
       while (members.rows.some(m => m.seat === seat)) seat++;
       await tx.query('INSERT INTO room_members(room_id,user_id,seat) VALUES($1,$2,$3)', [room.id, actor.id, seat]);
       await tx.query('DELETE FROM dissolve_votes WHERE room_id=$1', [room.id]);
+      // 第二轮 S4-AC6：被邀请进这桌的，邀请卡写「已入座」。
+      await tx.query("UPDATE room_invites SET result='joined' WHERE to_id=$1 AND room_id=$2 AND result IS NULL", [actor.id, room.id]);
       return room.id as string;
     });
     this.emit('changed', id);
