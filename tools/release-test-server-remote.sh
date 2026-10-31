@@ -30,21 +30,34 @@ wait_health() {
   return 1
 }
 
-# 公网网关只放行白名单路径；大厅接口和头像图片是这次新加的（R1、R9）。
+# 公网网关只放行白名单路径。大厅接口和头像图片是 10-30 加的（R1、R9）；
+# 管理后台 10-31 起对公网开放（DEC-20261031-后台对公网开放）。每段各自判断，已补过的跳过。
 # 第二个参数为 check 时只检查不写。退出码 2 = 原文和预期不一致，什么都没改。
 patch_gateway() {
   node - "$1" "${2:-write}" <<'JS' || return
 const fs = require('node:fs');
 const [file, mode] = process.argv.slice(2);
-const before = String.raw`/^\/api\/(me|games|friends|records|rooms)(\/|$)/.test(pathname);`;
-const after = String.raw`/^\/api\/(me|games|friends|records|rooms|lobby)(\/|$)/.test(pathname) ||
-    pathname.startsWith('/media/avatars/');`;
-const text = fs.readFileSync(file, 'utf8');
-if (text.includes(after)) { console.log('网关白名单已含 /api/lobby/ 和 /media/avatars/'); process.exit(0); }
-if (text.split(before).length !== 2) { console.error('网关白名单和预期不一致，没有改动：' + file); process.exit(2); }
-if (mode === 'check') { console.log('网关白名单可以补上 /api/lobby/ 和 /media/avatars/'); process.exit(0); }
-fs.writeFileSync(file, text.replace(before, () => after));
-console.log('网关白名单已补上 /api/lobby/ 和 /media/avatars/');
+const steps = [
+  { label: '/api/lobby/ 和 /media/avatars/',
+    before: String.raw`/^\/api\/(me|games|friends|records|rooms)(\/|$)/.test(pathname);`,
+    after: String.raw`/^\/api\/(me|games|friends|records|rooms|lobby)(\/|$)/.test(pathname) ||
+    pathname.startsWith('/media/avatars/');` },
+  { label: '管理后台 /admin/ 和 /api/admin/',
+    before: String.raw`/^\/api\/auth\/(register|login|logout)$/.test(pathname) ||`,
+    after: String.raw`/^\/api\/auth\/(register|login|logout)$/.test(pathname) ||
+    pathname.startsWith('/admin/') || pathname.startsWith('/api/admin/') ||` },
+];
+let text = fs.readFileSync(file, 'utf8');
+const todo = [];
+for (const step of steps) {
+  if (text.includes(step.after)) { console.log('网关白名单已含 ' + step.label); continue; }
+  if (text.split(step.before).length !== 2) { console.error('网关白名单和预期不一致，没有改动（' + step.label + '）：' + file); process.exit(2); }
+  todo.push(step);
+}
+if (mode === 'check') { for (const step of todo) console.log('网关白名单可以补上 ' + step.label); process.exit(0); }
+for (const step of todo) text = text.replace(step.before, () => step.after);
+if (todo.length) fs.writeFileSync(file, text);
+for (const step of todo) console.log('网关白名单已补上 ' + step.label);
 JS
   if [ "${2:-write}" = write ]; then node --check "$1"; fi
 }
@@ -117,7 +130,8 @@ self_check() {
   check "大厅接口过网关（未登录应 401）" 401 "$(curl_code "${PUBLIC}/api/lobby/tables")"
   check "头像图片过网关（不存在应跳默认图 302）" 302 "$(curl_code "${PUBLIC}/media/avatars/none.jpg")"
   check "100KB 头像上传过 nginx（未登录应 401，不是 413）" 401 "$(head -c 102400 /dev/zero | curl_code -X POST -H 'Content-Type: image/jpeg' --data-binary @- "${PUBLIC}/api/me/avatar")"
-  check "管理后台不对公网开放" 404 "$(curl_code "${PUBLIC}/admin/")"
+  check "管理后台页面对公网开放" 200 "$(curl_code "${PUBLIC}/admin/")"
+  check "后台接口过网关（未登录应 401）" 401 "$(curl_code "${PUBLIC}/api/admin/me")"
   local apk; apk=$(curl_code -I "${PUBLIC}/doushisi.apk")
   if [ "${apk}" = 200 ]; then printf '  ok  安装包下载\n'; else printf '  ??  安装包下载返回 %s（不影响后端，换包用 --apk）\n' "${apk}"; fi
   [ "${fail}" = 0 ]
@@ -250,6 +264,39 @@ apk() {
   if [ -f "${bk}/doushisi.apk" ]; then echo "旧包在 ${bk}/doushisi.apk；要换回：cp -a ${bk}/doushisi.apk ${dest}"; fi
 }
 
+# 只补公网网关白名单，重启网关进程（doushisi-public，在线玩家会断线重连一次），游戏服务不停。
+# 网关没起来或自检不过，就换回原文件。
+gateway() {
+  local file=${APP}/${GATEWAY} bk=${BK}/gateway-${STAMP} fail=0
+  patch_gateway "${file}" check
+  say "备份网关到 ${bk}"
+  install -d -m 700 "${BK}" "${bk}"
+  cp -a "${file}" "${bk}/game-proxy.cjs"
+  patch_gateway "${file}"
+  say "重启网关"
+  systemctl restart doushisi-public
+  if wait_health http://127.0.0.1:3003/health 30; then
+    say "自检（经本机 nginx 走公网路径）"
+    for item in "健康检查|200|${PUBLIC}/health" "游戏页 /client/|200|${PUBLIC}/client/" \
+                "大厅接口（未登录应 401）|401|${PUBLIC}/api/lobby/tables" \
+                "管理后台页面|200|${PUBLIC}/admin/" "后台接口（未登录应 401）|401|${PUBLIC}/api/admin/me"; do
+      local name=${item%%|*} rest=${item#*|} code
+      code=$(curl_code "${rest#*|}")
+      if [ "${code}" = "${rest%%|*}" ]; then printf '  ok  %s\n' "${name}"; else printf '  !!  %s：期望 %s，实际 %s\n' "${name}" "${rest%%|*}" "${code}"; fail=1; fi
+    done
+  else
+    echo "  !!  网关 30 秒内没起来"; fail=1
+  fi
+  if [ "${fail}" = 1 ]; then
+    cp -a "${bk}/game-proxy.cjs" "${file}"
+    systemctl restart doushisi-public
+    wait_health http://127.0.0.1:3003/health 30 && echo "网关已换回原文件" || echo "网关换回后也没起来，请把上面的全部输出发给 Claude"
+    die "网关改动没生效，已换回"
+  fi
+  say "网关已更新：后台 ${PUBLIC}/admin/"
+  echo "原网关文件在 ${bk}/game-proxy.cjs；要换回：cp -a ${bk}/game-proxy.cjs ${file} && systemctl restart doushisi-public"
+}
+
 rollback() {
   local with_db=$1 prev=${R}/app.prev-${STAMP} bk=${BK}/${STAMP} now
   now=$(date -u +%Y%m%dT%H%M%SZ)
@@ -288,6 +335,7 @@ main() {
     check) check_only ;;
     release) STAMP=$1; shift; trap on_exit EXIT; release "$@" ;;
     apk) STAMP=$1; shift; apk "$@" ;;
+    gateway) STAMP=$1; shift; gateway ;;
     rollback) STAMP=$1; shift; rollback "$@" ;;
     *) die "未知模式：${mode}" ;;
   esac

@@ -3,6 +3,7 @@
 #   bash tools/release-test-server.sh --check                         只读预检：本机和服务器，不改任何东西
 #   bash tools/release-test-server.sh                                 发布后端：构建 → 上传 → 旁边预装 → 停服切换 → 自检，失败自动换回旧版
 #   bash tools/release-test-server.sh --apk <APK 文件>                 只换下载页的安装包
+#   bash tools/release-test-server.sh --gateway                       只补公网网关白名单（如开放后台），游戏服务不停
 #   bash tools/release-test-server.sh --rollback <批次号> [--with-db]  回到某次发布前；--with-db 连数据库一起，发布后的新数据会丢
 # 服务器上的步骤在 tools/release-test-server-remote.sh。Mac 自带 bash 3.2：变量后紧跟中文一律写成 ${VAR}。
 set -euo pipefail
@@ -31,7 +32,8 @@ while [ $# -gt 0 ]; do
     --apk) MODE=apk; APK=${2:-}; [ -n "${APK}" ] || die "--apk 后面要跟 APK 文件路径"; shift ;;
     --rollback) MODE=rollback; ROLLBACK=${2:-}; [ -n "${ROLLBACK}" ] || die "--rollback 后面要跟批次号"; shift ;;
     --with-db) WITH_DB=1 ;;
-    -h|--help) sed -n '2,7p' "$0"; exit 0 ;;
+    --gateway) MODE=gateway ;;
+    -h|--help) sed -n '2,8p' "$0"; exit 0 ;;
     *) die "不认识的参数：$1" ;;
   esac
   shift
@@ -58,6 +60,10 @@ case "${MODE}" in
     say "上传安装包（$(du -h "${APK}" | cut -f1)）"
     upload "${APK}" /var/lib/doushisi/downloads/doushisi.apk.upload
     remote apk "${STAMP}" "${SHA}"
+    ;;
+
+  gateway)
+    remote gateway "${STAMP}"
     ;;
 
   rollback)
