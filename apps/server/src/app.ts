@@ -21,7 +21,7 @@ import { registerOriginalProtocol } from './original-wire.js';
 import { ProfileService } from './profile.js';
 import { LobbyService } from './lobby.js';
 import { SettingsService } from './settings.js';
-import { SocialService } from './social.js';
+import { FRIEND_NOTE_COUNT, SocialService } from './social.js';
 import { StatsService } from './stats.js';
 import { AVATAR_CONTENT_TYPES, AVATAR_ROUTE, DEFAULT_AVATAR_URL, MAX_AVATAR_UPLOAD, avatarUrl, parseAvatarFile } from './avatars.js';
 
@@ -306,8 +306,9 @@ export async function createApp(db: Database, options: {
   app.get('/api/social/requests', { config: perToken }, async request => social.requests((await actor(request, 'player')).id));
   app.post('/api/social/requests', { config: perToken }, async request => {
     const user = await actor(request, 'player');
-    const input = z.object({ uid: z.string().regex(/^\d{1,10}$/), source: z.enum(['search', 'recent']).default('search') }).strict().parse(request.body);
-    return social.request(user.id, input.uid, input.source);
+    const input = z.object({ uid: z.string().regex(/^\d{1,10}$/), source: z.enum(['search', 'recent']).default('search'),
+      note: z.number().int().min(0).max(FRIEND_NOTE_COUNT - 1).nullable().default(null) }).strict().parse(request.body);
+    return social.request(user.id, input.uid, input.source, input.note);
   });
   app.post('/api/social/requests/:id/decide', { config: perToken }, async request => {
     const user = await actor(request, 'player');

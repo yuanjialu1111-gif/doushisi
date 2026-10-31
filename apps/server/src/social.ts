@@ -12,6 +12,8 @@ export const RECENT_LIMIT = 30;
 // 第二轮 S4：私聊只发编号。常用语 0–11 是原版牌桌那 12 句，12–17 是约局用语；表情 0–14 是原版牌桌 15 个。
 export const PHRASE_COUNT = 18;
 export const FACE_COUNT = 15;
+// 待确认 16：好友申请附言 0–3，文字在接入层（「一起打牌认识的」等），这里只认编号。
+export const FRIEND_NOTE_COUNT = 4;
 export const MESSAGES_PER_MINUTE = 30;
 export const MESSAGE_PAGE = 50;
 export type InviteResult = 'joined' | 'rejected' | 'expired' | 'full';
@@ -105,7 +107,7 @@ export class SocialService {
   }
 
   /** 发申请（S3-AC2、S3-AC3）。对方已经申请过我，就直接成为好友。 */
-  async request(userId: string, uid: string, source: 'search' | 'recent') {
+  async request(userId: string, uid: string, source: 'search' | 'recent', note: number | null = null) {
     const settings = await this.settings.get();
     await this.cleanup();
     const target = await this.userByUid(uid);
@@ -123,7 +125,7 @@ export class SocialService {
       [userId, target!.id, settings.rejectCooldownHours])).rows[0];
     requireCondition(!rejected, 'REJECT_COOLDOWN', `对方刚拒绝过你，${settings.rejectCooldownHours} 小时后才能再申请。`, 409);
     const id = randomUUID();
-    await this.db.query('INSERT INTO friend_requests(id,from_id,to_id,source) VALUES($1,$2,$3,$4)', [id, userId, target!.id, source]);
+    await this.db.query('INSERT INTO friend_requests(id,from_id,to_id,source,note) VALUES($1,$2,$3,$4,$5)', [id, userId, target!.id, source, note]);
     return { ok: true, requestId: id, autoAccepted: false };
   }
 
@@ -159,7 +161,7 @@ export class SocialService {
   async requests(userId: string) {
     const { friendRequestExpiryDays } = await this.settings.get();
     await this.cleanup();
-    const incoming = await this.db.query(`SELECT q.id AS "requestId",q.created_at AS "createdAt",q.source,${USER_COLUMNS},p.wire_id AS uid FROM friend_requests q
+    const incoming = await this.db.query(`SELECT q.id AS "requestId",q.created_at AS "createdAt",q.source,q.note,${USER_COLUMNS},p.wire_id AS uid FROM friend_requests q
       JOIN accounts a ON a.id=q.from_id LEFT JOIN original_protocol_ids p ON p.entity_kind='user' AND p.entity_id=a.id
       WHERE q.to_id=$1 AND q.status='pending' ORDER BY q.created_at DESC LIMIT 100`, [userId]);
     const outgoing = await this.db.query(`SELECT q.id AS "requestId",q.created_at AS "createdAt",q.status,q.decided_at AS "decidedAt",${USER_COLUMNS},p.wire_id AS uid FROM friend_requests q
@@ -167,7 +169,7 @@ export class SocialService {
       WHERE q.from_id=$1 AND q.created_at > now() - make_interval(days => $2) ORDER BY q.created_at DESC LIMIT 100`, [userId, friendRequestExpiryDays]);
     const withUid = async (row: Record<string, any>) => ({ ...row, uid: row.uid ?? await this.publicId(row.id) });
     return {
-      incoming: await Promise.all(incoming.rows.map(async row => ({ id: row.requestId, createdAt: row.createdAt, source: row.source, user: this.card(await withUid(row)) }))),
+      incoming: await Promise.all(incoming.rows.map(async row => ({ id: row.requestId, createdAt: row.createdAt, source: row.source, note: row.note, user: this.card(await withUid(row)) }))),
       outgoing: await Promise.all(outgoing.rows.map(async row => ({ id: row.requestId, createdAt: row.createdAt, status: row.status, decidedAt: row.decidedAt, user: this.card(await withUid(row)) }))),
     };
   }

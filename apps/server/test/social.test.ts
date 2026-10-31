@@ -109,6 +109,22 @@ test('S3-AC2 申请要对方同意才成好友；拒绝后 24 小时内不能再
   } finally { await ctx.close(); }
 });
 
+test('待确认 16 好友申请可带一句固定附言（只认编号 0–3），收到的申请里带回编号；不带为空', async () => {
+  const ctx = await setup();
+  try {
+    const a = await ctx.player('social_note_a');
+    const b = await ctx.player('social_note_b');
+    const c = await ctx.player('social_note_c');
+    assert.equal((await ctx.call('POST', '/api/social/requests', a.headers, { uid: b.uid, note: 4 })).status, 400, '超出固定附言的编号');
+    assert.equal((await ctx.call('POST', '/api/social/requests', a.headers, { uid: b.uid, note: '想约你打牌' })).status, 400, '不收自由文字');
+    assert.equal((await ctx.call('POST', '/api/social/requests', a.headers, { uid: b.uid, note: 1 })).status, 200);
+    assert.equal((await ctx.call('POST', '/api/social/requests', c.headers, { uid: b.uid })).status, 200);
+    const incoming = (await ctx.call('GET', '/api/social/requests', b.headers)).body.incoming;
+    assert.equal(incoming.find((r: any) => r.user.uid === a.uid).note, 1);
+    assert.equal(incoming.find((r: any) => r.user.uid === c.uid).note, null);
+  } finally { await ctx.close(); }
+});
+
 test('S3-AC3 好友上限、每天申请数、每分钟搜索次数都按后台参数拦住', async () => {
   const ctx = await setup();
   try {

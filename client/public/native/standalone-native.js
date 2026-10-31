@@ -1670,6 +1670,8 @@
   // 对外只用数字 ID，数据都走 /api/social/；窗口显示时每 5 秒刷新一次。
   var FRIEND_STATUS = { idle: ['在线 · 空闲', '#4be08a'], playing: ['游戏中', '#ffb547'], offline: ['离线', '#b8c2d6'] };
   var FRIEND_SOURCE = { search: '搜索添加', recent: '最近同桌', table: '同桌对局' };
+  // 待确认 16：好友申请附言只能从这 4 句里选（服务端只收编号 0–3），也可以不带。
+  var FRIEND_NOTES = ['一起打牌认识的', '想约你打牌', '牌友，加一下', '以后常一起玩'];
   var FRIEND_REQUEST_STATE = { pending: ['等对方同意', '#ffb547'], accepted: ['已同意 · 已成为好友', '#4be08a'], rejected: ['对方已拒绝', '#b8c2d6'], expired: ['已过期', '#b8c2d6'] };
   var FRIEND_CARD_HEIGHT = 92, FRIEND_ROW_HEIGHT = 78, FRIEND_GAP = 12;
   var FRIEND_BUTTONS = { yellow: ['#d98a00', '#ffc72c', '#ffe27a', '#7a3a00'], orange: ['#d9560b', '#ff8a1f', '#ffb15c', '#ffffff'],
@@ -1976,9 +1978,11 @@
     var height = FRIEND_ROW_HEIGHT, row = new cc.Node('standaloneFriendRequest');
     row.setContentSize(width, height);
     friendGlass(row, width, height);
-    var who = friendIdentity(row, request.user, -width / 2 + 16, 52, 14, 20);
+    var note = incoming && FRIEND_NOTES[request.note];
+    var who = friendIdentity(row, request.user, -width / 2 + 16, 52, note ? 22 : 14, 20);
     var how = incoming ? (request.source === 'recent' ? '最近同桌' : '通过 ID 搜到你') + ' · ' + friendAgo(request.createdAt) : friendAgo(request.createdAt) + ' 发出';
-    lobbyLabel(row, 'ID ' + request.user.uid + ' · ' + how, who.textX, -15, 15, rgb('#c9d4ee'), 0, false);
+    lobbyLabel(row, 'ID ' + request.user.uid + ' · ' + how, who.textX, note ? -1 : -15, 15, rgb('#c9d4ee'), 0, false);
+    if (note) lobbyLabel(row, '附言：' + note, who.textX, -23, 15, rgb('#ffd27a'), 0, false);
     if (incoming) {
       friendButton(row, '拒绝', width / 2 - 16 - 96 - 12 - 48, 2, 96, 44, 'grey', function () { friendDecide(controller, request, false); }, controller);
       friendButton(row, '同意', width / 2 - 16 - 48, 2, 96, 44, 'green', function () { friendDecide(controller, request, true); }, controller);
@@ -2002,8 +2006,35 @@
       friendsRefresh(controller, true);
     }, function (error) { friends.deciding = false; toast(error.message); friendsRefresh(controller, true); });
   }
-  function friendApply(controller, uid, source, done) {
-    apiRequest('POST', '/api/social/requests', { uid: String(uid), source: source }).then(function (result) {
+  // 申请前先选一句附言（或不带），选完才发。
+  function pickFriendNote(controller, done) {
+    var host = controller.node, layer = new cc.Node('standaloneFriendNote');
+    layer.setContentSize(host.width, host.height); host.addChild(layer);
+    layer.addComponent(cc.BlockInputEvents);
+    var dim = lobbyPen(layer, 'dim');
+    dim.fillColor = cc.color(10, 20, 40, 120); dim.rect(-host.width / 2, -host.height / 2, host.width, host.height); dim.fill();
+    var width = 420, height = 96 + FRIEND_NOTES.length * 62 + 72, half = height / 2;
+    var panel = lobbyPen(layer, 'panel');
+    panel.node.setContentSize(width, height);
+    fillRound(panel, -width / 2, -half - 6, width, height, 22, cc.color(20, 30, 70, 90));
+    fillRound(panel, -width / 2, -half, width, height, 22, rgb('#fff8ea'));
+    strokeRound(panel, -width / 2, -half, width, height, 22, rgb('#f3d9a6'), 2);
+    lobbyLabel(panel.node, '选一句附言', 0, half - 38, 26, rgb('#8a5a1a'), 0.5, true);
+    function pick(note) { layer.destroy(); done(note); }
+    FRIEND_NOTES.forEach(function (text, index) {
+      friendButton(panel.node, text, 0, half - 96 - index * 62, 300, 50, 'yellow', function () { pick(index); }, controller);
+    });
+    friendButton(panel.node, '不带附言', -78, -half + 44, 140, 46, 'grey', function () { pick(null); }, controller);
+    friendButton(panel.node, '取消', 78, -half + 44, 140, 46, 'grey', function () { layer.destroy(); }, controller);
+    panel.node.scale = 0.92; panel.node.opacity = 0;
+    cc.tween(panel.node).to(0.14, { scale: 1, opacity: 255 }).start();
+  }
+  function friendApply(controller, uid, source, done, incoming) {
+    if (incoming) return sendFriendApply(controller, uid, source, null, done);
+    pickFriendNote(controller, function (note) { sendFriendApply(controller, uid, source, note, done); });
+  }
+  function sendFriendApply(controller, uid, source, note, done) {
+    apiRequest('POST', '/api/social/requests', { uid: String(uid), source: source, note: note }).then(function (result) {
       toast(result.autoAccepted ? '对方也申请过你，你们已经是好友了' : '申请已发出，等对方同意');
       friendsRefresh(controller, true);
       if (done) done(result);
@@ -2796,7 +2827,7 @@
       friendApply(controller, user.uid, 'search', function (result) {
         user.isFriend = !!result.autoAccepted; user.requested = !result.autoAccepted; user.incoming = false;
         showFriendResult(controller, { user: user });
-      });
+      }, user.incoming);
     }, controller);
   }
   function loadFriendRecent(controller) {
@@ -2836,7 +2867,7 @@
             friendApply(controller, player.uid, 'recent', function (result) {
               if (result.autoAccepted) return loadFriendRecent(controller);
               player.requested = true; draw();
-            });
+            }, player.incoming);
           }, controller).node;
       }
       draw();
