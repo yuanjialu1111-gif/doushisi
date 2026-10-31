@@ -22,6 +22,7 @@ import { ProfileService } from './profile.js';
 import { LobbyService } from './lobby.js';
 import { SettingsService } from './settings.js';
 import { SocialService } from './social.js';
+import { StatsService } from './stats.js';
 import { AVATAR_CONTENT_TYPES, AVATAR_ROUTE, DEFAULT_AVATAR_URL, MAX_AVATAR_UPLOAD, avatarUrl, parseAvatarFile } from './avatars.js';
 
 const credentials = z.object({ username: z.string().min(4).max(32), password: z.string().min(8).max(128) }).strict();
@@ -67,6 +68,8 @@ export async function createApp(db: Database, options: {
   const replays = new ReplayService(db, rooms.engines);
   const profiles = new ProfileService(db);
   const settings = new SettingsService(db);
+  const stats = new StatsService(db, settings);
+  rooms.afterSettle = async (tx, userIds) => { for (const userId of userIds) await stats.lightMedals(userId, tx); };
   const requireProfile = async (userId: string) => { if (options.profileRequired) await profiles.requireComplete(userId); };
   const scheduler = options.scheduler === false ? null : new RoomScheduler(rooms, {
     ...options.scheduler, onError: (error, roomId) => app.log.error({ err: error, roomId }, 'Room scheduler operation failed'),
@@ -326,6 +329,7 @@ export async function createApp(db: Database, options: {
     return social.messages(user.id, input.uid, input.before);
   });
   app.get('/api/social/conversations', { config: perToken }, async request => social.conversations((await actor(request, 'player')).id));
+  app.get('/api/me/profile-stats', { config: perToken }, async request => stats.profile((await actor(request, 'player')).id));
   app.get('/api/social/pulse', { config: perToken }, async request => social.pulse((await actor(request, 'player')).id));
   app.post('/api/social/invites', { config: perToken }, async request => {
     const user = await actor(request, 'player');
@@ -394,7 +398,7 @@ export async function createApp(db: Database, options: {
       }).catch(error => { if (socket.readyState === 1) socket.send(JSON.stringify({ type: 'error', code: error instanceof AppError ? error.code : 'INVALID_MESSAGE' })); socket.close(1008, 'Message rejected'); });
     });
   });
-  await registerOriginalProtocol(app, { db, auth, ledger, policies, rooms, replays, markOnline, profiles, profileRequired: options.profileRequired === true });
+  await registerOriginalProtocol(app, { db, auth, ledger, policies, rooms, replays, markOnline, profiles, stats, profileRequired: options.profileRequired === true });
   if (options.staticFiles !== false) {
     const adminDist = fileURLToPath(new URL('../../admin/dist/', import.meta.url));
     if (existsSync(adminDist)) await app.register(fastifyStatic, { root: adminDist, prefix: '/admin/', decorateReply: false });
@@ -406,5 +410,5 @@ export async function createApp(db: Database, options: {
     await scheduler?.stop(); await lobby.stop(); social.stop();
     for (const sockets of live.values()) for (const socket of sockets) socket.close(1001, 'Server restarting');
   });
-  return { app, auth, ledger, policies, rooms, replays, profiles, lobby, settings, social, live, scheduler };
+  return { app, auth, ledger, policies, rooms, replays, profiles, lobby, settings, social, stats, live, scheduler };
 }

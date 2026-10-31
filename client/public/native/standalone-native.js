@@ -938,14 +938,95 @@
   }
   // 个人信息页：周卡和实名认证两行换成「换头像」「改昵称」（R8）。
   function patchPersonWindow(person) {
-    if (!person.views || !person.views.bg || person._standaloneProfileEntries) return;
+    if (!person.views || !person.views.bg) return;
+    // 原版窗口 1100 宽、关闭键再往外 30：4:3 屏放不下会裁掉关闭键，窄屏时整体缩到放得下。
+    var room = cc.Canvas.instance ? cc.Canvas.instance.node.width : 1334;
+    person.views.bg.scale = Math.min(1, (room - 24) / 1112);
+    refreshPersonStats(person);
+    if (person._standaloneProfileEntries) return;
     person._standaloneProfileEntries = true;
-    hide(person.views, ['bg/doushisi-gerenzhongxin-pic-zhouka', 'bg/timelabel', 'bg/tubiao', 'bg/btn_shouquan', 'bg/yirenzheng']);
+    hide(person.views, ['bg/doushisi-gerenzhongxin-pic-zhouka', 'bg/timelabel', 'bg/tubiao', 'bg/btn_shouquan', 'bg/yirenzheng',
+      'bg/doushisi-geren-icon-dashi', 'bg/doushisi-gerenzhongxin-pic-touxiangkuang', 'bg/scrollview/view', 'bg/scrollview/doushisi-gerenzhongxin-pic-jiantou']);
+    var frames = person.views['bg/scrollview'] && person.views['bg/scrollview'].getComponent(cc.ScrollView);
+    if (frames) frames.enabled = false;
     withProfileKit(function (kit) {
       if (!cc.isValid(person.node)) return;
       kitButton(kit, person.views.bg, '换头像', -407, -139, function () { openProfilePanel('avatar'); });
       kitButton(kit, person.views.bg, '改昵称', -407, -232, changeNickname);
     });
+  }
+
+  // 第二轮 S6：真实战绩和勋章。头像框一栏换成原版「成就墙」，6 个勋章按条件点亮，没亮的变灰带进度；
+  // 等级圆圈里摆最高的一枚已点亮勋章。勋章图是原版 resources 里的贴图（没有路径，按 uuid 取）。
+  var MEDAL_ART = {
+    qiantu: '913f86ab-c3df-4604-b249-b3e1a082684d', baisheng: '2c38674a-95b5-4989-9f9b-7a8a4f226c52',
+    qiansheng: '0591f2bb-405b-4dfa-b934-830eff1f5556', fujia: '67d02c81-a993-4246-ba54-cfac3304edda',
+    baiwan: '5c7d2f14-5094-4d73-8d7e-c41f2125cfb0', qianwan: '2e550078-18db-4bdf-8e4f-b8900b72e659',
+    wall: '41897e62-0be0-4fcf-9cde-7e9679566657'
+  };
+  var medalFrames = {};
+  function medalSprite(parent, key, x, y, scale, gray) {
+    var node = new cc.Node('medal-' + key), sprite = node.addComponent(cc.Sprite);
+    node.setPosition(x, y); node.scale = scale; parent.addChild(node);
+    if (gray) sprite.setMaterial(0, cc.Material.getBuiltinMaterial('2d-gray-sprite'));
+    function apply(frame) { if (cc.isValid(node)) sprite.spriteFrame = frame; }
+    if (medalFrames[key]) apply(medalFrames[key]);
+    else cc.assetManager.loadAny({ uuid: MEDAL_ART[key], bundle: 'resources' }, function (error, frame) {
+      if (error) return;
+      medalFrames[key] = frame; apply(frame);
+    });
+    return node;
+  }
+  function lockBadge(parent, x, y) {
+    var pen = lobbyPen(parent, 'lock', x, y);
+    pen.fillColor = rgb('#6a7890'); pen.circle(0, 0, 14); pen.fill();
+    pen.lineWidth = 3; pen.strokeColor = rgb('#dce9f8'); pen.circle(0, 0, 14); pen.stroke();
+    fillRound(pen, -6, -7, 12, 9, 2, cc.Color.WHITE);
+    pen.lineWidth = 2.5; pen.strokeColor = cc.Color.WHITE; pen.arc(0, 2, 4, 0, Math.PI, true); pen.stroke();
+  }
+  function medalColumn(parent, medal, x) {
+    medalSprite(parent, medal.key, x, 36, 0.6, !medal.lit);
+    if (!medal.lit) lockBadge(parent, x + 30, 10);
+    lobbyLabel(parent, medal.name, x, -16, 20, rgb('#3a5a8a'), 0.5, true);
+    if (medal.lit) return lobbyLabel(parent, '已点亮', x, -46, 17, rgb('#25a55a'), 0.5, true);
+    var pen = lobbyPen(parent, 'progress', x, -40), ratio = Math.max(0, Math.min(1, medal.value / medal.need));
+    fillRound(pen, -50, -5, 100, 10, 5, rgb('#c3d4ea'));
+    if (ratio > 0) fillRound(pen, -50, -5, Math.max(10, 100 * ratio), 10, 5, rgb('#ff8a1e'));
+    lobbyLabel(parent, medal.hint, x, -60, 15, rgb('#6a86ad'), 0.5);
+  }
+  function paintMedals(person, view) {
+    var bg = person.views.bg;
+    ['standalone-medal-wall', 'standalone-medal-head', 'standalone-medal-best'].forEach(function (name) {
+      var old = bg.getChildByName(name) || (person.views['bg/scrollview'] && person.views['bg/scrollview'].getChildByName(name));
+      if (old) old.destroy();
+    });
+    var head = new cc.Node('standalone-medal-head'); head.setPosition(-149, 60); bg.addChild(head);
+    medalSprite(head, 'wall', 0, 0, 1, false);
+    lobbyLabel(head, '已点亮 ' + view.lit + ' / ' + view.medals.length, 20, -2, 18, rgb('#6a86ad'), 0, true);
+    var row = new cc.Node('standalone-medal-wall');
+    (person.views['bg/scrollview'] || bg).addChild(row);
+    view.medals.forEach(function (medal, index) { medalColumn(row, medal, -312 + index * 125); });
+    var best = null;
+    view.medals.forEach(function (medal) { if (medal.lit) best = medal; });
+    var showcase = new cc.Node('standalone-medal-best'); showcase.setPosition(-84, 193); bg.addChild(showcase);
+    medalSprite(showcase, best ? best.key : 'qiantu', 0, 14, 1.05, !best);
+    var tag = lobbyPen(showcase, 'tag', 0, -62), text = lobbyLabel(tag.node, best ? best.name : '还没有勋章', 0, 0, 18, cc.Color.WHITE, 0.5, true);
+    var half = labelWidth(text) / 2 + 13;
+    fillRound(tag, -half, -13, half * 2, 26, 13, best ? rgb('#e8434a') : rgb('#8a98b0'));
+  }
+  function refreshPersonStats(person) {
+    if (person._standaloneStatsBusy) return;
+    person._standaloneStatsBusy = true;
+    apiRequest('GET', '/api/me/profile-stats').then(function (view) {
+      person._standaloneStatsBusy = false;
+      if (!cc.isValid(person.node) || !person.views) return;
+      var model = cc.mm.framemodel;
+      model.gameNum = view.rounds; model.winNum = view.wins; model.winRate = view.winRate;
+      [['bg/buttom/countlabel', view.rounds], ['bg/buttom/winlabel', view.wins], ['bg/buttom/gailvlabel', view.winRate]].forEach(function (entry) {
+        if (person.views[entry[0]]) person.views[entry[0]].getComponent(cc.Label).string = String(entry[1]);
+      });
+      paintMedals(person, view);
+    }, function () { person._standaloneStatsBusy = false; });
   }
 
   // 位置只用来给大厅「附近」排档位（R10）：放在请求体里发，服务端只存在内存里；拿不到就不发，大厅照常用。

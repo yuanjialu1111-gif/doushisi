@@ -28,6 +28,8 @@ export interface DissolveState {
 
 export class RoomService extends EventEmitter {
   constructor(private db: Database, public engines: EngineRegistry, private policies: PolicyService, private now: () => number = Date.now) { super(); }
+  /** 第二轮 S6：每局结算后（同一个事务里）检查勋章，由 app 接上。 */
+  afterSettle?: (tx: Sql, userIds: string[]) => Promise<void>;
 
   games() { return catalogue.map(variant => ({ ...variant, defaults: getDefaultOptions(variant.key), fields: getRoomSpec(variant.key).fields, playable: this.engines.has(variant.key) })); }
 
@@ -493,6 +495,7 @@ export class RoomService extends EventEmitter {
     await tx.query("UPDATE rounds SET state='settled',results=$2,settled_at=now(),end_reason=$3,next_action_at=NULL WHERE id=$1", [roundId, JSON.stringify(postings), endReason]);
     const closed = endReason === 'dissolved' || room.current_round >= room.rounds;
     await tx.query('UPDATE rooms SET state=$2,closed_at=CASE WHEN $3 THEN now() ELSE NULL END WHERE id=$1', [room.id, closed ? 'closed' : 'between_rounds', closed]);
+    await this.afterSettle?.(tx, ids);
     return balanceChanges(operation, operationSpec);
   }
 

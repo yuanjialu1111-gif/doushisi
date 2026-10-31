@@ -14,6 +14,7 @@ import { Decimal, money } from './money.js';
 import { ReplayService } from './replays.js';
 import { avatarUrl, wireSex } from './avatars.js';
 import type { ProfileService } from './profile.js';
+import type { StatsService } from './stats.js';
 
 export const ORIGINAL_WIRE_VERSION = 2;
 export const ORIGINAL_EXTENSION_FIELD = 60000;
@@ -81,6 +82,7 @@ export interface OriginalProtocolServices {
   rooms: RoomService;
   replays?: ReplayService;
   profiles?: ProfileService;
+  stats?: StatsService;
   profileRequired?: boolean;
   markOnline(userId: string, socket: WebSocket): void;
 }
@@ -485,7 +487,7 @@ export async function registerOriginalProtocol(app: FastifyInstance, services: O
       const look = (await db.query('SELECT avatar_hash AS "avatarHash",avatar_status AS "avatarStatus",sex FROM accounts WHERE id=$1', [actor.id])).rows[0] ?? {};
       const reply: Record<string, any> = { state: true, uid, token, nick: actor.nickname, picUrl: avatarUrl({ id: actor.id, ...look }), sex: wireSex(look.sex),
         tableId: room ? Number(room.code) : 0, posType: 0, areaType: ids, ...connection.region,
-        mustUpdate: false, isShowSmrz: false, isSmrz: false, winRate: '0%', headType: 0,
+        mustUpdate: false, isShowSmrz: false, isSmrz: false, winRate: (await services.stats?.lightMedals(actor.id))?.stats.winRate ?? '0%', headType: 0,
         showShouchong: false, showMonthcard: false, showYuandan: false, showChunjie: false, showZhaohuiHyhg: false,
       };
       const decimals: DecimalField[] = [];
@@ -677,7 +679,10 @@ export async function registerOriginalProtocol(app: FastifyInstance, services: O
         case MSGEvent.HWRequestHeadInfo: {
           const requested = body.uid && body.uid !== connection.uid ? (await db.query("SELECT a.id,a.nickname,a.avatar_hash AS \"avatarHash\",a.avatar_status AS \"avatarStatus\" FROM original_protocol_ids p JOIN accounts a ON a.id=p.entity_id WHERE p.entity_kind='user' AND p.wire_id=$1 AND EXISTS(SELECT 1 FROM room_members m JOIN room_members mine ON mine.room_id=m.room_id WHERE m.user_id=a.id AND mine.user_id=$2)", [Number(body.uid), actor.id])).rows[0] : (await db.query('SELECT id,nickname,avatar_hash AS "avatarHash",avatar_status AS "avatarStatus" FROM accounts WHERE id=$1', [actor.id])).rows[0];
           requireCondition(requested, 'USER_NOT_FOUND', 'User not found.', 404);
-          const reply: Record<string, any> = { result: 1, uid: await numericUid(requested.id), nick: requested.nickname, picUrl: avatarUrl(requested), headList: [], headType: 0, winRate: '0%' };
+          // 第二轮 S6-AC1：个人资料的对局数、总胜局、胜率走原协议这三个字段，原版界面直接显示。
+          const played = await services.stats?.stats(requested.id) ?? { rounds: 0, wins: 0, winRate: '0%' };
+          const reply: Record<string, any> = { result: 1, uid: await numericUid(requested.id), nick: requested.nickname, picUrl: avatarUrl(requested), headList: [], headType: 0,
+            gameNum: played.rounds, winNum: played.wins, winRate: played.winRate };
           const fields: DecimalField[] = [];
           if (requested.id === actor.id) exactField(reply, 'goldNum', await ledger.balance(actor.id), ['hwResponseHeadInfo'], fields);
           connection.send(MSGEvent.HWResponseHeadInfo, reply, fields); return;

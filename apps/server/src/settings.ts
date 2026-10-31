@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import type { Database } from './database.js';
+import type { Database, Sql } from './database.js';
 import { requireRole, type Actor } from './auth.js';
 import { requireCondition } from './errors.js';
 
@@ -30,10 +30,11 @@ export class SettingsService {
   private cache: Settings | null = null;
   constructor(private db: Database) {}
 
-  async get(): Promise<Settings> {
+  /** 在事务里调要把 tx 传进来（PGlite 只有一个连接，事务里再走 db 会卡死）。 */
+  async get(sql: Sql = this.db): Promise<Settings> {
     if (this.cache) return this.cache;
     const values = defaultSettings();
-    for (const row of (await this.db.query('SELECT key,value FROM app_settings')).rows) {
+    for (const row of (await sql.query('SELECT key,value FROM app_settings')).rows) {
       const key = row.key as SettingKey;
       // 删掉或改过范围的旧键不影响启动：认不出或越界就用默认值。
       if (key in SETTING_DEFS && valid(key, row.value)) values[key] = row.value as number;
