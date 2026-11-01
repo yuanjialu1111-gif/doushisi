@@ -1,4 +1,4 @@
-import { XINJIN_INDEPENDENT_FANS, XINJIN_INDEPENDENT_VERSION, XINJIN_SCORING_V2, XINJIN_V2_MAX_FAN, xinjinRedGate } from '@dss/rules';
+import { XINJIN_INDEPENDENT_FANS, XINJIN_INDEPENDENT_VERSION, XINJIN_SCORING_V2, XINJIN_V2_FANS, XINJIN_V2_MAX_FAN, xinjinRedGate } from '@dss/rules';
 import { requireCondition } from '../errors.js';
 import type { PhysicalCard } from './cards.js';
 import { decomposeCards } from './combinations.js';
@@ -11,7 +11,7 @@ export interface XinjinWinContext {
   source: 'original-hand' | 'discard' | 'flip' | 'replacement';
   sourceSeat: number | null; incomingCardId: string | null; discardCount: number;
 }
-export interface XinjinWinItem { pattern: keyof typeof XINJIN_INDEPENDENT_FANS; count: number; fan: number }
+export interface XinjinWinItem { pattern: keyof typeof XINJIN_INDEPENDENT_FANS | keyof typeof XINJIN_V2_FANS; count: number; fan: number }
 export type XinjinWin =
   | { version: typeof XINJIN_INDEPENDENT_VERSION; status: 'not-winning'; reason: 'special-card-in-hand' | 'shape' | 'points' | 'minimum-fan'; redPoints: number; blackPoints: number }
   | { version: typeof XINJIN_INDEPENDENT_VERSION; status: 'winning'; structure: 'ordinary' | 'four-pairs'; items: XinjinWinItem[];
@@ -120,32 +120,58 @@ export function evaluateXinjinWin(hand: XinjinHand, context: XinjinWinContext, r
   return alternatives[0] ?? fail('minimum-fan');
 }
 
-/** v2：门槛 4 人红 20、3 人和 2 人红 25；全红、全黑、天走、接地不看门槛；跟头翻 5 番封顶。 */
+/**
+ * v2：门槛 4 人红 20、3 人和 2 人红 25；全红、全黑、红五十、黑五十、天走、接地不看门槛；跟头翻 5 番封顶。
+ * 牌型两种：四组（暗手只按两张凑 14 拆）；暗四对（一组没亮，8 张是四个同点对子，四张同点算一个龙）。两种都成立取番大的。
+ */
 function evaluateV2(hand: XinjinHand, context: XinjinWinContext, rules: Readonly<Record<string, unknown>>, ordinary: PhysicalCard[],
   redPoints: number, blackPoints: number, fail: (reason: 'shape' | 'points') => XinjinWin): XinjinWin {
   // 手里的三张、四张要先偷出来才算，暗手只按两张凑 14 拆。
   const candidates = ordinaryMeldCandidates(hand.concealed, ['chi']);
   const decompositions = decomposeCards(hand.concealed.map(card => card.id), candidates, 4 - hand.melds.length);
-  if (!decompositions.length) return fail('shape');
+  const byRank = new Map<number, PhysicalCard[]>();
+  for (const card of hand.concealed) byRank.set(ordinaryRank(card.code), [...(byRank.get(ordinaryRank(card.code)) ?? []), card]);
+  const fourPairs = hand.melds.length === 0 && [...byRank.values()].every(cards => cards.length % 2 === 0);
+  if (!decompositions.length && !fourPairs) return fail('shape');
   const quanHong = ordinary.length > 0 && ordinary.every(card => red(card.code));
   const quanHei = ordinary.length > 0 && ordinary.every(card => !red(card.code));
   const tianHu = context.source === 'original-hand';
   const diHu = context.source === 'discard' && context.discardCount === 1;
-  if (redPoints < xinjinRedGate(rules.playerNum) && !quanHong && !quanHei && !tianHu && !diHu) return fail('points');
-  const items: XinjinWinItem[] = [];
-  const add = (pattern: keyof typeof XINJIN_INDEPENDENT_FANS, count = 1) => {
-    if (count) items.push({ pattern, count, fan: XINJIN_INDEPENDENT_FANS[pattern] * count });
-  };
-  add('gui', hand.bonus.filter(card => special(card.code)).length);
-  add('peng', hand.melds.filter(meld => meld.kind === 'peng' || meld.kind === 'tou').length);
-  add('gang', hand.melds.filter(meld => meld.kind === 'gang' || meld.kind === 'ba').length);
-  if (quanHong) add('quanHong');
-  if (quanHei) add('quanHei');
-  if (tianHu) add('tianHu');
-  if (diHu) add('diHu');
-  const totalFan = items.reduce((sum, item) => sum + item.fan, 0);
-  const cappedFan = Math.min(XINJIN_V2_MAX_FAN, totalFan);
-  return { version: XINJIN_INDEPENDENT_VERSION, status: 'winning', structure: 'ordinary', items, totalFan, cappedFan,
-    scoreUnits: (2n ** BigInt(cappedFan)).toString(), redPoints, blackPoints,
-    concealedGroups: decompositions[0]!.map(id => [...candidates.find(candidate => candidate.id === id)!.cardIds]) };
+  if (redPoints < xinjinRedGate(rules.playerNum) && !quanHong && !quanHei && blackPoints < 50 && !tianHu && !diHu) return fail('points');
+  const alternatives: Extract<XinjinWin, { status: 'winning' }>[] = [];
+  for (const structure of ['ordinary', 'four-pairs'] as const) {
+    if (structure === 'ordinary' ? !decompositions.length : !fourPairs) continue;
+    const items: XinjinWinItem[] = [];
+    const add = (pattern: keyof typeof XINJIN_V2_FANS, count = 1) => {
+      if (count) items.push({ pattern, count, fan: XINJIN_V2_FANS[pattern] * count });
+    };
+    add('gui', hand.bonus.filter(card => special(card.code)).length);
+    add('peng', hand.melds.filter(meld => meld.kind === 'peng' || meld.kind === 'tou').length);
+    add('gang', hand.melds.filter(meld => meld.kind === 'gang' || meld.kind === 'ba').length);
+    if (context.baoJiao === true) add('baoJiao');
+    if (tianHu) add('tianHu');
+    if (diHu) add('diHu');
+    if (redPoints === 20) add('qia20');
+    if (quanHong) add('quanHong');
+    if (quanHei) add('quanHei');
+    if (redPoints >= 50) add('hong50');
+    if (blackPoints >= 50) add('hei50');
+    // 金钩钓（大吊车）：亮满三组碰、偷、杠、巴（吃的不算），手里只剩两张凑 14。
+    if (hand.melds.length === 3 && hand.melds.every(meld => meld.kind !== 'chi')) add('jinGouDiao');
+    if (structure === 'four-pairs') {
+      add('anDui');
+      add('longDui', [...byRank.values()].filter(cards => cards.length === 4).length);
+    }
+    const totalFan = items.reduce((sum, item) => sum + item.fan, 0);
+    const cappedFan = Math.min(XINJIN_V2_MAX_FAN, totalFan);
+    const concealedGroups = structure === 'ordinary' ? decompositions[0]!.map(id => [...candidates.find(candidate => candidate.id === id)!.cardIds]) :
+      [...byRank].sort(([a], [b]) => a - b).flatMap(([, cards]) => {
+        const ids = cards.map(card => card.id).sort();
+        return ids.length === 4 ? [ids.slice(0, 2), ids.slice(2)] : [ids];
+      });
+    alternatives.push({ version: XINJIN_INDEPENDENT_VERSION, status: 'winning', structure, items, totalFan, cappedFan,
+      scoreUnits: (2n ** BigInt(cappedFan)).toString(), redPoints, blackPoints, concealedGroups });
+  }
+  alternatives.sort((a, b) => b.cappedFan - a.cappedFan || b.totalFan - a.totalFan || a.structure.localeCompare(b.structure));
+  return alternatives[0]!;
 }

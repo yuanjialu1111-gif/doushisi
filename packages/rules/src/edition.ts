@@ -44,6 +44,14 @@ export const XINJIN_INDEPENDENT_FANS = Object.freeze({
   // v2（DEC-20261031-第三轮规则v2）：鬼每张 1、碰（含偷出的三张）每组 1、杠（含巴杠）每组 2、全红 3、全黑 3。
   gui: 1, peng: 1, gang: 2, quanHong: 3, quanHei: 3,
 });
+/**
+ * 新津 v2 番（DEC-20261101-新津番表）：鬼每张 1、碰（含偷出的三张）每组 1、杠（含巴杠）每组 2；
+ * 报叫、天走、接地、金二十（红正好 20）、暗四对、全红、全黑、红五十、黑五十、金钩钓（大吊车）各 3；暗四对里每个龙再加 3。
+ */
+export const XINJIN_V2_FANS = Object.freeze({
+  gui: 1, peng: 1, gang: 2, baoJiao: 3, tianHu: 3, diHu: 3, qia20: 3, anDui: 3, longDui: 3,
+  quanHong: 3, quanHei: 3, hong50: 3, hei50: 3, jinGouDiao: 3,
+});
 /** 新津 v2 计分：跟头翻 2^番、5 番封顶，门槛按人数，点炮包三家，只一家胡。 */
 export const XINJIN_SCORING_V2 = 'v2';
 export const XINJIN_V2_MAX_FAN = 5;

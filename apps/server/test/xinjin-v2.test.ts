@@ -80,7 +80,8 @@ test('v2 门槛按人数：4 人红 20 能胡，3 人要 25', () => {
   const state = v2Hand([110, 204, 309, 205, 101, 413, 206, 408]);
   const four = evaluateXinjinWin(state, flipAt(state), v2Rules(4));
   assert.equal(four.status, 'winning');
-  if (four.status === 'winning') { assert.equal(four.redPoints, 20); assert.equal(four.totalFan, 0); assert.equal(four.scoreUnits, '1'); }
+  // 红正好 20 是金二十 3 番。
+  if (four.status === 'winning') { assert.equal(four.redPoints, 20); assert.equal(four.totalFan, 3); assert.equal(four.scoreUnits, '8'); }
   const three = evaluateXinjinWin(state, flipAt(state), v2Rules(3));
   assert.equal(three.status, 'not-winning');
   if (three.status === 'not-winning') assert.equal(three.reason, 'points');
@@ -99,6 +100,40 @@ test('v2 番：鬼每张 1、偷出三张算碰 1、杠 2，跟头翻 5 番封�
   const more = v2Hand([110, 204, 309, 205], melds, [1001, 1002, 1003]);
   const capped = evaluateXinjinWin(more, flipAt(more), v2Rules(4));
   assert.ok(capped.status === 'winning' && capped.totalFan === 6 && capped.cappedFan === 5 && capped.scoreUnits === '32');
+});
+
+test('v2 番表：报叫、金二十、暗四对、龙对、红黑五十、金钩钓各 3 番', () => {
+  const fans = (hand: XinjinHand, context: Partial<XinjinWinContext> = {}) => {
+    const result = evaluateXinjinWin(hand, { ...flipAt(hand), ...context }, v2Rules(4));
+    assert.equal(result.status, 'winning', JSON.stringify(result));
+    return result as Extract<typeof result, { status: 'winning' }>;
+  };
+  const pairs = (result: ReturnType<typeof fans>) => result.items.map(item => [item.pattern, item.fan]);
+  // 金二十：红正好 20（10+9+A）；报叫再加 3。
+  const jin = v2Hand([110, 404, 109, 405, 101, 213, 202, 412]);
+  assert.deepEqual(pairs(fans(jin)), [['qia20', 3]]);
+  assert.deepEqual(pairs(fans(jin, { baoJiao: true })), [['baoJiao', 3], ['qia20', 3]]);
+  // 暗四对：一组没亮，四个同点对子，不用凑 14。
+  const dui = fans(v2Hand([105, 305, 110, 310, 202, 402, 211, 411]));
+  assert.equal(dui.structure, 'four-pairs');
+  assert.deepEqual(pairs(dui), [['anDui', 3]]);
+  // 龙对：暗四对里四张同点，再加 3（6 番封顶 5）。
+  const long = fans(v2Hand([105, 205, 305, 405, 110, 310, 202, 402]));
+  assert.deepEqual(pairs(long), [['anDui', 3], ['longDui', 3]]);
+  assert.equal(long.cappedFan, 5);
+  // 亮了牌就不是暗四对。
+  const opened = evaluateXinjinWin(v2Hand([105, 305, 110, 310, 202, 402], [{ kind: 'tou', codes: [111, 211, 311] }]),
+    { ...flipAt(v2Hand([105])), incomingCardId: 'v2-1' }, v2Rules(4));
+  assert.equal(opened.status, 'not-winning');
+  // 黑五十（全黑也算）：黑 56，不看红点门槛。
+  assert.deepEqual(pairs(fans(v2Hand([210, 404, 209, 405, 208, 406, 207, 407]))), [['quanHei', 3], ['hei50', 3]]);
+  // 红五十（全红也算）：红 56。
+  assert.deepEqual(pairs(fans(v2Hand([110, 304, 109, 305, 108, 306, 307, 107]))), [['quanHong', 3], ['hong50', 3]]);
+  // 金钩钓（大吊车）：亮满三组碰、偷、杠，手里只剩两张；有吃的那组就不算。
+  const melds = [{ kind: 'tou' as const, codes: [102, 302, 202] }, { kind: 'peng' as const, codes: [103, 303, 403] }, { kind: 'peng' as const, codes: [104, 304, 404] }];
+  assert.deepEqual(pairs(fans(v2Hand([110, 204], melds))), [['peng', 3], ['jinGouDiao', 3]]);
+  const withChi = fans(v2Hand([110, 204], [...melds.slice(0, 2), { kind: 'chi' as const, codes: [109, 305] }]));
+  assert.ok(!withChi.items.some(item => item.pattern === 'jinGouDiao'));
 });
 
 test('v2 手里的三张没偷出来不算组，全红全黑天走不看门槛', () => {

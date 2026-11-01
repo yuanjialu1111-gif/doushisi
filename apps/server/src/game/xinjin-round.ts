@@ -95,7 +95,8 @@ function waitDetails(state: XinjinRound, id: string, discardId: string | null, b
     while (known.some(card => card.id === cardId)) cardId += '_';
     const result = evaluateXinjinWin({ ...current, concealed: [...current.concealed, { id: cardId, code: entry.code }] },
       { winnerSeat: player(state, id).seat, dealerSeat: player(state, state.dealerId).seat, source: 'flip',
-        sourceSeat: player(state, nextId).seat, incomingCardId: cardId, discardCount: Number(state.rules.__discards ?? 0) },
+        sourceSeat: player(state, nextId).seat, incomingCardId: cardId, discardCount: Number(state.rules.__discards ?? 0),
+        baoJiao: (player(state, id).declaredWaits ?? null) !== null },
       { ...state.rules, __baoJiao: false });
     if (result.status === 'winning') waits.push({ code: entry.code, fan: result.cappedFan, left: entry.count - held });
   }
@@ -424,8 +425,12 @@ function autoDiscard(state: XinjinRound, id: string, actions: XinjinAction[]) {
     .sort((a, b) => score((a as { cardId: string }).cardId) - score((b as { cardId: string }).cardId))[0];
 }
 
-/** 原版番型编号（ENCardType）：全红 6、全黑 7、天胡 2、地胡 3、报叫 11。 */
-const CARD_TYPES: Partial<Record<string, number>> = { quanHong: 6, quanHei: 7, tianHu: 2, diHu: 3, baoJiao: 11 };
+/**
+ * 原版番型编号（ENCardType），小结算按它挂番型图：全红 6、全黑 7、天胡 2、地胡 3、报叫 11、恰二十 8（金二十，播金二十动效）、
+ * 暗四对 14（图是「对子」）、红五十 26（新津显示「红 N」）、黑五十 27、金钩钓 28（大吊车）。龙对原版没有图，只算进番数。
+ */
+const CARD_TYPES: Partial<Record<string, number>> = { quanHong: 6, quanHei: 7, tianHu: 2, diHu: 3, baoJiao: 11,
+  qia20: 8, anDui: 14, hong50: 26, hei50: 27, jinGouDiao: 28 };
 /** 手里加摆出的牌的红点、黑点（J/Q/K 各 1 点，鬼不算），牌桌底部和小结算显示（E3）。 */
 export function xinjinPoints(state: XinjinRound, id: string) {
   const current = hand(state, id);
