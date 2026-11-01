@@ -2,6 +2,7 @@ import { MSGEvent } from '@dss/protocol';
 import { requireCondition } from '../errors.js';
 import type { EngineOriginalAdapter, EngineOriginalBody, EngineOriginalPacket, OriginalActionContext } from '../engines.js';
 import { isDeepStrictEqual } from 'node:util';
+import { originalChoices, originalRequest, type OriginalChoiceItem } from './original-choices.js';
 import type { QionglaiAction } from './qionglai-round.js';
 import { qionglaiLegalActions } from './qionglai-round.js';
 import type { QionglaiEngineSnapshot } from './qionglai-engine.js';
@@ -70,30 +71,33 @@ function originalSignature(s: OriginalState, userId: string, actionValue: Qiongl
 }
 
 function choices(s: OriginalState, userId: string) {
-  const result: Record<string, unknown>[] = [];
+  const seatIndex = seat(s, userId), hand = cards(s, `hand:${userId}`), items: OriginalChoiceItem[] = [];
+  const source = s.source?.cardId ? codeFor(s, s.source.cardId) : 0;
   for (const item of qionglaiLegalActions(s, userId)) {
     if (item.type === 'begin' || item.type === 'draw') continue;
     if (item.type === 'respond') {
       const offer = s.claims?.offers.find(offer => offer.id === item.choiceId);
-      if (!offer) continue;
+      // 「过」核对时不看牌面（originalSignature 里是 0），原版点过会原样带回选项上的 destCard。
+      if (!offer) { items.push({ kind: 'other', choice: { seatIndex, actType: ACT.pass, destCard: 0 } }); continue; }
       const move = offer.action as QionglaiAction;
-      if (move.type === 'hu') result.push({ seatIndex: seat(s, userId), actType: ACT.hu, destCard: s.source?.cardId ? codeFor(s, s.source.cardId) : 0 });
+      if (move.type === 'hu') items.push({ kind: 'other', choice: { seatIndex, actType: ACT.hu, destCard: source } });
       else {
         const col = column(s, userId, move);
-        if (col) result.push({ ...col, destCard: s.source?.cardId ? codeFor(s, s.source.cardId) : 0, destCardIsOwn: false });
+        if (col) items.push({ kind: 'meld', column: col, destCard: source, incoming: source || undefined });
       }
-      result.push({ seatIndex: seat(s, userId), actType: ACT.pass, destCard: s.source?.cardId ? codeFor(s, s.source.cardId) : 0 });
+      items.push({ kind: 'other', choice: { seatIndex, actType: ACT.pass, destCard: 0 } });
       continue;
     }
     if (item.type === 'hu') {
-      result.push({ seatIndex: seat(s, userId), actType: ACT.hu,
-        destCard: s.source?.cardId ? codeFor(s, s.source.cardId) : 0 });
+      items.push({ kind: 'other', choice: { seatIndex, actType: ACT.hu, destCard: source } });
       continue;
     }
     const col = column(s, userId, item);
-    if (col) result.push(col);
+    if (!col) continue;
+    if (item.type === 'discard' || item.type === 'declare') items.push({ kind: item.type, code: col.cards[0]! });
+    else items.push({ kind: 'meld', column: col, destCard: col.cards[0] ?? 0 });
   }
-  return result;
+  return originalChoices(seatIndex, hand.map(id => codeFor(s, id)), items);
 }
 
 function gameOver(state: OriginalState): EngineOriginalBody {
@@ -136,9 +140,7 @@ export function createQionglaiOriginalAdapter(): EngineOriginalAdapter {
       requireCondition(decisionId, 'DECISION_REQUIRED', 'A server decision ID is required for Qionglai actions.', 426);
       if (![ACT.pass, ACT.hu, ACT.discard, ACT.declare, ACT.chi, ACT.peng, ACT.gang, ACT.tou].includes(actType as never))
         throw Object.assign(new Error('Unsupported Qionglai action type.'), { code: 'INVALID_ORIGINAL_ACTION' });
-      const destCard = Number(body.destCard);
-      const values = Array.isArray(body.cards) ? body.cards.map(Number) : [];
-      return { type: 'original', actType, colType: Number(body.colType) || 0, destCard, cards: values, decisionId };
+      return { type: 'original', ...originalRequest(body), decisionId };
     },
     resolveAction(snapshot: unknown, userId: string, decoded: unknown) {
       const state = snapshot as OriginalState;

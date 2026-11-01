@@ -2,6 +2,7 @@ import { isDeepStrictEqual } from 'node:util';
 import { MSGEvent } from '@dss/protocol';
 import { requireCondition } from '../errors.js';
 import type { EngineOriginalAdapter, EngineOriginalBody, EngineOriginalPacket } from '../engines.js';
+import { originalChoices, originalRequest, type OriginalChoiceItem } from './original-choices.js';
 
 const ACT = {
   unknown: 1, deal: 2, discard: 3, pass: 4, hu: 5, gang: 6, tou: 7,
@@ -99,31 +100,35 @@ export function createRoundOriginalAdapter(options: RoundAdapterOptions): Engine
   }
 
   function choices(s: RoundState, userId: string) {
-    const result: Record<string, unknown>[] = [];
+    const seatIndex = seatOf(s, userId), hand = ids(s, `hand:${userId}`), items: OriginalChoiceItem[] = [];
     for (const action of options.legalActions(s, userId)) {
       if (action.type === 'begin' || action.type === 'draw') continue;
       if (action.type === 'piao') {
-        result.push({ seatIndex: seatOf(s, userId), actType: action.value === 1 ? ACT.piao : ACT.piaoPass });
+        items.push({ kind: 'other', choice: { seatIndex, actType: action.value === 1 ? ACT.piao : ACT.piaoPass } });
         continue;
       }
       if (action.type === 'respond') {
         const offer = s.claims?.offers.find(candidate => candidate.id === (action as { choiceId?: string }).choiceId);
-        if (!offer) continue;
+        if (!offer) { items.push({ kind: 'other', choice: { seatIndex, actType: ACT.pass, destCard: 0 } }); continue; }
         const move = offer.action as Move;
-        if (move.type === 'hu') result.push({ seatIndex: seatOf(s, userId), actType: ACT.hu, destCard: 0 });
+        if (move.type === 'hu') items.push({ kind: 'other', choice: { seatIndex, actType: ACT.hu, destCard: 0 } });
         else {
           const col = column(s, userId, move);
-          if (col) result.push({ ...col, destCard: col.cards[0] ?? 0, destCardIsOwn: false,
-            colInfo: [{ ...col, destCard: col.cards[0] ?? 0, destCardIsOwn: false }] });
+          const incomingId = move.cardIds?.find(id => !hand.includes(id));
+          const incoming = incomingId ? codeFor(s, incomingId) : undefined;
+          if (col) items.push({ kind: 'meld', column: col, destCard: incoming ?? col.cards[0] ?? 0, incoming });
         }
-        result.push({ seatIndex: seatOf(s, userId), actType: ACT.pass, destCard: 0 });
+        items.push({ kind: 'other', choice: { seatIndex, actType: ACT.pass, destCard: 0 } });
         continue;
       }
-      if (action.type === 'hu') { result.push({ seatIndex: seatOf(s, userId), actType: ACT.hu, destCard: 0 }); continue; }
+      if (action.type === 'hu') { items.push({ kind: 'other', choice: { seatIndex, actType: ACT.hu, destCard: 0 } }); continue; }
       const col = column(s, userId, action);
-      if (col) result.push(col);
+      if (!col) continue;
+      if (action.type === 'discard' || action.type === 'declare') items.push({ kind: action.type, code: col.cards[0]! });
+      else items.push({ kind: 'meld', column: col, destCard: col.cards[0] ?? 0 });
     }
-    // 原版每个出牌选项都会重置提示表，所以每个都带完整的一份。
+    const result = originalChoices(seatIndex, hand.map(id => codeFor(s, id)), items);
+    // 出牌选项带上可胡提示（原版收到出牌选项时重置提示表）。
     const tips = options.jiaoTishi ? options.jiaoTishi(s, userId).filter(tip => tip.chuCard !== 0) : [];
     if (tips.length) for (const item of result) if (item.actType === ACT.discard) item.jiaoTishi = tips;
     return result;
@@ -208,9 +213,7 @@ export function createRoundOriginalAdapter(options: RoundAdapterOptions): Engine
       requireCondition([ACT.pass, ACT.hu, ACT.discard, ACT.declare, ACT.chi, ACT.peng, ACT.gang, ACT.tou].includes(actType as never) ||
         options.supportsPiao && [ACT.piao, ACT.piaoPass].includes(actType as never),
       'INVALID_ORIGINAL_ACTION', `Unsupported ${options.label} action type.`, 409);
-      return { type: 'original', actType, colType: Number(body.colType) || 0,
-        destCard: Number(body.destCard) || 0,
-        cards: Array.isArray(body.cards) ? body.cards.map(Number) : [], decisionId };
+      return { type: 'original', ...originalRequest(body), decisionId };
     },
     resolveAction(snapshot: unknown, userId: string, decoded: unknown) {
       const s = state(snapshot), wanted = decoded as Decoded;

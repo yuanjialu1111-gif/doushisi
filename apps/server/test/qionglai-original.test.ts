@@ -5,6 +5,7 @@ import type { RoundInput, RuleEngine } from '../src/engines.js';
 import { createQionglaiEngine, type QionglaiEngineSnapshot } from '../src/game/qionglai-engine.js';
 import { createQionglaiOriginalAdapter } from '../src/game/qionglai-original.js';
 import { qionglaiLegalActions } from '../src/game/qionglai-round.js';
+import { overWire, playThroughOriginalClient } from './original-client.js';
 
 function input(): RoundInput {
   const rules = { ...getDefaultOptions('8:0'), playerNum: 2, gameNum: 4, wangNum: 3, baseBeans: '0.125',
@@ -148,4 +149,28 @@ test('settlement decimal fields target the exact userScoreInfo score and changeS
     { path: ['hwNotifyGameOver', 'userScoreInfo', 1, 'score'], value: '-0.125' },
     { path: ['hwNotifyGameOver', 'userScoreInfo', 1, 'changeScore'], value: '-0.125' },
   ]);
+});
+
+test('原版出牌请求只带牌面也能打出去，锁住的牌被拒', () => {
+  const state = start();
+  const discard = qionglaiLegalActions(state, 'a').find(action => action.type === 'discard')!;
+  const face = state.cards.pack.find(card => card.id === (discard as any).cardId)!.code;
+  const decoded = adapter().decodeAction!(23, overWire({ seatIndex: 1, actType: 3, destCard: face }), discard.decisionId);
+  assert.ok(qionglaiLegalActions(state, 'a').some(action => JSON.stringify(adapter().resolveAction!(state, 'a', decoded)) === JSON.stringify(action)));
+  const choices = (adapter().notifications(state, [], 'a', 'action').find(packet => packet.command === 20)!.body as any).choices;
+  const chupai = choices.filter((choice: any) => choice.actType === 3);
+  assert.equal(chupai.length, 1);
+  for (const code of chupai[0].deathCard ?? []) assert.throws(() => adapter().resolveAction!(state, 'a',
+    adapter().decodeAction!(23, overWire({ seatIndex: 1, actType: 3, destCard: code }), discard.decisionId)), { code: 'INVALID_ACTION' });
+});
+
+test('只用原版客户端会发的请求能把几局打完，每手合规动作都发得出', () => {
+  const seen = new Set<number>();
+  for (const seed of [1, 7, 42, 99, 2026]) {
+    const ruleEngine = engine();
+    const result = playThroughOriginalClient(ruleEngine, ruleEngine.create(input()), seed);
+    assert.ok(result.steps > 3);
+    for (const actType of result.actTypes) seen.add(actType);
+  }
+  assert.ok(seen.has(3));
 });

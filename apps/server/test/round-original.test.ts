@@ -12,6 +12,7 @@ import { createXinjinEngine } from '../src/game/xinjin-engine.js';
 import { createAnyueEngine } from '../src/game/anyue-engine.js';
 import { createPujiangEngine } from '../src/game/pujiang-engine.js';
 import { createAbaEngine } from '../src/game/aba-engine.js';
+import { overWire, playThroughOriginalClient } from './original-client.js';
 
 function input(variantKey: '6:0' | '4:0' | '5:0' | '7:0' | '9:0' | '10:0' | '11:0' | '12:0' |
   '14:0' | '15:0' | '16:0' | '19:0' | '20:0' | '21:0' | '22:0' | '23:0' | '24:0' | '25:0' | '26:0' | '27:0',
@@ -213,3 +214,33 @@ test('score-region engines reject snapshots from another score-region configurat
   assert.throws(() => maoxian.apply(snapshot, 'a', { type: 'begin', decisionId: 'sr:1:0' }),
     { code: 'INVALID_SCORE_REGION_SNAPSHOT' });
 });
+
+for (const [variantKey, factory] of Object.entries(engines) as [keyof typeof engines, typeof engines[keyof typeof engines]][]) {
+  test(`${variantKey} 原版出牌请求只带牌面也能打出去，锁住的牌被拒`, () => {
+    const engine = factory() as RuleEngine;
+    const state = engine.create(input(variantKey));
+    const adapter = engine.original!;
+    const actions = engine.interactions!.legalActions(structuredClone(state), 'a') as { type: string; cardId?: string; decisionId?: string }[];
+    const discard = actions.find(action => action.type === 'discard')!;
+    const snapshot = state as { cards: { pack: { id: string; code: number }[] } };
+    const face = snapshot.cards.pack.find(card => card.id === discard.cardId)!.code;
+    const decoded = adapter.decodeAction(23, overWire({ seatIndex: 1, actType: 3, destCard: face }), discard.decisionId);
+    assert.ok(actions.some(action => JSON.stringify(adapter.resolveAction!(state, 'a', decoded)) === JSON.stringify(action)));
+    const choices = (adapter.notifications(state, [], 'a', 'action').find(packet => packet.command === 20)!.body as any).choices;
+    const chupai = choices.filter((choice: any) => choice.actType === 3);
+    assert.equal(chupai.length, 1);
+    for (const code of chupai[0].deathCard ?? []) assert.throws(() => adapter.resolveAction!(state, 'a',
+      adapter.decodeAction(23, overWire({ seatIndex: 1, actType: 3, destCard: code }), discard.decisionId)), { code: 'INVALID_ACTION' });
+  });
+
+  test(`${variantKey} 只用原版客户端会发的请求能把几局打完，每手合规动作都发得出`, () => {
+    const seen = new Set<number>();
+    for (const seed of [1, 7, 42, 99, 2026]) {
+      const engine = factory() as RuleEngine;
+      const result = playThroughOriginalClient(engine, engine.create(input(variantKey)), seed);
+      assert.ok(result.steps > 3);
+      for (const actType of result.actTypes) seen.add(actType);
+    }
+    assert.ok(seen.has(3));
+  });
+}

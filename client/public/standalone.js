@@ -1801,8 +1801,10 @@
   // 超时由服务端代打，不进托管。原版只在托管时把「服务端替我出的牌」从手里拿掉、收起出牌，
   // 不托管时那张牌留在手里还能拖，等下一手只能吃/过时一拖就被服务端拒（11-01 本机试玩）。
   // 这里照托管的路子补上；并且只有这一手的选项里有出牌，手牌才能拖出去。
-  var ACTION_CHUPAI = 3, ACTION_KOU = 18;
-  var handPlayedCard = null;
+  // 报叫：服务端要「报叫并打出哪张」，原版点「报」只发个空的报叫。改成点「报」后把不能报叫的牌锁住，
+  // 再出的那张按报叫发（选项里的 deathCard 就是不能报叫的牌）。
+  var ACTION_CHUPAI = 3, ACTION_KOU = 18, ACTION_BAO_TING = 12;
+  var handPlayedCard = null, declareChoice = null, declaring = false;
   function selfAtTable() {
     var table = cc.mm.uimanager.getWindow('dss_game');
     return table && table.model && typeof table.model.getSelf === 'function' ? { table: table, self: table.model.getSelf() } : null;
@@ -1814,11 +1816,38 @@
     var sendCard = Select.prototype.sendCard;
     Select.prototype.sendCard = function (card) {
       if (!this._isKoupai) handPlayedCard = card.value;
-      return sendCard.apply(this, arguments);
+      if (!declaring || this._isKoupai) return sendCard.apply(this, arguments);
+      declaring = false;
+      var server = cc.mm.server, own = Object.prototype.hasOwnProperty.call(server, 'send'), send = server.send;
+      server.send = function (message) {
+        if (message && message.hwRequestDoAction) message.hwRequestDoAction.actType = ACTION_BAO_TING;
+        return send.apply(this, arguments);
+      };
+      try { return sendCard.apply(this, arguments); } finally { if (own) server.send = send; else delete server.send; }
+    };
+    var Game = cc.js.getClassByName('dss_gameController');
+    var onClickOperator = Game.prototype.onClickOperator;
+    Game.prototype.onClickOperator = function (event) {
+      if (!event || !event.node || event.node.groupIndex !== ACTION_BAO_TING || !declareChoice) return onClickOperator.apply(this, arguments);
+      var select = this.node.getComponentInChildren('dss_selectController');
+      if (!select || !select._model) return;
+      declaring = true;
+      select._model.deathCard = (declareChoice.deathCard || []).slice();
+      select.changeUnlockState();
+      this.views['ntfOperate/actionBtn_bao'].active = false;
+    };
+    // 多种碰、偷、杠挑中一组后，原版把这组单独再走一遍，丢了 isColAllCard，阿坝、分数区又会让人从手里另挑。
+    var dealSelect = Game.prototype._dealSelectLogic;
+    Game.prototype._dealSelectLogic = function (actType, choice) {
+      var offered = this.operatorList && this.operatorList[actType];
+      if (choice && offered && offered.isColAllCard) choice.isColAllCard = true;
+      return dealSelect.apply(this, arguments);
     };
     var notice = cc.mm.frametype.MSG_NOTICE_CMD;
     cc.mm.notification.on(notice + cc.mm.msgEvent.HWNotifySeatOperationChoice, function (body) {
       if (cc.mm.gameserver.isReplay() || !body || !body.choices || !body.choices.length) return;
+      declaring = false;
+      declareChoice = body.choices.filter(function (choice) { return choice.actType === ACTION_BAO_TING; })[0] || null;
       var canPlay = body.choices.some(function (choice) { return choice.actType === ACTION_CHUPAI || choice.actType === ACTION_KOU; });
       if (canPlay) handPlayedCard = null;
       else cc.mm.notification.emit('NOTICE_STATE_PLAY');
