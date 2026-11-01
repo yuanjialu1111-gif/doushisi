@@ -279,8 +279,26 @@ test('摸到鬼后补的牌标成进手（isShangShou），只发给本人', () 
   const adapter = createXinjinEngine('v2-replacement', () => 0).original!;
   const deals = (userId: string) => adapter.notifications({ ...(drawn.snapshot as XinjinRound), deal: {} }, drawn.events, userId, 'action')
     .filter(packet => packet.command === MSGEvent.HWNotifyPlayerDealCard).map(packet => packet.body as any);
-  assert.deepEqual(deals('b').map(body => [body.value, body.isShangShou]), [[1001, false], [107, true]]);
+  // 进手的牌带 isShua，原版才重画手牌（11-01 测试台：偷、摸鬼后手里还显示旧牌）。
+  assert.deepEqual(deals('b').map(body => [body.value, body.isShangShou, body.isShua]), [[1001, false, undefined], [107, true, true]]);
   assert.deepEqual(deals('a').map(body => body.value), [1001]);
+});
+
+test('组合动作带和小结算一样的 id：第二个偷有自己的 id，巴挂到原组合上只带加的那张', () => {
+  let state = run(make([[105, 205, 305, 110, 210, 310, 101, 102], [202, 203, 204, 206, 208, 209, 211]], [405, 103, 104, 106]), 'a', 'begin');
+  const adapter = createXinjinEngine('v2-meld-id', () => 0).original!;
+  const columns = (type: 'tou' | 'ba', face: number) => {
+    const chosen = xinjinLegalActions(state, 'a').find(item => item.type === type &&
+      ('cardIds' in item ? item.cardIds.some(id => code(state, id) === face) : code(state, item.cardId) === face))!;
+    const result = applyXinjinAction(state, 'a', chosen);
+    state = result.snapshot as XinjinRound;
+    return adapter.notifications({ ...state, deal: {} }, result.events, 'a', 'action')
+      .filter(packet => packet.command === MSGEvent.HWNotifyActionFlow).map(packet => (packet.body as any).action.colInfo?.[0]).filter(Boolean)
+      .map(column => ({ id: column.id, addToId: column.addToId, cards: [...column.cards].sort() }));
+  };
+  assert.deepEqual(columns('tou', 105), [{ id: 11, addToId: undefined, cards: [105, 205, 305] }]);
+  assert.deepEqual(columns('tou', 110), [{ id: 12, addToId: undefined, cards: [110, 210, 310] }]);
+  assert.deepEqual(columns('ba', 405), [{ id: 1011, addToId: 11, cards: [405] }]);
 });
 
 test('新津 v2 桌只用原版客户端会发的请求能打完，每手合规动作都发得出（含报叫、碰、偷、巴杠）', () => {

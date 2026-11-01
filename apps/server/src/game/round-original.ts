@@ -282,15 +282,22 @@ export function createRoundOriginalAdapter(options: RoundAdapterOptions): Engine
           continue;
         }
         if (raw.type === 'meld') {
-          const meld = raw as unknown as { kind: string; userId: string; cards: { code: number }[] };
-          const codes = meld.cards.map(card => card.code);
+          const meld = raw as unknown as { kind: string; userId: string; cards: { id: string; code: number }[]; addedCardId?: string };
+          // 组合带上和小结算一样的 id：原版按 id 认组合，不带的话第二个组合被当成第一个跳过（手里牌也不拿掉）。
+          // 巴是往已有组合上加一张：新 id + addToId 指向那个组合，只带加上去的牌。
+          const owner = s.players.find(p => p.userId === meld.userId)!;
+          const added = meld.kind === 'ba' ? meld.addedCardId ?? meld.cards.at(-1)?.id : undefined;
+          const meldIndex = owner.melds.findIndex(m => m.cardIds.includes(added ?? meld.cards[0]?.id ?? ''));
+          const columnId = owner.seat * 10 + meldIndex + 1;
+          const codes = added ? [codeFor(s, added)] : meld.cards.map(card => card.code);
+          const column = meldIndex < 0 ? {} : added ? { id: 1000 + columnId, addToId: columnId } : { id: columnId };
           const actType = meld.kind === 'chi' ? ACT.chi : meld.kind === 'peng' ? ACT.peng
             : meld.kind === 'tou' ? ACT.tou : ACT.gang;
           const colType = meld.kind === 'chi' ? COL.chi : meld.kind === 'peng' ? COL.peng
             : meld.kind === 'tou' ? COL.tou : meld.kind === 'ba' ? COL.gangBa : COL.gangMing;
           packets.push({ command: MSGEvent.HWNotifyActionFlow, body: { action: {
             seatIndex: seatOf(s, meld.userId), actType, destCard: codes[0] ?? 0,
-            colInfo: [{ seatIndex: seatOf(s, meld.userId), actType, colType, cards: codes,
+            colInfo: [{ ...column, seatIndex: seatOf(s, meld.userId), actType, colType, cards: codes,
               destCard: codes[0] ?? 0, destCardIsOwn: userId === meld.userId }],
             tilesOnHandNum: ids(s, `hand:${meld.userId}`).length, ...pointsFor(s, meld.userId, userId),
             // 原版偷、杠动作都会用 protectCard 覆盖鬼牌区，要带上已有的鬼。
@@ -306,7 +313,9 @@ export function createRoundOriginalAdapter(options: RoundAdapterOptions): Engine
             isFanPai: raw.type === 'flip', leftCardNum: ids(s, 'deck').length,
             tilesOnHandNum: ids(s, `hand:${raw.userId}`).length, pointNum: pointsFor(s, String(raw.userId), userId).redPoint,
             // 摸鬼后补的牌进本人手里：原版只认 isShangShou 才把牌加进手牌，否则只亮一下，手里少一张（11-01 本机试玩）。
-            blackPoint: pointsFor(s, String(raw.userId), userId).blackPoint, isShangShou: raw.type === 'replacement' } });
+            blackPoint: pointsFor(s, String(raw.userId), userId).blackPoint, isShangShou: raw.type === 'replacement',
+            // 进手的牌原版还要 isShua 才重画手牌（protobuf 默认 false）；不带的话偷、摸鬼后手里还显示旧牌（11-01 测试台）。
+            ...(raw.type === 'replacement' ? { isShua: true } : {}) } });
         }
         if (raw.type === 'bonus') packets.push({ command: MSGEvent.HWNotifyPlayerDealCard, body: {
           seatIndex: seatOf(s, String(raw.userId)), value: (raw.card as { code: number }).code,

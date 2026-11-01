@@ -2237,6 +2237,13 @@
       // 原版邀请键（复制分享文字）藏起来；好友、邀请第三轮已下线。
       patchTableEmotes(controller);
       followServerPlays();
+      // 原版 onLoad 就把「报」绑在当时的 onClickOperator 上，早于上面改原型：每页第一张桌点「报」走的是原版，被服务端拒。重新绑一次。
+      var baoButton = controller.views['ntfOperate/actionBtn_bao'];
+      if (baoButton && !controller._standaloneBaoButton) {
+        controller._standaloneBaoButton = true;
+        baoButton.off('click');
+        cc.mm.uitools.addBtnLister(baoButton, controller.onClickOperator.bind(controller), controller);
+      }
       afterLoadUI('dss_settle_UIController', patchFinalSettle);
       // 牌桌不显示距离（R11 AC1）：原版进房时会重新打开定位按钮，透明度清零免得闪一下。
       var locationButton = controller.views.locationbtn;

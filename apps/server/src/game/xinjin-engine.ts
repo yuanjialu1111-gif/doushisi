@@ -5,6 +5,7 @@ import { requireCondition } from '../errors.js';
 import { selectDeal, type FrozenPolicy } from '../policies.js';
 import { createRoundOriginalAdapter } from './round-original.js';
 import { createXinjinCardState } from './xinjin-pack.js';
+import { xinjinTestDeck } from './xinjin-scenarios.js';
 import { isXinjinV2 } from './xinjin-win.js';
 import { applyXinjinAction, assertXinjinOptionsSupported, createXinjinRound, viewXinjinRound, xinjinLegalActions, xinjinJiaoTishi, xinjinTurnSeconds, xinjinPoints, xinjinSettlementBrand,
   xinjinTimedAction, type XinjinAction, type XinjinEvent, type XinjinRound } from './xinjin-round.js';
@@ -34,9 +35,12 @@ function createSnapshot(input: RoundInput, random: (max: number) => number): Xin
   const dealer = dealerId(input);
   const pack = createXinjinCardState('4:0', input.rules, 'deck', [{ id: 'deck', visibility: 'hidden' }]).pack;
   const selected = selectDeal(pack, input.policy, dealEvaluation, random);
-  // v2 第一局随机定庄，以后上局赢家当庄（流局不换）。
-  const first = input.number === 1 && isXinjinV2(input.rules) ? input.players[random(input.players.length)]!.userId : dealer;
-  const round = createXinjinRound(input, selected.deck.map(card => card.id), first);
+  // v2 第一局随机定庄，以后上局赢家当庄（流局不换）。本机测试台指定牌局时由它定庄。
+  const test = input.testDeal;
+  const first = test ? test.dealerUserId
+    : input.number === 1 && isXinjinV2(input.rules) ? input.players[random(input.players.length)]!.userId : dealer;
+  const round = createXinjinRound(input, test ? xinjinTestDeck(pack, test.hands, test.draws, input.players.length)
+    : selected.deck.map(card => card.id), first);
   const deal = { version: 'xinjin-deal-v1' as const, policy: structuredClone(input.policy),
     candidates: selected.candidates, evaluation: [...selected.evaluation] };
   return advanceSystem({ ...round, deal }, null, deal).snapshot as XinjinEngineSnapshot;

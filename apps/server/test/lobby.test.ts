@@ -30,9 +30,9 @@ const template = (overrides: Record<string, unknown> = {}) => ({
   idleClearMinutes: 10, enabled: true, sortOrder: 1, ...overrides,
 });
 
-async function setup(engines: EngineRegistry = new EngineRegistry([fixture])) {
+async function setup(engines: EngineRegistry = new EngineRegistry([fixture]), testDeals = false) {
   const db = await openDatabase(); await migrate(db);
-  const created = await createApp(db, { staticFiles: false, engines, scheduler: false, rateLimit: false });
+  const created = await createApp(db, { staticFiles: false, engines, scheduler: false, rateLimit: false, testDeals });
   const { app, auth, ledger } = created;
   const beans = await auth.create('lobby_beans_admin', 'test-password-only', 'beans_admin');
   const beansHeaders = { authorization: `Bearer ${(await auth.login(beans.username, 'test-password-only', true)).token}` };
@@ -406,6 +406,39 @@ test('R2: a system table seated by four players starts its first round with the 
   assert.equal(room!.currentRound, 1);
 });
 
+test('本机测试台：指定牌局只在打开时有；按场景发牌、请求的人当庄，只用一局', async t => {
+  const closed = await setup(createConfiguredEngineRegistry()); t.after(closed.close);
+  const outsider = await closed.player('lobby_dev_closed', '50');
+  assert.equal((await closed.app.inject({ method: 'GET', url: '/api/dev/scenarios', headers: outsider.headers })).statusCode, 404);
+
+  const ctx = await setup(createConfiguredEngineRegistry(), true); t.after(ctx.close);
+  await ctx.lobby.createTemplate(ctx.beans, template({ standingEmpty: 1, options: { baseBeans: '1', playerNum: 4, gameNum: 8 } }));
+  await ctx.lobby.maintain();
+  const players = [];
+  for (const name of ['a', 'b', 'c', 'd']) players.push(await ctx.player(`lobby_dev_${name}`, '50'));
+  const listed = (await ctx.app.inject({ method: 'GET', url: '/api/dev/scenarios', headers: players[0]!.headers })).json();
+  assert.equal(listed.length, 27);
+  const code = (await tablesOf(ctx, players[0]!.headers)).tables[0].code;
+  let room;
+  for (const player of players) room = await ctx.rooms.join(player.actor, code);
+  const deal = (headers: Record<string, string>, scenario: string) =>
+    ctx.app.inject({ method: 'POST', url: '/api/dev/test-deal', headers, payload: { roomId: room!.id, scenario } });
+  assert.equal((await deal(players[0]!.headers, 'nope')).statusCode, 404);
+  assert.equal((await deal(outsider.headers, 'tianHu')).statusCode, 401);
+  // 4 号请求、再由 1 号覆盖：庄家是最后请求的人。
+  assert.equal((await deal(players[3]!.headers, 'diHu')).statusCode, 200);
+  assert.equal((await deal(players[0]!.headers, 'tianHu')).statusCode, 200);
+  for (const player of players) room = await ctx.rooms.ready(player.actor, room!.id, true);
+  assert.equal(room!.state, 'playing');
+  const snapshot = (await ctx.db.query("SELECT snapshot FROM rounds WHERE room_id=$1 AND state='playing'", [room!.id])).rows[0]!.snapshot;
+  assert.equal(snapshot.dealerId, players[0]!.actor.id);
+  const faces = (zone: string) => snapshot.cards.zones.find((item: any) => item.id === zone).cards
+    .map((id: string) => snapshot.cards.pack.find((card: any) => card.id === id).code).sort();
+  assert.deepEqual(faces(`hand:${players[0]!.actor.id}`), [101, 103, 110, 202, 211, 213, 404, 412]);
+  assert.equal(ctx.rooms.testDeals.size, 0);
+  assert.equal((await deal(players[0]!.headers, 'tianHu')).json().error.code, 'INVALID_ROOM_STATE');
+});
+
 test('S2-AC2 S2-AC3 大厅每个座位带昵称、性别、数字 ID；每张有人且有定位的桌都带档位，不带米数', async t => {
   const ctx = await setup(); t.after(ctx.close);
   const [girl, plain, viewer] = [await ctx.player('lobby_a2_girl', '50'), await ctx.player('lobby_a2_plain', '50'), await ctx.player('lobby_a2_viewer', '50')];
@@ -441,4 +474,10 @@ test('第三轮规则 v2：发布前开的新津空桌（v1）被收掉，按 v2
   assert.equal(after.length, 2);
   assert.ok(after.every(room => room.scoring === 'v2'));
   assert.ok(!after.some(room => room.id === before[0].id));
+  // v2 的固定玩法后来改过（11-01 开了自己翻牌自己吃）：之前开的空桌也换掉。
+  await ctx.db.query("UPDATE rooms SET rules = jsonb_set(rules, '{ziChi}', '0') WHERE id=$1", [after[0].id]);
+  await ctx.lobby.maintain();
+  const latest = await ctx.db.query("SELECT id,rules->>'ziChi' AS zi FROM rooms WHERE state='waiting'");
+  assert.equal(latest.rows.length, 2);
+  assert.ok(latest.rows.every(room => room.zi === '1' && room.id !== after[0].id));
 });

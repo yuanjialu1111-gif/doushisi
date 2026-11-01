@@ -5,7 +5,7 @@ import { encodeFrame, expectedBodyField, MSGEvent } from '@dss/protocol';
 import type { Database, Sql } from './database.js';
 import { requireRole, type Actor } from './auth.js';
 import { requireCondition } from './errors.js';
-import { EngineRegistry, projectOriginalNotifications, type ConfirmedScoreBatch, type OriginalActionContext, type EngineOriginalBody, type RuleEngine } from './engines.js';
+import { EngineRegistry, projectOriginalNotifications, type ConfirmedScoreBatch, type OriginalActionContext, type EngineOriginalBody, type RuleEngine, type TestDeal } from './engines.js';
 import { applyConfirmedScores, normalizeScores, totalConfirmedScores } from './confirmed-scores.js';
 import { appendOperation, balanceChanges, requestHash, type BalanceChange, type Posting } from './ledger.js';
 import { Decimal, amount, money } from './money.js';
@@ -31,6 +31,19 @@ export interface DissolveState {
 
 export class RoomService extends EventEmitter {
   constructor(private db: Database, public engines: EngineRegistry, private policies: PolicyService, private now: () => number = Date.now) { super(); }
+  /** 仅本机测试台：房间 id → 下一局要发的牌，开局时用掉。设置入口只在 DSS_TEST_DEALS=1 的本机服务里开（app.ts）。 */
+  readonly testDeals = new Map<string, TestDeal>();
+
+  async setTestDeal(actor: Actor, roomId: string, deal: Omit<TestDeal, 'dealerUserId'>) {
+    requireRole(actor, 'player');
+    const room = (await this.db.query('SELECT variant_key,state,rules FROM rooms WHERE id=$1', [roomId])).rows[0];
+    requireCondition(room, 'ROOM_NOT_FOUND', 'Room does not exist.', 404);
+    const member = await this.db.query('SELECT 1 FROM room_members WHERE room_id=$1 AND user_id=$2', [roomId, actor.id]);
+    requireCondition(member.rows[0], 'NOT_ROOM_MEMBER', 'You are not in this room.', 403);
+    requireCondition(room.variant_key === '4:0' && isXinjinV2(room.rules ?? {}), 'UNSUPPORTED_OPERATION', '指定牌局只支持新津 v2 桌。', 409);
+    requireCondition(['waiting', 'between_rounds'].includes(room.state), 'INVALID_ROOM_STATE', '这一局已经开打了。', 409);
+    this.testDeals.set(roomId, { dealerUserId: actor.id, hands: deal.hands.map(hand => [...hand]), draws: [...deal.draws] });
+  }
 
   games() { return catalogue.map(variant => ({ ...variant, defaults: getDefaultOptions(variant.key), fields: getRoomSpec(variant.key).fields, playable: this.engines.has(variant.key) })); }
 
@@ -253,8 +266,10 @@ export class RoomService extends EventEmitter {
         const previousRoundContext = previous?.rows[0]?.next_round_context;
         // 系统桌的房主不入座，首局庄家按 1 号座位算。
         const ownerUserId = members.rows.some(m => m.user_id === room.owner_id) ? room.owner_id : members.rows[0]!.user_id;
+        const testDeal = this.testDeals.get(roomId);
+        this.testDeals.delete(roomId);
         const snapshot = engine.create({ players: members.rows.map(m => ({ userId: m.user_id, seat: m.seat })), ownerUserId,
-          rules: room.rules, number: room.current_round + 1, policy,
+          rules: room.rules, number: room.current_round + 1, policy, ...(testDeal ? { testDeal } : {}),
           ...(previousRoundContext == null ? {} : { previousRoundContext: structuredClone(previousRoundContext) }) });
         const atMs = this.now();
         const interactionState = engine.interactions ? planInteractions({ engine, snapshot, playerIds: sortedIds, roundId, atMs,

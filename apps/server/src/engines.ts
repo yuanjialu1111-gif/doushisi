@@ -13,7 +13,11 @@ export interface RoundInput {
   policy: FrozenPolicy;
   /** Absent for the first round and historical rounds without recorded context. */
   previousRoundContext?: RoundContext;
+  /** 仅本机测试台（DSS_TEST_DEALS=1）：这一局按指定的牌发，线上不会带。目前只有新津认。 */
+  testDeal?: TestDeal;
 }
+/** hands 从庄家起按座次排（庄家 8 张、其他 7 张，没写满的用固定的牌补）；draws 是开局后依次摸到、翻出的牌。 */
+export interface TestDeal { dealerUserId: string; hands: number[][]; draws: number[] }
 export interface ConfirmedScoreBatch {
   /** Stable within the round. Retrying the same event cannot award points again. */
   eventId: string;

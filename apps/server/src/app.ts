@@ -20,6 +20,7 @@ import { AppError, requireCondition } from './errors.js';
 import { registerOriginalProtocol } from './original-wire.js';
 import { ProfileService } from './profile.js';
 import { LobbyService } from './lobby.js';
+import { XINJIN_SCENARIOS } from './game/xinjin-scenarios.js';
 import { SettingsService } from './settings.js';
 import { FRIEND_NOTE_COUNT, SocialService } from './social.js';
 import { StatsService } from './stats.js';
@@ -62,6 +63,8 @@ export async function createApp(db: Database, options: {
    * 正式入口 main.ts 打开；原有测试夹具还靠玩家开房搭桌，默认关。
    */
   lobbyOnly?: boolean;
+  /** 本机测试台指定下一局的牌（/api/dev/*）。只有 main.ts 在本机库且 DSS_TEST_DEALS=1 时打开。 */
+  testDeals?: boolean;
 } = {}) {
   const app = Fastify({ logger: options.logger ? { redact: ['req.headers.authorization', 'req.headers.cookie'],
     serializers: { err: (error: Error & { code?: string }) => ({ type: error.name, code: error.code, stack: '',
@@ -256,6 +259,21 @@ export async function createApp(db: Database, options: {
     const { variant } = z.object({ variant: z.string().max(20).optional() }).strict().parse(request.body ?? {});
     return lobby.quickStart(user, variant || undefined);
   });
+  if (options.testDeals) {
+    app.get('/api/dev/scenarios', async request => {
+      await actor(request, 'player');
+      return XINJIN_SCENARIOS.map(({ key, group, title, tip }) => ({ key, group, title, tip }));
+    });
+    // 自己所在的新津桌下一局按场景发牌，自己当庄；开局时用掉。
+    app.post('/api/dev/test-deal', async request => {
+      const user = await actor(request, 'player');
+      const input = z.object({ roomId: z.string().uuid(), scenario: z.string().max(40) }).strict().parse(request.body);
+      const scenario = XINJIN_SCENARIOS.find(item => item.key === input.scenario);
+      requireCondition(scenario, 'NOT_FOUND', '没有这个场景。', 404);
+      await rooms.setTestDeal(user, input.roomId, scenario);
+      return { scenario: scenario.key };
+    });
+  }
   // 点哪个空位坐哪个（第三轮 R3）：坐上了客户端再用原协议进桌。
   app.post('/api/lobby/sit', { config: { rateLimit: { max: 60, timeWindow: '1 minute' } } }, async request => {
     const user = await actor(request, 'player');

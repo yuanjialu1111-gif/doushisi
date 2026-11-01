@@ -1,5 +1,5 @@
 import { createHash, randomUUID } from 'node:crypto';
-import { catalogue, getDefaultOptions, getRoomSpec, getVariant, isVisibleVariant, supportsNewRoom, VISIBLE_VARIANT_KEYS } from '@dss/rules';
+import { catalogue, getDefaultOptions, getRoomSpec, getVariant, isVisibleVariant, supportsNewRoom, VISIBLE_VARIANT_KEYS, XINJIN_V2_OPTIONS } from '@dss/rules';
 import type { Database } from './database.js';
 import { requireRole, type Actor } from './auth.js';
 import { AppError, requireCondition } from './errors.js';
@@ -169,8 +169,9 @@ export class LobbyService {
     for (const template of templates) {
       const standing = (await this.db.query(`SELECT r.id,r.variant_key,r.rules FROM rooms r WHERE r.lobby_template_id=$1 AND r.state='waiting' AND r.current_round=0
         AND NOT EXISTS(SELECT 1 FROM room_members m WHERE m.room_id=r.id) ORDER BY r.created_at`, [template.id])).rows;
-      // 发布前开的新津空桌还是 v1 规则：收掉，按 v2 补开（第三轮规则 v2）。
-      const stale = standing.filter(room => room.variant_key === '4:0' && !isXinjinV2(room.rules ?? {}));
+      // 发布前开的新津空桌还是 v1 规则，或 v2 的固定玩法后来改过（比如 11-01 开了自己翻牌自己吃）：收掉，按现在的规则补开。
+      const stale = standing.filter(room => room.variant_key === '4:0' && (!isXinjinV2(room.rules ?? {}) ||
+        Object.entries(XINJIN_V2_OPTIONS).some(([key, value]) => room.rules?.[key] !== value)));
       for (const room of stale) await this.rooms.closeEmptySystemRoom(room.id);
       const empty = standing.filter(room => !stale.includes(room));
       // 其他玩法的老模板不再补桌，空桌收掉；模板本身留着不动（S1）。
