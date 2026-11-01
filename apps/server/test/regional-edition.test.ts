@@ -156,7 +156,8 @@ test('Xinjin rooms freeze the independent pack and rule version without enabling
     assert.equal(room.rules.xinjin.version, 'xinjin-independent-v1');
     assert.equal(room.rules.xinjin.rulesVersion, 'xinjin-independent-v1');
     assert.equal(room.rules.xinjin.wangNum, 3);
-    assert.equal(room.rules.xinjin.ziChi, 0);
+    // 新津 v2 固定自己翻出的牌自己也能吃（开房选的「可吃上家」不再生效）。
+    assert.equal(room.rules.xinjin.ziChi, 1);
     await rooms.ready(owner, room.id, true);
     assert.equal((await rooms.view(room.id, owner.id)).state, 'waiting');
     assert.equal(await ledger.balance(owner.id), '0');

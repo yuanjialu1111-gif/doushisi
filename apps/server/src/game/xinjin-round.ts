@@ -230,7 +230,8 @@ function performMeld(state: XinjinRound, id: string, action: Move, external: boo
   if (state.phase === 'finished') return;
   stage(state, resume, id, replacement && resume === 'discard' ? { kind: 'replacement', userId: id, cardId: replacement } : null);
 }
-export function createXinjinRound(input: RoundInput, orderedCardIds: readonly string[]): XinjinRound {
+/** firstDealerId：第一局的庄家，v2 由引擎随机挑；不给就是房主。 */
+export function createXinjinRound(input: RoundInput, orderedCardIds: readonly string[], firstDealerId = input.ownerUserId): XinjinRound {
   const players = [...input.players].sort((a, b) => a.seat - b.seat);
   requireCondition(players.length >= 2 && players.length <= 4 && players.length === input.rules.playerNum &&
     new Set(players.map(item => item.userId)).size === players.length &&
@@ -239,7 +240,8 @@ export function createXinjinRound(input: RoundInput, orderedCardIds: readonly st
     typeof input.rules.baseBeans === 'string' && amount(input.rules.baseBeans).gt(0),
   'INVALID_ROUND_INPUT', 'Explicit players, options and a positive base are required.', 500);
   assertXinjinOptionsSupported(input.rules);
-  let dealerId = input.ownerUserId, dealerRun = 1;
+  requireCondition(players.some(item => item.userId === firstDealerId), 'INVALID_ROUND_INPUT', 'The first dealer must be seated.', 500);
+  let dealerId = firstDealerId, dealerRun = 1;
   if (input.number > 1) {
     const prior = input.previousRoundContext;
     requireCondition(prior?.version === XINJIN_INDEPENDENT_VERSION && prior.completedRound === input.number - 1 &&
@@ -400,9 +402,12 @@ export function xinjinTimedAction(state: XinjinRound, id: string) {
   const hu = state.phase === 'response' ? actions.find(action => action.type === 'respond' && action.choiceId !== null &&
     (state.claims!.offers.find(offer => offer.id === action.choiceId)!.action as Move).type === 'hu') : actions.find(action => action.type === 'hu');
   const v2 = isXinjinV2(state.rules);
-  const fallback = state.phase === 'response' ? actions.find(action => action.type === 'respond' && action.choiceId === null)
+  // v2 要牌超时：能胡就胡，能碰就碰，其余过。
+  const peng = v2 && state.phase === 'response' ? actions.find(action => action.type === 'respond' && action.choiceId !== null &&
+    (state.claims!.offers.find(offer => offer.id === action.choiceId)!.action as Move).type === 'peng') : undefined;
+  const fallback = peng ?? (state.phase === 'response' ? actions.find(action => action.type === 'respond' && action.choiceId === null)
     : actions.find(action => action.type === 'begin' || action.type === 'draw') ??
-      (v2 ? autoDiscard(state, id, actions) : undefined) ?? actions.find(action => action.type === 'discard');
+      (v2 ? autoDiscard(state, id, actions) : undefined) ?? actions.find(action => action.type === 'discard'));
   // v2 每步 15 秒（E8）；v1 老桌照旧。
   return { userId: id, decisionId: decision(state), delayMs: xinjinTurnSeconds(state) * 1000, action: hu ?? fallback! };
 }

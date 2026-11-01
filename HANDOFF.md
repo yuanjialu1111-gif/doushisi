@@ -1,3 +1,13 @@
+# 当前任务（2026-11-01 新津三处按资料改）
+
+- **用户要求**：「三处都按资料改」（DEC-20261101-新津自吃托管定庄）。
+- **改了**：
+  - 自己翻出的牌自己也能吃：`packages/rules/src/edition.ts` 的 `XINJIN_V2_OPTIONS` 加 `ziChi: 1`。
+  - 要牌超时能胡就胡、能碰就碰：`xinjin-round.ts` 的 `xinjinTimedAction`。
+  - 第一局随机定庄：`xinjin-engine.ts` 引擎随机挑，`createXinjinRound` 多一个 `firstDealerId` 参数，默认还是房主。
+- **测试**：`xinjin-v2.test.ts` 加 3 个（自吃、超时碰、随机定庄），原版客户端模拟也按自吃跑过；`regional-edition.test.ts` 冻结 ziChi 期望改 1。服务端全量 812/812，tsc 干净。
+- **没做**：没上桌手点；没发布 108。
+
 # 当前任务（2026-11-01 全部按规则走：原版客户端只能做合规动作、合规动作都能做）
 
 - **用户要求**：「全部按方案修」。

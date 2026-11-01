@@ -170,6 +170,44 @@ test('v2 偷出三张后摸到第四张可以巴杠', () => {
   assert.equal(next.players[0]!.melds[0]!.cardIds.length, 4);
 });
 
+test('v2 自己翻出的牌自己也能吃，下家照旧能吃；老桌（ziChi 0）只给下家', () => {
+  const hands = [[201, 202, 203, 204, 206, 301, 302, 303], [405, 208, 307, 111, 309, 410, 113]];
+  const chiers = (options: Record<string, unknown>) => {
+    let next = run(make(hands, [104], options), 'a', 'begin');
+    next = passAll(run(next, 'a', 'discard', 303));
+    next = run(next, 'b', 'draw');
+    if (next.phase !== 'response') return [];
+    return next.players.map(item => item.userId).filter(id => xinjinLegalActions(next, id).some(item => item.type === 'respond' &&
+      item.choiceId !== null && (next.claims!.offers.find(offer => offer.id === item.choiceId)!.action as { type: string }).type === 'chi'));
+  };
+  assert.deepEqual(chiers({}), ['b']);
+  assert.deepEqual(chiers({ ziChi: 0 }), []);
+});
+
+test('v2 要牌超时能胡就胡、能碰就碰，其余过', () => {
+  const state = make([[201, 202, 203, 204, 206, 301, 302, 405], [205, 305, 307, 111, 309, 410, 113]]);
+  const next = run(run(state, 'a', 'begin'), 'a', 'discard', 405);
+  const auto = xinjinTimedAction(next, 'b')!;
+  assert.equal(auto.action.type, 'respond');
+  const choiceId = (auto.action as { choiceId: string | null }).choiceId;
+  assert.equal((next.claims!.offers.find(offer => offer.id === choiceId)!.action as { type: string }).type, 'peng');
+});
+
+test('v2 第一局随机定庄，第二局起上局赢家当庄', () => {
+  const dealers = new Set<string>();
+  for (let seed = 1; seed <= 40; seed++) {
+    let value = seed;
+    const engine = createXinjinEngine(`v2-dealer-${seed}`, max => (value = (value * 16807) % 2147483647) % max);
+    const snapshot = engine.create(input(4)) as XinjinRound;
+    assert.equal(snapshot.activeId, snapshot.dealerId);
+    dealers.add(snapshot.dealerId);
+  }
+  assert.deepEqual([...dealers].sort(), ['a', 'b', 'c', 'd']);
+  const engine = createXinjinEngine('v2-dealer-next', () => 0);
+  const second = engine.create({ ...input(4), number: 2, previousRoundContext: { version: XINJIN_INDEPENDENT_VERSION, completedRound: 1, nextDealerId: 'c', dealerRun: 1 } }) as XinjinRound;
+  assert.equal(second.dealerId, 'c');
+});
+
 test('开局庄家收到出牌选项，别家收到倒计时；之后没事件的一步不重播开局摸鬼', () => {
   // 这个种子的牌开局有三家摸到鬼、补牌（startEvents 6 条）。
   let seed = 0;
