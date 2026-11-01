@@ -124,7 +124,7 @@ test('peng beats chi independent of response order, replaces one and survives se
   assert.deepEqual(qionglaiLegalActions(bFirst, 'b'), []);
   const restored = JSON.parse(JSON.stringify(bFirst)) as QionglaiRound;
   const resolved = reply(restored, 'c', 'peng');
-  assert.deepEqual(resolved, reply(reply(s, 'c', 'peng'), 'b', 'chi'));
+  assert.deepEqual(resolved, reply(s, 'c', 'peng'), '碰先回：压得过还没回的吃，立刻定（DEC-20261101-要牌立刻结算）');
   assert.equal(resolved.activeId, 'c'); assert.equal(resolved.phase, 'discard');
   assert.equal(zone(resolved, 'hand:c').length, 6);
   assert.equal(resolved.counters.replacements, 1);

@@ -174,6 +174,12 @@ test('操作：超时自动胡、自动碰', () => {
   state = timeout(step(start('timeoutPeng'), 'a', 'discard', [110]));
   assert.equal(state.players[2]!.melds[0]!.kind, 'peng');
 });
+test('翻牌后 1号点胡立刻结算，不等能吃的 3号（测试台暗四对发现）', () => {
+  let state = pass(step(start('anDui'), 'a', 'discard', [413]), ['a']);
+  assert.ok(options(state, 'c', 'chi').length, '3号能吃');
+  state = step(state, 'a', 'hu');
+  won(state, 'a', ['anDui'], 3);
+});
 test('操作：四家托管打到流局', () => {
   let state = start('liuJu');
   for (let guard = 0; guard < 500 && state.phase !== 'finished'; guard++) {

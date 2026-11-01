@@ -100,3 +100,26 @@ test('single-claim ties and all-pass outcomes do not depend on network arrival o
   assert.equal(resolveClaims(first)![0]!.userId, 'b');
   assert.deepEqual(resolveClaims(submitClaim(submitClaim(original, 'tie', 'b', null), 'tie', 'a', null)), []);
 });
+
+test('还有人没回时，没人压得过已选的就立刻定；压得过（更高、同级排前、同级一起胡）就等', () => {
+  const window = openClaims('early', ['a', 'b', 'c'], [
+    { id: 'a-chi', userId: 'a', action: 'chi', priority: 10, simultaneous: false },
+    { id: 'b-peng', userId: 'b', action: 'peng', priority: 50, simultaneous: false },
+    { id: 'c-hu', userId: 'c', action: 'hu', priority: 100, simultaneous: false },
+  ]);
+  assert.deepEqual(resolveClaims(submitClaim(window, 'early', 'c', 'c-hu'))!.map(offer => offer.id), ['c-hu'], '胡最大，不等吃、碰');
+  assert.equal(resolveClaims(submitClaim(window, 'early', 'b', 'b-peng')), null, '胡的人还没回');
+  assert.deepEqual(resolveClaims(submitClaim(submitClaim(window, 'early', 'c', null), 'early', 'b', 'b-peng'))!.map(offer => offer.id), ['b-peng'], '碰不等吃');
+  assert.equal(resolveClaims(submitClaim(window, 'early', 'a', null)), null, '都过才定流程，没选的不提前');
+  const tie = openClaims('tie-early', ['a', 'b'], [
+    { id: 'a-hu', userId: 'a', action: 'hu', priority: 100, simultaneous: false },
+    { id: 'b-hu', userId: 'b', action: 'hu', priority: 100, simultaneous: false },
+  ]);
+  assert.equal(resolveClaims(submitClaim(tie, 'tie-early', 'b', 'b-hu')), null, '同级排在前面的还没回');
+  assert.deepEqual(resolveClaims(submitClaim(tie, 'tie-early', 'a', 'a-hu'))!.map(offer => offer.id), ['a-hu'], '排在前面的选了不用等后面');
+  const both = openClaims('both', ['a', 'b'], [
+    { id: 'a-hu', userId: 'a', action: 'hu', priority: 100, simultaneous: true },
+    { id: 'b-hu', userId: 'b', action: 'hu', priority: 100, simultaneous: true },
+  ]);
+  assert.equal(resolveClaims(submitClaim(both, 'both', 'a', 'a-hu')), null, '一起胡要等另一家');
+});

@@ -132,8 +132,10 @@ test('non-11:0 configurations keep ordinary sevens out of the bonus zone', () =>
 function choose(state: AbaRound, id: string, kind: string): AbaRound {
   const offer = state.claims!.offers.find(item => item.userId === id && (item.action as { type: string }).type === kind);
   assert.ok(offer, `${id} must have a ${kind} offer`);
-  const responders = [...new Set(state.claims!.offers.map(item => item.userId))];
+  const responders = [...new Set(state.claims!.offers.map(item => item.userId))], decision = state.claims!.id;
   for (const responder of responders) {
+    // 没人压得过已选的就立刻定（DEC-20261101-要牌立刻结算），后面的人不用再回。
+    if (state.claims?.id !== decision) break;
     state = applyAbaAction(state, responder, { type: 'respond', decisionId: state.claims!.id,
       choiceId: responder === id ? offer.id : null }).snapshot as AbaRound;
     assertAbaRound(state);

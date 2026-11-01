@@ -1858,7 +1858,33 @@
         return room && Number(room.areaType) === AREA_XINJIN ? EDITION_NAME : text;
       };
     });
+    // 牌桌中间的游戏名水印：原版按地区异步换图（新津桌是「成都斗十四」）。原图组件关掉，上面盖一张「四川斗十四」
+    // （tools/sichuan-title.mjs 用原版字拼的），原版异步换图落在关掉的组件上也看不到；图取不到就保留原版。
+    var Game = cc.js.getClassByName('dss_gameController');
+    if (!Game || Game.prototype._standaloneSichuanTitle || typeof Game.prototype.loadgetName !== 'function') return;
+    Game.prototype._standaloneSichuanTitle = true;
+    var loadgetName = Game.prototype.loadgetName;
+    Game.prototype.loadgetName = function () {
+      var result = loadgetName.apply(this, arguments), node = this.views && this.views.game_name_sprite;
+      if (!node || !cc.isValid(node)) return result;
+      var sichuan = Number(this.model && this.model.areaType) === AREA_XINJIN, overlay = node.getChildByName('standaloneSichuanTitle');
+      if (!sichuan) {
+        if (overlay) overlay.destroy();
+        node.getComponent(cc.Sprite).enabled = true;
+        return result;
+      }
+      if (overlay) return result;
+      cc.assetManager.loadRemote(apiOrigin + SICHUAN_TITLE, { ext: '.png' }, function (error, texture) {
+        if (error || !cc.isValid(node) || node.getChildByName('standaloneSichuanTitle')) return;
+        node.getComponent(cc.Sprite).enabled = false;
+        var title = new cc.Node('standaloneSichuanTitle');
+        title.addComponent(cc.Sprite).spriteFrame = new cc.SpriteFrame(texture);
+        node.addChild(title);
+      });
+      return result;
+    };
   }
+  var SICHUAN_TITLE = '/client/extra/table/sichuan-title.png';
   function followServerPlays() {
     var Select = cc.js.getClassByName('dss_selectController');
     if (!Select || Select.prototype._standaloneServerPlays) return;

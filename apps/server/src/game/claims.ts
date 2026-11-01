@@ -51,17 +51,24 @@ export function submitClaim(window: ClaimWindow, decisionId: string, userId: str
   return next;
 }
 
-/** Higher priority wins; equal priorities use the explicit regional tie order. */
+/**
+ * Higher priority wins; equal priorities use the explicit regional tie order.
+ * 还有人没回时，只要没回的人谁都压不过已选的（更高优先级、同级排在前面或同级一起算），就立刻定（DEC-20261101-要牌立刻结算）。
+ */
 export function resolveClaims(window: ClaimWindow): ClaimOffer[] | null {
   const responders = new Set([...window.offers.map(offer => offer.userId), ...(window.passOnlyUserIds ?? [])]);
-  if ([...responders].some(userId => !window.replies.some(reply => reply.userId === userId))) return null;
+  const pending = [...responders].filter(userId => !window.replies.some(reply => reply.userId === userId));
   const chosen = window.replies.flatMap(reply => reply.choiceId === null ? [] :
     window.offers.filter(offer => offer.userId === reply.userId && offer.id === reply.choiceId));
-  if (!chosen.length) return [];
+  if (!chosen.length) return pending.length ? null : [];
   const priority = Math.max(...chosen.map(offer => offer.priority));
   const winners = chosen.filter(offer => offer.priority === priority)
     .sort((a, b) => window.tieOrder.indexOf(a.userId) - window.tieOrder.indexOf(b.userId));
-  return structuredClone(winners[0]!.simultaneous ? winners : winners.slice(0, 1));
+  const best = winners[0]!;
+  const rank = (userId: string) => window.tieOrder.indexOf(userId);
+  if (window.offers.some(offer => pending.includes(offer.userId) && (offer.priority > priority ||
+    offer.priority === priority && (best.simultaneous || rank(offer.userId) < rank(best.userId))))) return null;
+  return structuredClone(best.simultaneous ? winners : winners.slice(0, 1));
 }
 
 export function projectClaims(window: ClaimWindow, userId: string) {
