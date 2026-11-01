@@ -127,12 +127,16 @@ test('original wire pushes room fee and settlement balances after their transact
     await auth.create('wire_room_balance_b', 'test-password-only'),
   ];
   for (const [index, player] of players.entries()) await ledger.adjust(admin, player.id, '10', 'opening room balance', `wire-room-open-${index}`);
-  const connected = [];
+  const connected = [], uids: unknown[] = [];
   for (const player of players) {
     const client = await openClient(address); clients.push(client);
-    await client.request(MSGEvent.HWRequestGameLogin, { hwRequestGameLogin: { account: player.username, password: 'test-password-only' } }, MSGEvent.HWResponseGameLogin);
+    const login = await client.request(MSGEvent.HWRequestGameLogin, { hwRequestGameLogin: { account: player.username, password: 'test-password-only' } }, MSGEvent.HWResponseGameLogin);
+    uids.push((login.frame.data.hwResponseGameLogin as Record<string, unknown>).uid);
     connected.push(client);
   }
+  const goldOf = (client: (typeof connected)[number], start: number, uid: unknown) => client.wait(MSGEvent.HWNotifyUserDataChange, start,
+    value => (value.frame.data.hwNotifyUserDataChange as any).uid === uid)
+    .then(update => update.extension?.decimalFields.find(field => field.path.join('.') === 'hwNotifyUserDataChange.goldNum')?.value);
   const defaults = getDefaultOptions('4:0');
   const created = await connected[0]!.request(MSGEvent.HWRequestCreateTable, { hwRequestCreateTable: { ...defaults, playerNum: 2, roomType: 100, areaType: 4 } }, MSGEvent.HWResponseCreateTable);
   const code = (created.frame.data.hwResponseCreateTable as any).tableInfo.roomId;
@@ -145,16 +149,11 @@ test('original wire pushes room fee and settlement balances after their transact
   await rooms.ready(players[0]!, room.id, true);
   const feeStarts = connected.map(client => client.inbox.length);
   await rooms.ready(players[1]!, room.id, true);
-  for (const [index, client] of connected.entries()) {
-    const update = await client.wait(MSGEvent.HWNotifyUserDataChange, feeStarts[index]!);
-    assert.equal(update.extension?.decimalFields.find(field => field.path.join('.') === 'hwNotifyUserDataChange.goldNum')?.value, '9');
-  }
+  // 自己和同桌的人都收到每一家扣房费后的豆子（原版头像按 uid 更新那一家）。
+  for (const [index, client] of connected.entries()) for (const uid of uids) assert.equal(await goldOf(client, feeStarts[index]!, uid), '9');
   const started = await rooms.view(room.id, players[0]!.id);
   const settlementStarts = connected.map(client => client.inbox.length);
   await rooms.action(players[0]!, room.id, 'wire-room-settlement', { type: 'settle' }, started.stateVersion!, started.roundId!);
-  for (const [index, client] of connected.entries()) {
-    const update = await client.wait(MSGEvent.HWNotifyUserDataChange, settlementStarts[index]!);
-    assert.equal(update.extension?.decimalFields.find(field => field.path.join('.') === 'hwNotifyUserDataChange.goldNum')?.value,
-      index === 0 ? '9.25' : '8.75');
-  }
+  for (const [index, client] of connected.entries()) for (const [seat, uid] of uids.entries())
+    assert.equal(await goldOf(client, settlementStarts[index]!, uid), seat === 0 ? '9.25' : '8.75');
 });

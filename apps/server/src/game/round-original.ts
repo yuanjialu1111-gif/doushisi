@@ -201,6 +201,16 @@ export function createRoundOriginalAdapter(options: RoundAdapterOptions): Engine
       } } };
   }
 
+  /** 这一手的选项和倒计时。自己有按钮时钟在自己（以前不发给自己，轮到自己钟还停在上一家，11-01 测试台）；
+   *  没按钮时钟在当前那家，别人能不能吃碰不外露。原版钟在选项之后摆，跟着按钮宽度挪位置。 */
+  function turnPackets(s: RoundState, userId: string): EngineOriginalPacket[] {
+    const own = choices(s, userId);
+    const packets: EngineOriginalPacket[] = own.length ? [{ command: MSGEvent.HWNotifySeatOperationChoice, body: { choices: own } }] : [];
+    if (s.phase !== 'finished') packets.push({ command: MSGEvent.HWNotifyNextOperation,
+      body: { seatIndex: own.length ? seatOf(s, userId) : seatOf(s, s.activeId), leftCardNum: ids(s, 'deck').length, autoIntoSecond: options.turnSeconds?.(s) ?? 0 } });
+    return packets;
+  }
+
   return {
     decodeAction(command, body, decisionId): unknown {
       if (command === 53) {
@@ -240,10 +250,7 @@ export function createRoundOriginalAdapter(options: RoundAdapterOptions): Engine
         // 开局摸鬼补牌已经体现在开局手牌和鬼牌区里，这里不再重播。
         const packets: EngineOriginalPacket[] = [{ command: MSGEvent.HWNotifyGameStart,
           body: (enterBody(snapshot, userId).body as { gameStart: Record<string, unknown> }).gameStart }];
-        const own = choices(s, userId);
-        if (own.length) packets.push({ command: MSGEvent.HWNotifySeatOperationChoice, body: { choices: own } });
-        if (s.phase !== 'finished' && s.activeId !== userId) packets.push({ command: MSGEvent.HWNotifyNextOperation,
-          body: { seatIndex: seatOf(s, s.activeId), leftCardNum: ids(s, 'deck').length, autoIntoSecond: options.turnSeconds?.(s) ?? 0 } });
+        packets.push(...turnPackets(s, userId));
         return packets;
       }
       const packets: EngineOriginalPacket[] = [];
@@ -327,10 +334,7 @@ export function createRoundOriginalAdapter(options: RoundAdapterOptions): Engine
           destCardIsOwn: userId === raw.userId, protectCard: protectAt(String(raw.userId), index),
           useCard: [(raw.card as { code: number }).code], colInfo: [], leftCardNum: ids(s, 'deck').length } } });
       }
-      const own = choices(s, userId);
-      if (own.length) packets.push({ command: MSGEvent.HWNotifySeatOperationChoice, body: { choices: own } });
-      if (s.phase !== 'finished' && s.activeId !== userId) packets.push({ command: MSGEvent.HWNotifyNextOperation,
-        body: { seatIndex: seatOf(s, s.activeId), leftCardNum: ids(s, 'deck').length, autoIntoSecond: options.turnSeconds?.(s) ?? 0 } });
+      packets.push(...turnPackets(s, userId));
       return packets;
     },
   };

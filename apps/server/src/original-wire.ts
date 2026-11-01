@@ -283,6 +283,18 @@ export async function registerOriginalProtocol(app: FastifyInstance, services: O
       connection.lastBalance = balance;
       connection.send(MSGEvent.HWNotifyUserDataChange, body, fields);
     }
+    // 同桌的人也收到：原版头像按 uid 只更新那一家。以前只推给本人，开局扣房费后别人头像上还是扣费前的数（11-01 测试台）。
+    for (const [userId, balance] of latest) void publishToTable(userId, balance).catch(() => {});
+  }
+  async function publishToTable(userId: string, balance: string): Promise<void> {
+    const peers = [...projections].filter(([, room]) => room.members.some(member => member.userId === userId))
+      .flatMap(([roomId]) => roomConnections(roomId))
+      .filter(peer => !peer.closed && peer.balancePushReady && peer.actor && peer.actor.id !== userId);
+    if (!peers.length) return;
+    const body: Record<string, any> = { uid: await numericUid(userId), changeType: 0 };
+    const fields: DecimalField[] = [];
+    exactField(body, 'goldNum', balance, ['hwNotifyUserDataChange'], fields);
+    for (const peer of peers) if (!peer.closed) peer.send(MSGEvent.HWNotifyUserDataChange, body, fields);
   }
 
   interface RoomProjection { code: number; state: string; members: Record<string, any>[]; dissolve: DissolveState | null; cursor: NonNullable<OriginalExtension['roomState']>; sequence: number; completed: boolean }
@@ -551,6 +563,7 @@ export async function registerOriginalProtocol(app: FastifyInstance, services: O
         leftCardNum: gameProjection?.body.leftCardNum ?? 0, round: room.currentRound, shiName: room.rules.region?.shiName ?? connection.region.shiName,
         xianName: room.rules.region?.xianName ?? connection.region.xianName, showPipeiPic: false, pipeiCd: 0,
       }, [...fields, ...(gameProjection?.decimalFields ?? [])], undefined, undefined, undefined, room.responseWindow?.id ?? null);
+      for (const packet of snapshot.resume) connection.send(packet.command, packet.body, packet.decimalFields, undefined, undefined, undefined, packet.decisionId);
       await syncRoom(room.id);
       });
     }

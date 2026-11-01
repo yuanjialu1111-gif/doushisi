@@ -1,3 +1,15 @@
+# 当前任务（2026-11-01 测试台发现的 4 个问题全改：用户「4 个都改」）
+
+- **决策**：DEC-20261101-测试台四处修复。都是共用代码，所有地区桌一起生效（邛崃单独的通知代码 `qionglai-original.ts:209` 仍跳过自己，没动）。
+- **改了**：
+  1. **轮到自己钟停在上一家**：原因是 `round-original.ts` 只给「不是当前那家」的人发 NextOperation。现在 `turnPackets`：自己有按钮 → 先发选项再发 NextOperation（座位是自己，原版钟跟着按钮摆）；没按钮 → 钟在当前那家（响应窗里是出牌/翻牌那家）。
+  2. **刷新/重连没按钮**：进桌包（HWResponseEnterTableFinish）里没有选项。`rooms.originalEnter` 算出这一手的选项和倒计时（`resume`），`original-wire.enterFinished` 在进桌包后补发，带同一个 decisionId。
+  3. **四家都显示自己的豆子**：原版 `dss_playerController._noticeUserDataChange` 的 else 分支把自己的豆子写到每个别家头像上；而且以前豆子变动只推给本人。现在服务端 `publishToTable` 把每家的新豆子推给同桌的人（带那家 uid）；`standalone.js` 的 `ownBeansOnly` 换掉原版处理，只更新 uid 对上的那家头像（已重新生成原生适配，走热更新）。
+  4. **规则弹框「报叫1番」**：文字来自原版 `CommonPlayUIController.getRule` / `dss_gameController.getRule`。`standalone.js` 的 `xinjinRuleText` 在新津（areaType 4）把「报叫1番 / 报叫一番」换成「报叫3番」。
+- **上桌复测**：1号轮到自己时自己的钟亮、别家钟在 1号；能吃的那家钟在自己。轮到 1号时刷新窗口，回来直接拖牌出牌被接受，3号弹碰/过。刷新后四个窗口四家豆子都是各自的真实数（和 /api/me 一致），开下一局扣房费后四个窗口不刷新也实时变。规则弹框显示「报叫3番」。
+- **测试**：`xinjin-v2.test.ts` 开局庄家收到选项＋自己座位的钟、响应窗里能响应的人钟在自己、没动作的人钟在当前那家；`original-action-metadata.test.ts` 进桌后补发选项（同 decisionId）；`original-wire-balance.test.ts` 房费、结算的豆子同桌两家都收到。去掉修复后后两个测试会失败。服务端全量 830 过，tsc 干净，adapter 18/18。
+- **没做**：没发布 108、没出 APK 7（等用户点头）；报叫后灰牌变白和两条没复现的仍没改。
+
 # 当前任务（2026-11-01 测试台 27 个场景：用户要「所有情况都列出来，我要测试点击」）
 
 - **用户要求**：「测试台这边把所有的情况都列出来是所有 我要测试点击」→ 列了 27 个场景，用户「按清单做」（DEC-20261101-测试台场景）。
@@ -12,13 +24,9 @@
   2. 摸鬼补的牌进手了但手牌没重画：补牌包加 `isShua: true`。
   3. 「报」按钮点了没反应（牌桌钩子装在按钮绑定之后）：`standalone.js` 重新把 `ntfOperate/actionBtn_bao` 绑到改过的点击处理，原生适配已重新生成。
 - **测试**：`xinjin-scenarios.test.ts` 每个场景开局核对手牌和关键动作；`xinjin-v2.test.ts` 加组合 id/addToId 一项、补牌 isShua 断言。服务端全量过，tsc 干净，adapter 过。
-- **发现了没改（等用户定）**：
-  1. 轮到自己时钟停在上一家：服务端给自己不发 NextOperation（通知里 `s.activeId !== userId`，共用代码）。
-  2. 牌局中刷新/重连不重发当前可选动作，要等下一手。
-  3. 每个窗口四家都显示自己的豆子数。
-  4. 房间规则弹框写「报叫1番」，v2 是 3 番。
-  5. 报叫打出后，轮到别人时灰掉的牌又变白（只是显示，点不了）。
-  6. 没复现：第一次 baoJiao 拖牌把 6♣ 当普通出牌发了；qia20 有一次弹出房间规则框。
+- **发现了没改**：前 4 条已在下一条任务里改掉（见最上面）；剩下：
+  1. 报叫打出后，轮到别人时灰掉的牌又变白（只是显示，点不了）。
+  2. 没复现：第一次 baoJiao 拖牌把 6♣ 当普通出牌发了；qia20 有一次弹出房间规则框。
 - **没做**：没发布 108、没出 APK 7（都等用户点头）。
 - **测试台用法**：`.local/test-desk/start.sh` 开四个窗口和控制窗（服务端带 `DSS_TEST_DEALS=1`）；控制窗点场景 → 四家点准备 → 按提示点。窗口被挡/隐藏时 Chrome 会节流，原版几乎不跑，用 CDP `json/activate` 把窗口提到前面。
 

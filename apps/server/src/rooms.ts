@@ -355,14 +355,19 @@ export class RoomService extends EventEmitter {
       requireCondition(room.state !== 'closed', 'ROOM_CLOSED', 'Room is closed.', 409);
       const sequence = (await tx.query('SELECT COALESCE(MAX(sequence),0)::int AS value FROM game_events WHERE room_id=$1', [roomId])).rows[0]!.value as number;
       let game: EngineOriginalBody | null = null;
+      let resume: ReturnType<typeof projectOriginalNotifications> = [];
       if (room.roundId) {
-        const adapter = this.engines.get(room.variantKey, room.ruleVersion).original;
+        const engine = this.engines.get(room.variantKey, room.ruleVersion);
+        const adapter = engine.original;
         requireCondition(adapter, 'ORIGINAL_ADAPTER_UNAVAILABLE', 'This rule version has no verified original-client adapter.', 409);
         const round = (await tx.query('SELECT snapshot FROM rounds WHERE id=$1', [room.roundId])).rows[0]!;
         game = adapter.enter(structuredClone(round.snapshot), actor.id);
         this.validateOriginalBody(48, game);
+        // 进桌包里没有选项：刷新、断线重连后补发这一手的选项和倒计时，不然要等下一手才有按钮（11-01 测试台）。
+        resume = projectOriginalNotifications(engine, round.snapshot, [], actor.id, 'action')
+          .filter(packet => packet.command === MSGEvent.HWNotifySeatOperationChoice || packet.command === MSGEvent.HWNotifyNextOperation);
       }
-      return { room, game, sequence };
+      return { room, game, sequence, resume };
     });
   }
 

@@ -1809,6 +1809,42 @@
     var table = cc.mm.uimanager.getWindow('dss_game');
     return table && table.model && typeof table.model.getSelf === 'function' ? { table: table, self: table.model.getSelf() } : null;
   }
+  // 原版头像收到「我的豆子变了」时，别人的头像也走 else 分支把我的豆子写到自己身上，四家都显示我的豆子（11-01 测试台）。
+  // 只让本人的头像更新；原版进桌时已按引用注册过，已有的头像重新注册一次。
+  var USER_DATA_CHANGE = 'HWNotifyUserDataChange';
+  function ownBeansOnly(table) {
+    var Player = cc.js.getClassByName('dss_playerController');
+    if (!Player) return;
+    var original = Player.prototype._standaloneUserDataChange || Player.prototype._noticeUserDataChange;
+    if (!Player.prototype._standaloneUserDataChange) {
+      Player.prototype._standaloneUserDataChange = original;
+      Player.prototype._noticeUserDataChange = function (data) {
+        if (this._model && data && data.uid == this._model.uid) return original.apply(this, arguments);
+      };
+    }
+    var type = cc.mm.frametype.MSG_NOTICE_CMD + cc.mm.msgEvent[USER_DATA_CHANGE];
+    table.node.getComponentsInChildren('dss_playerController').forEach(function (head) {
+      if (head._standaloneOwnBeans) return;
+      head._standaloneOwnBeans = true;
+      cc.mm.notification.off(type, original, head);
+      cc.mm.notification.off(type, head._noticeUserDataChange, head);
+      cc.mm.notification.on(type, head._noticeUserDataChange, head);
+    });
+  }
+  // 新津现在的桌报叫 3 番（DEC-20261101-新津番表），原版房间规则还写「报叫1番」「报叫一番」（11-01 测试台）。
+  var AREA_XINJIN = 4;
+  function xinjinRuleText() {
+    ['CommonPlayUIController', 'dss_gameController'].forEach(function (name) {
+      var Controller = cc.js.getClassByName(name);
+      if (!Controller || Controller.prototype._standaloneXinjinRule || typeof Controller.prototype.getRule !== 'function') return;
+      Controller.prototype._standaloneXinjinRule = true;
+      var getRule = Controller.prototype.getRule;
+      Controller.prototype.getRule = function () {
+        var text = getRule.apply(this, arguments), room = cc.mm.hallserver && cc.mm.hallserver.mLastRoomParam;
+        return room && Number(room.areaType) === AREA_XINJIN && typeof text === 'string' ? text.replace(/报叫[1一]番/, '报叫3番') : text;
+      };
+    });
+  }
   function followServerPlays() {
     var Select = cc.js.getClassByName('dss_selectController');
     if (!Select || Select.prototype._standaloneServerPlays) return;
@@ -2237,6 +2273,8 @@
       // 原版邀请键（复制分享文字）藏起来；好友、邀请第三轮已下线。
       patchTableEmotes(controller);
       followServerPlays();
+      ownBeansOnly(controller);
+      xinjinRuleText();
       // 原版 onLoad 就把「报」绑在当时的 onClickOperator 上，早于上面改原型：每页第一张桌点「报」走的是原版，被服务端拒。重新绑一次。
       var baoButton = controller.views['ntfOperate/actionBtn_bao'];
       if (baoButton && !controller._standaloneBaoButton) {

@@ -259,6 +259,11 @@ test('wire clients negotiate response windows; same opening version is accepted 
   assert.equal((await a.request(23, { actType: 1, destCard: 1 }, 24, request('wire-window-first'))).extension?.error, undefined);
   const restored = await b.request(47, { roomId: code }, 48);
   assert.equal(restored.extension?.decisionId, 'choice:one');
+  // 进桌后补发这一手的选项和倒计时（带同一个 decisionId），不重播动作。
+  const entered = b.inbox.indexOf(restored);
+  const resumed = await b.wait(26, entered + 1);
+  assert.equal(resumed.extension?.decisionId, 'choice:one');
+  assert.ok(b.inbox.indexOf(resumed) > entered);
   assert.equal((await b.request(23, { actType: 1, destCard: 1 }, 24, request('wire-window-second'))).extension?.error, undefined);
   assert.equal((await rooms.view(roomId, players[0]!.id)).stateVersion, 2);
 });

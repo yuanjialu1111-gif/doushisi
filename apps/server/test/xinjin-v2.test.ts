@@ -252,12 +252,24 @@ test('开局庄家收到出牌选项，别家收到倒计时；之后没事件�
   assert.ok(snapshot.startEvents.length > 0);
   const dealer = snapshot.dealerId as string, other = ['a', 'b', 'c', 'd'].find(id => id !== dealer)!;
   const start = (userId: string) => engine.original!.notifications(snapshot, [], userId, 'start').map(packet => packet.command);
-  assert.deepEqual(start(dealer), [MSGEvent.HWNotifyGameStart, MSGEvent.HWNotifySeatOperationChoice]);
+  assert.deepEqual(start(dealer), [MSGEvent.HWNotifyGameStart, MSGEvent.HWNotifySeatOperationChoice, MSGEvent.HWNotifyNextOperation]);
   assert.deepEqual(start(other), [MSGEvent.HWNotifyGameStart, MSGEvent.HWNotifyNextOperation]);
+  // 钟都在庄家：庄家自己也收到（以前不发给自己，自己的钟停在上一家）。
+  const clock = (userId: string, phase: 'start' | 'action', state = snapshot) => (engine.original!.notifications(state, [], userId, phase)
+    .find(packet => packet.command === MSGEvent.HWNotifyNextOperation)?.body as any)?.seatIndex;
+  const seat = (userId: string) => snapshot.players.find((player: any) => player.userId === userId).seat;
+  assert.equal(clock(dealer, 'start'), seat(dealer));
+  assert.equal(clock(other, 'start'), seat(dealer));
   // 庄家出牌后，第一个能响应的人点「过」：这一步没有事件，不能把开局的摸鬼、偷再发一遍。
   snapshot = engine.apply(snapshot, dealer, engine.interactions!.legalActions(snapshot, dealer)[0]!).snapshot;
   const responder = ['a', 'b', 'c', 'd'].find(id => engine.interactions!.legalActions(snapshot, id).some((item: any) => item.type === 'respond'));
   assert.ok(responder);
+  // 能吃碰的人钟在自己，其他人（含打出、翻出这张的人）钟在当前那家，不暴露谁能吃碰。
+  assert.equal(snapshot.phase, 'response');
+  assert.equal(clock(responder, 'action'), seat(responder));
+  const idle = ['a', 'b', 'c', 'd'].filter(id => !engine.interactions!.legalActions(snapshot, id).length);
+  assert.ok(idle.length > 0);
+  for (const userId of idle) assert.equal(clock(userId, 'action'), seat(snapshot.activeId), userId);
   const pass = (engine.interactions!.legalActions(snapshot, responder) as any[]).find(item => item.type === 'respond' && item.choiceId === null);
   const passed = engine.apply(snapshot, responder, pass);
   if (passed.events.length === 0) for (const userId of ['a', 'b', 'c', 'd']) {
