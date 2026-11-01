@@ -4,6 +4,7 @@ import { freezeXinjinOptions, getDefaultOptions, XINJIN_INDEPENDENT_VERSION, XIN
 import { evaluateXinjinWin, type XinjinHand, type XinjinWinContext } from '../src/game/xinjin-win.js';
 import type { EngineResult, RoundInput } from '../src/engines.js';
 import { createXinjinEngine } from '../src/game/xinjin-engine.js';
+import { playThroughOriginalClient } from './original-client.js';
 import { MSGEvent } from '@dss/protocol';
 import { assertCardState } from '../src/game/cards.js';
 import { createXinjinCardState, xinjinPackSpecification } from '../src/game/xinjin-pack.js';
@@ -207,4 +208,17 @@ test('摸到鬼后补的牌标成进手（isShangShou），只发给本人', () 
     .filter(packet => packet.command === MSGEvent.HWNotifyPlayerDealCard).map(packet => packet.body as any);
   assert.deepEqual(deals('b').map(body => [body.value, body.isShangShou]), [[1001, false], [107, true]]);
   assert.deepEqual(deals('a').map(body => body.value), [1001]);
+});
+
+test('新津 v2 桌只用原版客户端会发的请求能打完，每手合规动作都发得出（含报叫、碰、偷、巴杠）', () => {
+  const seen = new Set<number>();
+  for (const count of [4, 3, 2]) for (let game = 0; game < (process.env.XINJIN_GAMES ? Number(process.env.XINJIN_GAMES) : 12); game++) {
+    let seed = game * 7919 + count;
+    const engine = createXinjinEngine(`v2-client-${count}-${game}`, max => (seed = (seed * 1103515245 + 12345) % 2147483648) % max);
+    const result = playThroughOriginalClient(engine, engine.create(input(count)), game + 1);
+    assert.equal((result.state as XinjinRound).phase, 'finished', `第 ${game} 局 ${count} 人没打完`);
+    for (const actType of result.actTypes) seen.add(actType);
+  }
+  if (process.env.XINJIN_GAMES) console.log('出现过的原版动作', [...seen].sort((a, b) => a - b).join(','));
+  for (const actType of [3, 4, 9]) assert.ok(seen.has(actType), `没打到动作 ${actType}`);
 });
