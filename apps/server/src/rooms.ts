@@ -31,6 +31,8 @@ export interface DissolveState {
 
 export class RoomService extends EventEmitter {
   constructor(private db: Database, public engines: EngineRegistry, private policies: PolicyService, private now: () => number = Date.now) { super(); }
+  /** 能新开的玩法：只有四川斗十四（DEC-20261101-四川斗十四）。其他地区的代码留着不启用，只有测试打开它们跑。 */
+  opensVariant: (variantKey: string) => boolean = isVisibleVariant;
   /** 仅本机测试台：房间 id → 下一局要发的牌，开局时用掉。设置入口只在 DSS_TEST_DEALS=1 的本机服务里开（app.ts）。 */
   readonly testDeals = new Map<string, TestDeal>();
 
@@ -45,7 +47,7 @@ export class RoomService extends EventEmitter {
     this.testDeals.set(roomId, { dealerUserId: actor.id, hands: deal.hands.map(hand => [...hand]), draws: [...deal.draws] });
   }
 
-  games() { return catalogue.map(variant => ({ ...variant, defaults: getDefaultOptions(variant.key), fields: getRoomSpec(variant.key).fields, playable: this.engines.has(variant.key) })); }
+  games() { return catalogue.filter(variant => this.opensVariant(variant.key)).map(variant => ({ ...variant, defaults: getDefaultOptions(variant.key), fields: getRoomSpec(variant.key).fields, playable: this.engines.has(variant.key) })); }
 
   async current(userId: string) {
     const found = await this.db.query("SELECT r.id FROM rooms r JOIN room_members m ON r.id=m.room_id WHERE m.user_id=$1 AND r.state <> 'closed' AND m.hold_until IS NULL ORDER BY r.created_at DESC LIMIT 1", [userId]);
@@ -54,7 +56,7 @@ export class RoomService extends EventEmitter {
 
   /** 开房选项的权威校验；玩家开房、系统桌和后台模板共用（R2、R3）。 */
   prepareRoom(variantKey: string, options: Record<string, unknown>, region?: unknown) {
-    requireCondition(supportsNewRoom(variantKey), 'GAME_REMOVED', 'This game is not available in the regional edition.', 409);
+    requireCondition(supportsNewRoom(variantKey) && this.opensVariant(variantKey), 'GAME_REMOVED', 'This game is not available in the regional edition.', 409);
     requireCondition(variantKey !== '6:0' || options.processType !== 2, 'GAME_REMOVED', 'Red-twenty blood-battle is not included in this edition.', 409);
     const variant = getVariant(variantKey);
     requireCondition(variant, 'UNKNOWN_VARIANT', 'Unknown game configuration.');

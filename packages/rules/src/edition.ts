@@ -22,12 +22,14 @@ export const EDITION_ID = 'dou14-regions-21-v1';
 export const RETAINED_GAME_IDS = Object.freeze([4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15, 16, 19, 20, 21, 22, 23, 24, 25, 26, 27]);
 export const RETAINED_VARIANT_KEYS = Object.freeze(RETAINED_GAME_IDS.map(id => `${id}:0`));
 export const supportsNewRoom = (key: string): boolean => RETAINED_VARIANT_KEYS.includes(key);
-// 第二轮只留新津斗十四（DEC-20261031-单玩法去地区）：界面只显示这些玩法、地区一律当新津；
-// 服务端照旧接受 RETAINED 里的全部，老房间、战绩、回放不受影响。
+// 只留一个玩法「四川斗十四」（新津 v2 这套规则；DEC-20261031-单玩法去地区、DEC-20261101-四川斗十四）：
+// 界面只显示它、服务端也只让新开它，地区一律「四川」；其他 20 套规则代码留着不启用，老房间照旧能看。
 export const VISIBLE_GAME_IDS = Object.freeze([4]);
 export const VISIBLE_VARIANT_KEYS = Object.freeze(VISIBLE_GAME_IDS.map(id => `${id}:0`));
 export const isVisibleVariant = (key: string): boolean => VISIBLE_VARIANT_KEYS.includes(key);
-export const XINJIN_REGION = Object.freeze({ shiName: '成都市', xianName: '新津' });
+export const EDITION_NAME = '四川斗十四';
+// 原版地区为空时会弹选地区，两级都填「四川」。
+export const EDITION_REGION = Object.freeze({ shiName: '四川', xianName: '四川' });
 export function freezeIndependentApproval(variantKey: string) {
   if (!supportsNewRoom(variantKey)) throw new Error('Independent authorization is limited to retained configurations');
   return { version: INDEPENDENT_APPROVAL_VERSION, variantKey, approvedAt: '2026-09-16',

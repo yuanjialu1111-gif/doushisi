@@ -1,3 +1,4 @@
+import { supportsNewRoom } from '@dss/rules';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { once } from 'node:events';
@@ -52,6 +53,7 @@ test('frozen room options are server-authored on create, enter, restore and in-r
   const app = Fastify(); await app.register(websocket);
   const auth = new AuthService(db); const ledger = new LedgerService(db); const policies = new PolicyService(db);
   const rooms = new RoomService(db, new EngineRegistry(), policies);
+  rooms.opensVariant = supportsNewRoom; // 其他地区代码留着不启用（DEC-20261101-四川斗十四），测试打开跑它的规则。
   await registerOriginalProtocol(app, { db, auth, ledger, policies, rooms, markOnline() {} });
   const url = (await app.listen({ host: '127.0.0.1', port: 0 })).replace('http', 'ws') + '/ws/original';
   const clients: Awaited<ReturnType<typeof connect>>[] = [];

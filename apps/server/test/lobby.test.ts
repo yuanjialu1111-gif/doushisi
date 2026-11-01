@@ -63,7 +63,7 @@ test('R2/R1/R5: templates keep standing empty system tables, the lobby lists onl
   let listing = await tablesOf(ctx, rich.headers);
   assert.equal(listing.tables.length, 2);
   assert.ok(listing.tables.every((table: any) => table.system && table.seats.length === 0 && table.threshold === '10' && table.state === 'waiting'));
-  assert.deepEqual(listing.variants, [{ key: '4:0', name: '新津斗十四' }]);
+  assert.deepEqual(listing.variants, [{ key: '4:0', name: '四川斗十四' }]);
   const systemRooms = (await ctx.db.query("SELECT owner_id,fee_mode FROM rooms WHERE lobby_template_id IS NOT NULL")).rows;
   assert.ok(systemRooms.every(room => room.owner_id === SYSTEM_ACCOUNT_ID && room.fee_mode === 'aa'));
   // 系统房主不在任何一桌的座位上。

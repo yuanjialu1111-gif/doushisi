@@ -25,7 +25,7 @@ const templateErrors: Record<string, string> = {
   UNKNOWN_VARIANT: '没有这个玩法。',
 };
 
-// 第一批系统桌（AI 暂定，后台可改）：新津斗十四 4 人 8 局，底分 1/2/5 各 3 张空桌。
+// 第一批系统桌（AI 暂定，后台可改）：四川斗十四 4 人 8 局，底分 1/2/5 各 3 张空桌。
 const DEFAULT_TEMPLATES = ['1', '2', '5'].map((baseBeans, index) => ({
   variantKey: '4:0', options: { gameNum: 8, playerNum: 4, baseBeans }, standingEmpty: 3, thresholdMultiplier: DEFAULT_THRESHOLD_MULTIPLIER,
   idleClearMinutes: 10, enabled: true, sortOrder: index + 1,
@@ -79,7 +79,8 @@ export class LobbyService {
       (SELECT COUNT(*)::int FROM room_members m JOIN rooms r ON r.id=m.room_id WHERE r.lobby_template_id=t.id AND r.state <> 'closed') AS "seatedPlayers"
       FROM lobby_templates t ORDER BY t.sort_order,t.created_at`);
     return {
-      templates: rows.rows.map(row => ({ id: row.id, variantKey: row.variant_key, variantName: variantName(row.variant_key), options: row.options,
+      // 其他地区的老模板不开桌（maintain 按 0 张算），后台也不列（DEC-20261101-四川斗十四）。
+      templates: rows.rows.filter(row => isVisibleVariant(row.variant_key)).map(row => ({ id: row.id, variantKey: row.variant_key, variantName: variantName(row.variant_key), options: row.options,
         standingEmpty: row.standing_empty, thresholdMultiplier: row.threshold_multiplier, idleClearMinutes: row.idle_clear_minutes,
         enabled: row.enabled, sortOrder: row.sort_order, summary: this.summary(row.variant_key, row.options),
         openTables: row.openTables, seatedPlayers: row.seatedPlayers, updatedAt: row.updated_at })),
@@ -93,8 +94,9 @@ export class LobbyService {
     requireCondition(Number.isInteger(input.idleClearMinutes) && input.idleClearMinutes >= 1 && input.idleClearMinutes <= 120, 'INVALID_TEMPLATE', '清座时限要在 1–120 分钟之间。');
     requireCondition(Number.isInteger(input.sortOrder) && Math.abs(input.sortOrder) <= 999999, 'INVALID_TEMPLATE', '排序要是 ±999999 以内的整数。');
     requireCondition(this.rooms.engines.has(input.variantKey), 'VARIANT_NOT_PLAYABLE', '这个玩法还不能开局，不能做大厅桌。');
-    // 只留新津（S1 AC5）：其他玩法的老模板还能改成停用，不能新建或启用。
-    requireCondition(isVisibleVariant(input.variantKey) || !input.enabled, 'VARIANT_HIDDEN', '大厅桌只能用新津斗十四；其他玩法的模板只能停用。');
+    // 只留四川斗十四（S1 AC5）：其他玩法的老模板还能改成停用，不能新建或启用。
+    requireCondition(isVisibleVariant(input.variantKey) || !input.enabled, 'VARIANT_HIDDEN', '大厅桌只能用四川斗十四；其他玩法的模板只能停用。');
+    if (!isVisibleVariant(input.variantKey)) return;
     // 和玩家开房走同一套校验，保存下来的模板一定开得出桌子。
     try { this.rooms.prepareRoom(input.variantKey, input.options); }
     catch (error) {
@@ -111,7 +113,7 @@ export class LobbyService {
 
   async createTemplate(admin: Actor, input: TemplateInput) {
     requireRole(admin, 'beans_admin');
-    requireCondition(isVisibleVariant(input.variantKey), 'VARIANT_HIDDEN', '大厅桌只能用新津斗十四。');
+    requireCondition(isVisibleVariant(input.variantKey), 'VARIANT_HIDDEN', '大厅桌只能用四川斗十四。');
     this.validateTemplate(input);
     const id = randomUUID();
     await this.db.query(`INSERT INTO lobby_templates(id,variant_key,options,standing_empty,threshold_multiplier,idle_clear_minutes,enabled,sort_order)

@@ -1,5 +1,5 @@
 import { originalCatalogue } from './original-catalogue.js';
-import { supportsNewRoom, QIONGLAI_OPTIONS } from './edition.js';
+import { supportsNewRoom, isVisibleVariant, EDITION_NAME, QIONGLAI_OPTIONS } from './edition.js';
 export * from './edition.js';
 export * from './yaan.js';
 export * from './pujiang.js';
@@ -75,11 +75,11 @@ export const originalVariants: readonly Variant[] = deepFreeze(Object.entries(or
     const key = `${id}:${index}`;
     const retained = supportsNewRoom(key);
     return {
-      key, gameId: Number(id), configurationIndex: index, name: original.name,
+      key, gameId: Number(id), configurationIndex: index, name: isVisibleVariant(key) ? EDITION_NAME : original.name,
       ruleVersion: RULE_VERSION,
       evidenceStatus: retained ? RELEASE_EVIDENCE_STATUS : EVIDENCE_STATUS,
       gameplayReady: retained,
-      original,
+      original: isVisibleVariant(key) ? { ...original, name: EDITION_NAME } : original,
     };
   }),
 ));
@@ -104,6 +104,8 @@ export function resolveVariantKey(gameId: number, options: { yifupai?: boolean |
 
 export function displayName(key: string, region: RegionContext = {}, surface: 'room' | 'hall' = 'room'): string {
   const variant = getVariant(key);
+  // 只留的那个玩法不分地区叫法（老房间存的新津、彭山、眉山也一样）。
+  if (isVisibleVariant(key)) return variant.name;
   const city = region.shiName ?? '';
   const county = region.xianName ?? '';
   if (county === '其他区域' && city === '成都市') return '成都斗十四';

@@ -287,7 +287,7 @@ test('S4-AC4 S4-AC5 牌桌上邀请：只能邀请在线好友；空闲的弹窗
     assert.equal(idle.invites[0].popup, true, '空闲的弹窗');
     assert.equal(idle.invites[0].from.nickname, '房主');
     assert.deepEqual({ code: idle.invites[0].room.code, name: idle.invites[0].room.name, seated: idle.invites[0].room.seated, playerCount: idle.invites[0].room.playerCount },
-      { code, name: '新津斗十四', seated: 1, playerCount: 4 });
+      { code, name: '四川斗十四', seated: 1, playerCount: 4 });
     assert.equal(idle.unread, 1, '邀请卡也进「消息」');
 
     // c 在另一桌打牌：不弹窗，只进「消息」。

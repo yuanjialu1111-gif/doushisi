@@ -6,7 +6,7 @@ import Fastify from 'fastify';
 import websocket from '@fastify/websocket';
 import { WebSocket } from 'ws';
 import { decodeFrame, type DecodedFrame } from '@dss/protocol';
-import { clientEdition, isVisibleVariant, supportsNewRoom, RETAINED_VARIANT_KEYS } from '@dss/rules';
+import { clientEdition, displayName, getVariant, isVisibleVariant, supportsNewRoom, RETAINED_VARIANT_KEYS } from '@dss/rules';
 import { openDatabase, migrate } from '../src/database.js';
 import { createApp } from '../src/app.js';
 import { AuthService } from '../src/auth.js';
@@ -17,7 +17,7 @@ import { EngineRegistry, type RuleEngine } from '../src/engines.js';
 import { ProfileService } from '../src/profile.js';
 import { registerOriginalProtocol } from '../src/original-wire.js';
 
-// 第二轮 S1：去地区，只留新津斗十四。
+// 第二轮 S1：去地区，只留一个玩法；11-01 起叫「四川斗十四」、地区「四川」，其他玩法服务端也不让新开（DEC-20261101-四川斗十四）。
 async function wireClient(url: string) {
   const socket = new WebSocket(url);
   const inbox: DecodedFrame[] = [];
@@ -37,7 +37,7 @@ async function wireClient(url: string) {
   return { request, close };
 }
 
-test('S1-AC1 S1-AC3 登录一律是新津：库里存过彭山、眉山也一样，地区列表只有新津，选别的地区不生效', async t => {
+test('S1-AC1 S1-AC3 登录一律是四川、只下发四川斗十四：库里存过彭山、眉山也一样，地区列表只有四川，选别的地区不生效', async t => {
   const db = await openDatabase(); await migrate(db);
   const app = Fastify(); await app.register(websocket);
   const auth = new AuthService(db); const policies = new PolicyService(db);
@@ -60,25 +60,38 @@ test('S1-AC1 S1-AC3 登录一律是新津：库里存过彭山、眉山也一样
 
   for (const username of ['region_pengshan', 'region_meishan']) {
     const { client, reply } = await login(username);
-    assert.equal(reply.shiName, '成都市', username);
-    assert.equal(reply.xianName, '新津', username);
-    assert.ok(reply.areaType.length > 0, '有玩法编号，原版不会弹出选地区');
+    assert.equal(reply.shiName, '四川', username);
+    assert.equal(reply.xianName, '四川', username);
+    assert.deepEqual(reply.areaType, [4], '原版战绩、玩法说明只列这一个；有编号原版不会弹出选地区');
     const regions = (await client.request(49, { hwRequestRegion: {} }, 50)).data.hwResponseRegion as any;
-    assert.deepEqual(regions.shiInfo.map((city: any) => [city.shiName, city.xianInfo.map((county: any) => county.xianName)]), [['成都市', ['新津']]]);
+    assert.deepEqual(regions.shiInfo.map((city: any) => [city.shiName, city.xianInfo.map((county: any) => county.xianName)]), [['四川', ['四川']]]);
     const chosen = (await client.request(51, { hwRequestRegionChoice: { shiName: '眉山', xianName: '彭山' } }, 52)).data.hwResponseRegionChoice as any;
     assert.equal(chosen.result, 1);
   }
   const again = await login('region_pengshan');
-  assert.equal(again.reply.xianName, '新津');
+  assert.equal(again.reply.xianName, '四川');
   assert.equal((await db.query('SELECT COUNT(*)::int AS count FROM original_protocol_regions')).rows[0]!.count, 2, '老值不删');
 });
 
-test('S1-AC2 S1-AC4 界面只显示新津，服务端仍接受原来全部玩法', () => {
+test('S1-AC2 S1-AC4 只有四川斗十四能开；其他 20 套规则代码留着，服务端不让新开', async t => {
   assert.deepEqual(clientEdition.visibleGameIds, [4]);
   assert.equal(isVisibleVariant('4:0'), true);
   assert.equal(isVisibleVariant('8:0'), false);
+  assert.equal(getVariant('4:0').name, '四川斗十四');
+  assert.equal(displayName('4:0', { shiName: '眉山', xianName: '彭山' }), '四川斗十四', '老房间存的地区也叫四川斗十四');
   assert.equal(RETAINED_VARIANT_KEYS.length, 21);
   for (const key of RETAINED_VARIANT_KEYS) assert.equal(supportsNewRoom(key), true, key);
+
+  const db = await openDatabase(); await migrate(db);
+  const { app, auth } = await createApp(db, { staticFiles: false, scheduler: false, rateLimit: false });
+  t.after(async () => { await app.close(); await db.close(); });
+  const player = await auth.create('single_open_player', 'test-password-only', 'player');
+  const headers = { authorization: `Bearer ${(await auth.login(player.username, 'test-password-only')).token}` };
+  assert.deepEqual((await app.inject({ method: 'GET', url: '/api/games', headers })).json().games.map((game: any) => [game.key, game.name]), [['4:0', '四川斗十四']]);
+  for (const variantKey of ['5:0', '8:0', '10:0']) {
+    const response = await app.inject({ method: 'POST', url: '/api/rooms', headers, payload: { variantKey, baseBeans: '1' } });
+    assert.equal(response.json().error?.code, 'GAME_REMOVED', variantKey);
+  }
 });
 
 const fixture = (variantKey: string): RuleEngine => ({
@@ -88,7 +101,7 @@ const fixture = (variantKey: string): RuleEngine => ({
   view() { return {}; },
 });
 
-test('S1-AC5 后台大厅桌模板只能用新津；其他玩法的老模板只能停用，不再补桌，大厅也看不到', async t => {
+test('S1-AC5 后台大厅桌模板只能用四川斗十四；其他玩法的老模板只能停用，不再补桌，大厅也看不到', async t => {
   const db = await openDatabase(); await migrate(db);
   const { app, auth, lobby } = await createApp(db, { staticFiles: false, engines: new EngineRegistry([fixture('4:0'), fixture('5:0')]), scheduler: false, rateLimit: false });
   t.after(async () => { await app.close(); await db.close(); });
@@ -110,6 +123,8 @@ test('S1-AC5 后台大厅桌模板只能用新津；其他玩法的老模板只�
   await db.query(`INSERT INTO lobby_templates(id,variant_key,options,standing_empty,threshold_multiplier,idle_clear_minutes,enabled,sort_order)
     VALUES($1,'5:0',$2,3,10,10,true,0)`, [legacyId, JSON.stringify({ baseBeans: '1', playerNum: 2, gameNum: 4 })]);
   const xinjin = (await app.inject({ method: 'POST', url: '/api/admin/lobby-templates', headers, payload: body('4:0') })).json();
+  assert.deepEqual((await app.inject({ method: 'GET', url: '/api/admin/lobby-templates', headers })).json().templates.map((item: any) => [item.variantKey, item.variantName]),
+    [['4:0', '四川斗十四']], '其他地区的老模板后台不列');
   await lobby.maintain();
   const open = (await db.query("SELECT variant_key,COUNT(*)::int AS count FROM rooms WHERE state='waiting' GROUP BY variant_key")).rows;
   assert.deepEqual(open, [{ variant_key: '4:0', count: 2 }]);

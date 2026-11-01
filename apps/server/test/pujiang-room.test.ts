@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { getDefaultOptions, PUJIANG_INDEPENDENT_VERSION } from '@dss/rules';
+import { getDefaultOptions, PUJIANG_INDEPENDENT_VERSION, supportsNewRoom } from '@dss/rules';
 import { AuthService } from '../src/auth.js';
 import { openDatabase, migrate } from '../src/database.js';
 import { EngineRegistry } from '../src/engines.js';
@@ -21,6 +21,7 @@ test('Pujiang production engine completes a real room, settles once per round an
     for (const player of players) await ledger.adjust(admin, player.id, '20', 'Pujiang room test', `pujiang-room-${player.id}`);
     const engine = createPujiangEngine('pujiang-room-production-test');
     const rooms = new RoomService(db, new EngineRegistry([engine]), new PolicyService(db));
+    rooms.opensVariant = supportsNewRoom; // 其他地区代码留着不启用（DEC-20261101-四川斗十四），测试打开跑它的规则。
     const base = { ...getDefaultOptions('7:0'), playerNum: 2, gameNum: 4, maxFan: 99, wangNum: 9,
       baoJiaoYingbao: 1, chaJiao: 1, chengFan: 0, baseBeans: '0.125' };
     const room = await rooms.create(players[0]!, '7:0', base);

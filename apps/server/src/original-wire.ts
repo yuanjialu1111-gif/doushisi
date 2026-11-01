@@ -3,7 +3,7 @@ import type { WebSocket, RawData } from 'ws';
 import protobuf from 'protobufjs/minimal.js';
 import { z } from 'zod';
 import { decodeFrame, encodeFrame, assertCommandBody, expectedBodyField, MSGEvent, MAX_FRAME_BYTES } from '@dss/protocol';
-import { catalogue, supportsNewRoom, QIONGLAI_OPTION_VERSION, QIONGLAI_OPTIONS, getRoomSpec, resolveVariantKey, XINJIN_REGION, type RegionContext, type RoomOptions } from '@dss/rules';
+import { supportsNewRoom, QIONGLAI_OPTION_VERSION, QIONGLAI_OPTIONS, getRoomSpec, resolveVariantKey, EDITION_REGION, VISIBLE_GAME_IDS, type RegionContext, type RoomOptions } from '@dss/rules';
 import type { Database } from './database.js';
 import { type Actor, type AuthService, requireRole } from './auth.js';
 import type { BalanceChange, LedgerService } from './ledger.js';
@@ -149,9 +149,10 @@ CREATE TABLE IF NOT EXISTS original_protocol_regions (
   xian_name text NOT NULL
 );`;
 
-const ids = [...new Set(catalogue.map(variant => variant.gameId))];
-// 地区一律新津（S1）：不看客户端发来的、也不看库里存的；original_protocol_regions 老值留着不删。
-const DEFAULT_REGION: RegionContext = { ...XINJIN_REGION };
+// 只下发四川斗十四（DEC-20261101-四川斗十四）：原版战绩、玩法说明按这个列表列玩法。
+const ids = [...VISIBLE_GAME_IDS];
+// 地区一律「四川」：不看客户端发来的、也不看库里存的；original_protocol_regions 老值留着不删。
+const DEFAULT_REGION: RegionContext = { ...EDITION_REGION };
 const messages: Record<string, string> = {
   RULES_NOT_VERIFIED: '该玩法规则尚未完成原版核验，暂不能开始对局，未扣房费。',
   RULE_DEFAULT_NOT_VERIFIED: '该玩法的原服务端默认规则尚未核实，暂不能创建房间。',
@@ -164,7 +165,7 @@ const messages: Record<string, string> = {
   KICK_TARGET_NOT_IN_ROOM: '该座位没有可请离的玩家。', KICK_ROOM_STARTED: '对局已经开始，不能请离玩家。',
   INVALID_ROOM_OPTIONS: '开房选项不完整或存在不支持的组合。',
   UNSUPPORTED_OPERATION: '此功能未开放。', RATE_LIMITED: '操作过于频繁，请稍后重试。',
-  GAME_REMOVED: '此游戏已从斗十四地区版移除，原有记录保留。',
+  GAME_REMOVED: '这个玩法已经下线，现在只有四川斗十四。',
   REPLAY_WHILE_IN_ROOM: '请先退出或结束当前房间，再查看回放。',
 };
 const resultCodes: Record<string, number> = {
@@ -624,7 +625,7 @@ export async function registerOriginalProtocol(app: FastifyInstance, services: O
           if (services.profileRequired) await services.profiles!.requireComplete(actor.id);
           requireCondition(body.roomType === undefined || body.roomType === 100, 'UNSUPPORTED_OPERATION', 'Only host-created friend rooms are available.');
           const key = resolveVariantKey(body.areaType, body);
-          requireCondition(supportsNewRoom(key), 'GAME_REMOVED', messages.GAME_REMOVED!, 409);
+          requireCondition(supportsNewRoom(key) && rooms.opensVariant(key), 'GAME_REMOVED', messages.GAME_REMOVED!, 409);
           requireCondition(key === '8:0' || createRoom?.qionglai === undefined, 'INVALID_ROOM_OPTIONS', 'Qionglai options belong to Qionglai only.');
           if (key === '8:0') requireCondition(connection.capabilities?.includes(QIONGLAI_OPTION_VERSION) && createRoom?.qionglai,
             'CLIENT_UPGRADE_REQUIRED', messages.CLIENT_UPGRADE_REQUIRED!, 426);

@@ -1,3 +1,4 @@
+import { supportsNewRoom } from '@dss/rules';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { AuthService, type Actor } from '../src/auth.js';
@@ -47,6 +48,7 @@ test('room fees, authoritative settlement and recovery invariants against PGlite
     const policies = new PolicyService(db);
     const engines = new EngineRegistry([fixtureEngine]);
     const rooms = new RoomService(db, engines, policies);
+    rooms.opensVariant = supportsNewRoom; // 其他地区代码留着不启用（DEC-20261101-四川斗十四），测试打开跑它的规则。
     const beans = await auth.create('beans_roomtests', 'test-password-only', 'beans_admin');
     const dealer = await auth.create('dealer_roomtests', 'test-password-only', 'deal_admin');
     let serial = 0;
@@ -148,6 +150,7 @@ test('room fees, authoritative settlement and recovery invariants against PGlite
       assert.equal(await ledger.balance(players[0]!.id), '9.125');
       assert.equal(await ledger.balance(players[1]!.id), '8.875');
       const recovered = new RoomService(db, new EngineRegistry([fixtureEngine]), new PolicyService(db));
+      recovered.opensVariant = supportsNewRoom;
       assert.equal((await recovered.current(players[1]!.id))?.currentRound, 1);
       assert.deepEqual((await recovered.view(room.id, players[0]!.id)).members, replay.members);
     });
@@ -204,6 +207,7 @@ test('room fees, authoritative settlement and recovery invariants against PGlite
     await t.test('unverified engines and pregame owner cancellation never charge beans', async () => {
       const { players, room } = await pair();
       const unverified = new RoomService(db, new EngineRegistry(), policies);
+      unverified.opensVariant = supportsNewRoom;
       await unverified.ready(players[0]!, room.id, true);
       await assert.rejects(unverified.ready(players[1]!, room.id, true), code('RULES_NOT_VERIFIED'));
       assert.equal(await operationCount(room.id, 'room_fee'), 0);

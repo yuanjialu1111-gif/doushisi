@@ -1,3 +1,4 @@
+import { supportsNewRoom } from '@dss/rules';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { AuthService } from '../src/auth.js';
@@ -19,6 +20,7 @@ test('Yaan production engine completes a real room, settles once per round and r
     for (const player of players) await ledger.adjust(admin, player.id, '20', 'Yaan room test', `yaan-room-${player.id}`);
     const engine = createYaanEngine('yaan-room-production-test');
     const rooms = new RoomService(db, new EngineRegistry([engine]), new PolicyService(db));
+    rooms.opensVariant = supportsNewRoom; // 其他地区代码留着不启用（DEC-20261101-四川斗十四），测试打开跑它的规则。
     const room = await rooms.create(players[0]!, '6:0', { playerNum: 2, gameNum: 4, wangNum: 3, qiWangNum: 0,
       baseBeans: '0.125', ziChi: 0, chaJiao: 0, chengFan: 0 });
     await rooms.join(players[1]!, room.code);

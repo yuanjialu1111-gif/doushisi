@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { getDefaultOptions, SCORE_REGION_VERSIONS } from '@dss/rules';
+import { getDefaultOptions, SCORE_REGION_VERSIONS, supportsNewRoom } from '@dss/rules';
 import { AuthService } from '../src/auth.js';
 import { openDatabase, migrate } from '../src/database.js';
 import { EngineRegistry } from '../src/engines.js';
@@ -26,6 +26,7 @@ test('Rongxian four-player small seat opens at five cards and plays at six', asy
     }
     const engine = createScoreRegionEngine('small-seat-fixture', '20:0', () => 0);
     const rooms = new RoomService(db, new EngineRegistry([engine]), new PolicyService(db));
+    rooms.opensVariant = supportsNewRoom; // 其他地区代码留着不启用（DEC-20261101-四川斗十四），测试打开跑它的规则。
     const options = { ...getDefaultOptions('20:0'), playerNum: 4, gameNum: 4, daXiaoJia: 1, baseBeans: '0.125' };
     const room = await rooms.create(players[0]!, '20:0', options);
     for (const player of players.slice(1)) await rooms.join(player, room.code);
@@ -76,6 +77,7 @@ for (const variantKey of variants) {
       for (const player of players) await ledger.adjust(admin, player.id, '2000', 'score region test', `score-${token}-${player.id}`);
       const engine = createScoreRegionEngine(`score-${variantKey}-production-test`, variantKey);
       const rooms = new RoomService(db, new EngineRegistry([engine]), new PolicyService(db));
+      rooms.opensVariant = supportsNewRoom;
       const defaults = getDefaultOptions(variantKey);
       const options = { ...defaults, playerNum: 2, gameNum: 4, baseBeans: '0.125' };
       const room = await rooms.create(players[0]!, variantKey, options);

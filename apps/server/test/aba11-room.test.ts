@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { ABA11_INDEPENDENT_VERSION, getDefaultOptions } from '@dss/rules';
+import { ABA11_INDEPENDENT_VERSION, getDefaultOptions, supportsNewRoom } from '@dss/rules';
 import { AuthService } from '../src/auth.js';
 import { openDatabase, migrate } from '../src/database.js';
 import { EngineRegistry } from '../src/engines.js';
@@ -105,6 +105,7 @@ test(`11:0 baipiType=${baipiType} quanXing=${quanXing} opens, freezes, reconnect
     // with real state versions, response IDs, durable events and settlement.
     const now = () => 1_800_000_000_000;
     let rooms = new RoomService(db, registry(), new PolicyService(db), now);
+    rooms.opensVariant = supportsNewRoom; // 其他地区代码留着不启用（DEC-20261101-四川斗十四），测试打开跑它的规则。
     const defaults = getDefaultOptions('11:0');
     assert.equal(defaults.baipiType, 1);
     assert.equal(defaults.quanXing, 1);
@@ -148,6 +149,7 @@ test(`11:0 baipiType=${baipiType} quanXing=${quanXing} opens, freezes, reconnect
     const reconnect = async () => {
       const previous = await Promise.all(players.map(player => rooms.view(room.id, player.id)));
       rooms = new RoomService(db, registry(), new PolicyService(db), now);
+      rooms.opensVariant = supportsNewRoom;
       for (const [index, player] of players.entries()) {
         const current = await rooms.current(player.id);
         assert.deepEqual(current, previous[index], 'Recreated services must restore the exact durable player view');

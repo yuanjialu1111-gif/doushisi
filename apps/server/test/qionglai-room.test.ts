@@ -1,3 +1,4 @@
+import { supportsNewRoom } from '@dss/rules';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { AuthService } from '../src/auth.js';
@@ -21,6 +22,7 @@ test('Qionglai production engine completes a real room, settles once and replays
     for (const player of players) await ledger.adjust(admin, player.id, '20', 'Qionglai room test', `qionglai-room-${player.id}`);
     const engine = createQionglaiEngine('qionglai-room-production-test');
     const rooms = new RoomService(db, new EngineRegistry([engine]), new PolicyService(db));
+    rooms.opensVariant = supportsNewRoom; // 其他地区代码留着不启用（DEC-20261101-四川斗十四），测试打开跑它的规则。
     const room = await rooms.create(players[0]!, '8:0', { playerNum: 2, gameNum: 4, wangNum: 3,
       baseBeans: '0.125', chaJiao: 1, keSuHu: 1 });
     await rooms.join(players[1]!, room.code);

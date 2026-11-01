@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { ABA12_INDEPENDENT_VERSION, getDefaultOptions } from '@dss/rules';
+import { ABA12_INDEPENDENT_VERSION, getDefaultOptions, supportsNewRoom } from '@dss/rules';
 import { AuthService } from '../src/auth.js';
 import { openDatabase, migrate } from '../src/database.js';
 import { EngineRegistry } from '../src/engines.js';
@@ -22,6 +22,7 @@ test('Xiaojin configuration 12 keeps its own version and completes four rounds',
     for (const player of players) await ledger.adjust(admin, player.id, '500', 'Aba 12 room test', `aba12-room-${player.id}`);
     const engine = createAbaEngine('aba12-room-production-test', undefined, '12:0');
     const rooms = new RoomService(db, new EngineRegistry([engine]), new PolicyService(db));
+    rooms.opensVariant = supportsNewRoom; // 其他地区代码留着不启用（DEC-20261101-四川斗十四），测试打开跑它的规则。
     const options = { ...getDefaultOptions('12:0'), baseBeans: '0.125' };
     const room = await rooms.create(players[0]!, '12:0', options);
     assert.equal(room.rules.aba.rulesVersion, ABA12_INDEPENDENT_VERSION);

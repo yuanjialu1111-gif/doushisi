@@ -6,7 +6,7 @@ import { WebSocket } from 'ws';
 import { createApp } from '../src/app.js';
 import { migrate, openDatabase } from '../src/database.js';
 import { getDefaultOptions, RETAINED_GAME_IDS, QIONGLAI_PACK_VERSION, QIONGLAI_PACK_APPROVAL,
-  QIONGLAI_INDEPENDENT_VERSION, QIONGLAI_INDEPENDENT_FANS, INDEPENDENT_APPROVAL_VERSION } from '@dss/rules';
+  QIONGLAI_INDEPENDENT_VERSION, QIONGLAI_INDEPENDENT_FANS, INDEPENDENT_APPROVAL_VERSION, supportsNewRoom } from '@dss/rules';
 import { createQionglaiCardState } from '../src/game/qionglai-pack.js';
 import { decodeFrame } from '@dss/protocol';
 import { decodeOriginalExtension, encodeOriginalResponse, type OriginalExtension } from '../src/original-wire.js';
@@ -14,6 +14,7 @@ import { decodeOriginalExtension, encodeOriginalResponse, type OriginalExtension
 test('21-game catalogue rejects removed creation, preserves old rooms, and freezes independently authorized Qionglai rules', async () => {
   const db = await openDatabase(); await migrate(db);
   const { app, auth, rooms, ledger } = await createApp(db, { staticFiles: false, scheduler: false });
+  rooms.opensVariant = supportsNewRoom; // 其他地区代码留着不启用（DEC-20261101-四川斗十四），测试打开跑它的规则。
   try {
     const owner = await auth.create('edition_owner', 'test-password-only');
     const guest = await auth.create('edition_guest', 'test-password-only');
@@ -63,6 +64,7 @@ test('21-game catalogue rejects removed creation, preserves old rooms, and freez
 test('reading historical Qionglai rooms never backfills newly extracted fan values', async () => {
   const db = await openDatabase(); await migrate(db);
   const { app, auth, rooms } = await createApp(db, { staticFiles: false, scheduler: false });
+  rooms.opensVariant = supportsNewRoom;
   try {
     const owner = await auth.create('ql_historical', 'test-password-only');
     const room = await rooms.create(owner, '8:0', { baseBeans: '1', playerNum: 2 });
@@ -87,6 +89,7 @@ test('reading historical Qionglai rooms never backfills newly extracted fan valu
 test('all six approved Qionglai packs survive room persistence without enabling incomplete gameplay', async () => {
   const db = await openDatabase(); await migrate(db);
   const { app, auth, rooms } = await createApp(db, { staticFiles: false, scheduler: false });
+  rooms.opensVariant = supportsNewRoom;
   try {
     const owner = await auth.create('ql_pack_owner', 'test-password-only');
     for (const [wangNum, expectedTotal] of [[3, 55], [6, 58], [9, 61], [12, 64], [15, 67], [18, 70]]) {
@@ -109,6 +112,7 @@ test('all six approved Qionglai packs survive room persistence without enabling 
 test('Ya’an classic rooms retain original options and joins while blood-battle remains excluded', async () => {
   const db = await openDatabase(); await migrate(db);
   const { app, auth, rooms, ledger } = await createApp(db, { staticFiles: false, scheduler: false });
+  rooms.opensVariant = supportsNewRoom;
   try {
     const owner = await auth.create('yaan_owner', 'test-password-only');
     const guest = await auth.create('yaan_guest', 'test-password-only');
@@ -150,6 +154,7 @@ test('Ya’an classic rooms retain original options and joins while blood-battle
 test('Xinjin rooms freeze the independent pack and rule version without enabling gameplay', async () => {
   const db = await openDatabase(); await migrate(db);
   const { app, auth, rooms, ledger } = await createApp(db, { staticFiles: false, scheduler: false });
+  rooms.opensVariant = supportsNewRoom;
   try {
     const owner = await auth.create('xinjin_owner', 'test-password-only');
     const room = await rooms.create(owner, '4:0', { ...getDefaultOptions('4:0'), baseBeans: '0.125', playerNum: 2, gameNum: 4 });
@@ -168,6 +173,7 @@ test('Xinjin rooms freeze the independent pack and rule version without enabling
 test('Anyue rooms freeze the independent pack and rule version', async () => {
   const db = await openDatabase(); await migrate(db);
   const { app, auth, rooms, ledger } = await createApp(db, { staticFiles: false, scheduler: false });
+  rooms.opensVariant = supportsNewRoom;
   try {
     const owner = await auth.create('anyue_owner', 'test-password-only');
     const room = await rooms.create(owner, '5:0', { ...getDefaultOptions('5:0'), baseBeans: '0.125', playerNum: 2, gameNum: 4 });
@@ -183,7 +189,8 @@ test('Anyue rooms freeze the independent pack and rule version', async () => {
 
 test('Qionglai V2 options survive create, join, table entry and login; cross-region injection is refused', async () => {
   const db = await openDatabase(); await migrate(db);
-  const { app, auth } = await createApp(db, { staticFiles: false, scheduler: false });
+  const { app, auth, rooms } = await createApp(db, { staticFiles: false, scheduler: false });
+  rooms.opensVariant = supportsNewRoom;
   const address = await app.listen({ host: '127.0.0.1', port: 0 });
   const sockets: WebSocket[] = [];
   async function client(token: string, modern = true) {

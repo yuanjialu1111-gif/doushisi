@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { ABA_INDEPENDENT_VERSION, getDefaultOptions } from '@dss/rules';
+import { ABA_INDEPENDENT_VERSION, getDefaultOptions, supportsNewRoom } from '@dss/rules';
 import { AuthService } from '../src/auth.js';
 import { openDatabase, migrate } from '../src/database.js';
 import { EngineRegistry } from '../src/engines.js';
@@ -22,6 +22,7 @@ test('Aba production engine completes a real room, settles once per round and re
     for (const player of players) await ledger.adjust(admin, player.id, '500', 'Aba room test', `aba-room-${player.id}`);
     const engine = createAbaEngine('aba-room-production-test');
     const rooms = new RoomService(db, new EngineRegistry([engine]), new PolicyService(db));
+    rooms.opensVariant = supportsNewRoom; // 其他地区代码留着不启用（DEC-20261101-四川斗十四），测试打开跑它的规则。
     const options = { ...getDefaultOptions('9:0'), playerNum: 4, gameNum: 4, huRedScore: 300,
       baojiaoCondition: 1, baipiType: 1, maxFan: 99, baseBeans: '0.125' };
     const room = await rooms.create(players[0]!, '9:0', options);

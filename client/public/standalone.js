@@ -491,7 +491,7 @@
       edition.qionglaiOptions.every(function (option) { return value[option.value] === 0 || value[option.value] === 1; });
   }
   function roomOptionPrompt(reason) {
-    return reason === 'removed' ? '此游戏已移除，请选择斗十四地区玩法。' :
+    return reason === 'removed' ? '这个玩法已经下线，现在只有四川斗十四。' :
       reason === 'qionglai' ? '邛崃玩法选项不完整，请重新选择玩法。' :
       reason === 'playerNum' ? '请选择房间人数' : '请输入正数底分（豆子）';
   }
@@ -1845,6 +1845,20 @@
       };
     });
   }
+  // 只留一个玩法，叫「四川斗十四」（DEC-20261101-四川斗十四）。原版桌上房间信息、大结算、小结算、分享文字按地区拼名字（新津、彭山、眉山…），这里统一换掉。
+  var EDITION_NAME = '四川斗十四';
+  function sichuanName() {
+    ['CommonPlayUIController', 'CommonBigResultController', 'dss_gameController', 'dss_settle_UIController'].forEach(function (name) {
+      var Controller = cc.js.getClassByName(name);
+      if (!Controller || Controller.prototype._standaloneSichuanName || typeof Controller.prototype.getNameStr !== 'function') return;
+      Controller.prototype._standaloneSichuanName = true;
+      var getNameStr = Controller.prototype.getNameStr;
+      Controller.prototype.getNameStr = function () {
+        var text = getNameStr.apply(this, arguments), room = cc.mm.hallserver && cc.mm.hallserver.mLastRoomParam;
+        return room && Number(room.areaType) === AREA_XINJIN ? EDITION_NAME : text;
+      };
+    });
+  }
   function followServerPlays() {
     var Select = cc.js.getClassByName('dss_selectController');
     if (!Select || Select.prototype._standaloneServerPlays) return;
@@ -2188,6 +2202,9 @@
       Object.keys(app.gameconfig).forEach(function (key) {
         (app.gameconfig[key] || []).forEach(function (variant) { variant.rule = withoutLocationOption(variant.rule); });
       });
+      // 战绩、玩法说明、开房按这个名字显示。
+      (app.gameconfig[AREA_XINJIN] || []).forEach(function (variant) { variant.name = EDITION_NAME; });
+      sichuanName();
       var qionglai = app.gameconfig[8] && app.gameconfig[8][0];
       if (qionglai) {
         var options = qionglai.rule.config_playmethod.config;
@@ -2275,6 +2292,7 @@
       followServerPlays();
       ownBeansOnly(controller);
       xinjinRuleText();
+      sichuanName();
       // 原版 onLoad 就把「报」绑在当时的 onClickOperator 上，早于上面改原型：每页第一张桌点「报」走的是原版，被服务端拒。重新绑一次。
       var baoButton = controller.views['ntfOperate/actionBtn_bao'];
       if (baoButton && !controller._standaloneBaoButton) {
