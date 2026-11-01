@@ -268,12 +268,17 @@ export function createRoundOriginalAdapter(options: RoundAdapterOptions): Engine
       for (const [index, raw] of visible.entries()) {
         if (raw.type === 'round-ended') {
           // 先播原版「胡」动作，再弹结算（E1）；原版结算窗自己会等 1.5 秒或番型特效播完。
-          if (options.settlement) for (const winner of s.outcome?.winners ?? []) packets.push({ command: MSGEvent.HWNotifyActionFlow, body: { action: {
-            seatIndex: seatOf(s, winner.userId), actType: ACT.hu, destCard: s.outcome?.sourceCardId ? codeFor(s, s.outcome.sourceCardId) : 0,
-            destCardIsOwn: userId === winner.userId, leftCardNum: ids(s, 'deck').length,
-            tilesOnHandNum: ids(s, `hand:${winner.userId}`).length, huNumber: 1,
-            // 原版按胡动作的番型播特效：全红→红胡、全黑→黑胡、天胡、地胡。
-            cardType: options.settlement!(s, winner.userId).cardType } } });
+          if (options.settlement) for (const winner of s.outcome?.winners ?? []) {
+            const brand = options.settlement(s, winner.userId);
+            packets.push({ command: MSGEvent.HWNotifyActionFlow, body: { action: {
+              seatIndex: seatOf(s, winner.userId), actType: ACT.hu, destCard: s.outcome?.sourceCardId ? codeFor(s, s.outcome.sourceCardId) : 0,
+              destCardIsOwn: userId === winner.userId, leftCardNum: ids(s, 'deck').length,
+              tilesOnHandNum: ids(s, `hand:${winner.userId}`).length, huNumber: 1,
+              // 原版按胡动作的番型播特效：全红→红胡、全黑→黑胡、天胡、地胡。
+              cardType: brand.cardType,
+              // 原版收到动作就拿 redPoint 改本人底部的「红」；不带的话赢家胡完显示 0（11-01 测试台暗四对）。按小结算的红黑点给，含胡的那张。
+              ...(userId === winner.userId ? { redPoint: brand.pointNum, blackPoint: brand.blackPoint } : { redPoint: 0, blackPoint: 0 }) } } });
+          }
           packets.push({ command: MSGEvent.HWNotifyGameOver, ...gameOver(s) }); continue;
         }
         if (raw.type === 'discard') {

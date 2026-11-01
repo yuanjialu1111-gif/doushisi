@@ -190,6 +190,10 @@ test('v2 一张牌只让下家胡，点炮放牌人包三家，托管先打不�
   assert.deepEqual(winner.cardType, [3]); assert.equal(winner.fanNum, 3); assert.equal(winner.pointNum, 30);
   const loser = over.smallResult.userBrand.find((brand: any) => brand.seatIndex === 3);
   assert.equal(loser.huCard, 0); assert.equal(loser.fanNum, 0); assert.equal(loser.pointNum, 17);
+  // 原版收到胡动作就拿 redPoint 改本人底部的「红」：赢家要带和小结算一样的红黑点，不然胡完显示 0（11-01 测试台暗四对）。
+  const own = (adapter.notifications({ ...next, deal: {} }, [{ type: 'round-ended' }], 'b', 'action')[0]!.body as any).action;
+  assert.equal(own.redPoint, 30); assert.equal(own.blackPoint, winner.blackPoint);
+  assert.equal((packets[0]!.body as any).action.redPoint, 0, '别人的红点不外露');
 });
 
 test('v2 偷出三张后摸到第四张可以巴杠', () => {
