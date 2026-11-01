@@ -918,9 +918,10 @@
     if (person._standaloneProfileEntries) return;
     person._standaloneProfileEntries = true;
     hide(person.views, ['bg/doushisi-gerenzhongxin-pic-zhouka', 'bg/timelabel', 'bg/tubiao', 'bg/btn_shouquan', 'bg/yirenzheng',
-      'bg/doushisi-geren-icon-dashi', 'bg/doushisi-gerenzhongxin-pic-touxiangkuang', 'bg/scrollview/view', 'bg/scrollview/doushisi-gerenzhongxin-pic-jiantou']);
-    var frames = person.views['bg/scrollview'] && person.views['bg/scrollview'].getComponent(cc.ScrollView);
-    if (frames) frames.enabled = false;
+      'bg/doushisi-geren-icon-dashi', 'bg/doushisi-gerenzhongxin-pic-touxiangkuang', 'bg/scrollview',
+      'bg/doushisi-gerenzhongxin-pic-xunzhang-di', 'bg/buttom']);
+    // 空圆圈（原勋章位）、勋章空条和右上三行小字去掉，换成三张大战绩卡铺满上半块（11-01 样式稿第二版 A）。
+    person._standaloneStats = statTiles(person.views.bg, 143, 95, 762, 310, 24, 66, 26);
     withProfileKit(function (kit) {
       if (!cc.isValid(person.node)) return;
       kitButton(kit, person.views.bg, '换头像', -407, -139, function () { openProfilePanel('avatar'); });
@@ -937,10 +938,30 @@
       if (!cc.isValid(person.node) || !person.views) return;
       var model = cc.mm.framemodel;
       model.gameNum = view.rounds; model.winNum = view.wins; model.winRate = view.winRate;
-      [['bg/buttom/countlabel', view.rounds], ['bg/buttom/winlabel', view.wins], ['bg/buttom/gailvlabel', view.winRate]].forEach(function (entry) {
-        if (person.views[entry[0]]) person.views[entry[0]].getComponent(cc.Label).string = String(entry[1]);
-      });
+      fillStatTiles(person._standaloneStats, view);
     }, function () { person._standaloneStatsBusy = false; });
+  }
+  // 三张战绩卡（对局数 / 总胜局 / 胜率）：白底圆角、顶上一道色条、大数字。个人中心和牌桌上点头像的信息窗共用。
+  var STAT_TILES = [['rounds', '对局数', '#4a7be0'], ['wins', '总胜局', '#e0564a'], ['winRate', '胜率', '#e09a1a']];
+  function statTiles(parent, x, y, width, height, gap, numberSize, labelSize) {
+    var box = new cc.Node('standaloneStatTiles'); box.setPosition(x, y); parent.addChild(box);
+    var tile = (width - gap * 2) / 3, radius = Math.round(height * 0.07), labels = {};
+    STAT_TILES.forEach(function (entry, index) {
+      var left = -width / 2 + index * (tile + gap), pen = lobbyPen(box, 'tile' + index);
+      fillRound(pen, left, -height / 2 - 4, tile, height, radius, cc.color(40, 80, 150, 30));
+      // 整块先涂色条的颜色，再盖白底（白底顶边方角），顶上露出 8 像素一道色条，外圆角不破。
+      fillRound(pen, left, -height / 2, tile, height, radius, rgb(entry[2]));
+      fillRound(pen, left, -height / 2, tile, height - 8, radius, rgb('#ffffff'));
+      pen.rect(left, -height / 2 + radius, tile, height - 8 - radius); pen.fill();
+      var center = left + tile / 2;
+      labels[entry[0]] = lobbyLabel(box, '-', center, height * 0.1, numberSize, rgb(entry[2]), 0.5, true);
+      lobbyLabel(box, entry[1], center, -height * 0.22, labelSize, rgb('#5a6b8c'), 0.5, false);
+    });
+    return labels;
+  }
+  function fillStatTiles(labels, view) {
+    if (!labels) return;
+    STAT_TILES.forEach(function (entry) { if (cc.isValid(labels[entry[0]])) labels[entry[0]].string = String(view[entry[0]]); });
   }
 
   // 位置只用来给大厅「附近」排档位（R10）：放在请求体里发，服务端只存在内存里；拿不到就不发，大厅照常用。
@@ -977,9 +998,9 @@
   // 大厅（R1、R2、R4、R5；第二轮 S2 换成 A2 样式）：「好友约局」打开原版娱乐场窗口，中间换成公开桌。
   // 界面只露一个玩法时收起左边玩法列表、桌卡铺满整屏；多于一种时左边列表仍当筛选。
   var LOBBY_ALL = '全部玩法';
-  // 尺寸照样式稿 docs/plan/斗十四-大厅样式.html：稿子按 16:9 画，1cqw = 1334 / 100 = 13.34。
-  // 桌卡区上沿离顶 7.4cqw、高 39.4cqw 放两排，列距 1.2cqw、行距 1.4cqw；座位 4.4cqw。
-  var LOBBY_TOP = 375 - 99, LOBBY_AREA = 525, LOBBY_GAP_X = 16, LOBBY_GAP_Y = 19, LOBBY_SEAT = 58, LOBBY_BAR_Y = 326;
+  // 尺寸照样式稿第二版 docs/plan/斗十四-大厅样式-v2.html：稿子按 16:9 画，1cqw = 1334 / 100 = 13.34。
+  // 桌卡区上沿离顶 7.6cqw、离底 8cqw 放两排，列距、行距 1.5cqw；头像、空位圆座都是 3.5cqw。
+  var LOBBY_TOP = 375 - 101, LOBBY_AREA = 542, LOBBY_GAP_X = 20, LOBBY_GAP_Y = 20, LOBBY_SEAT = 46, LOBBY_EMPTY = 46, LOBBY_BAR_Y = 322;
   function lobbyLabel(parent, text, x, y, size, color, anchorX, bold) {
     var label = kitLabel(parent, text, x, y, size, color, anchorX);
     label.enableBold = !!bold;
@@ -1170,11 +1191,8 @@
     hide(controller.views, ['fireReward', 'games/label', 'left/gamaname', 'left/select_1', 'left/select_2', 'left/select_3', 'left/select_4', 'left/select_5', 'backBtn/yulechang-yuke']);
     var title = lobbyLabel(controller.views.backBtn, '大厅', 30, 0, 36, rgb('#ffffff'), 0.5, true);
     var outline = title.node.addComponent(cc.LabelOutline); outline.color = cc.color(32, 86, 168); outline.width = 2;
-    var quick = controller.views['left/quick_start'];
-    quick.active = true;
-    controller.views['left/quick_start/label'].getComponent(cc.Label).string = '快速开始';
-    quick.off('click');
-    cc.mm.uitools.addBtnLister(quick, function () { lobbyQuickStart(controller); }, controller);
+    // 原版橙色快速开始收起，换成右下角的金色胶囊（样式稿第二版 .quick）。
+    controller.views['left/quick_start'].active = false;
     lobby.tab = 'all';
     // 桌卡区挂在整个窗口上，按窗口宽度排版（layoutLobby），不再跟着原版右侧区域缩放。
     lobby.box = new cc.Node('standaloneLobbyBox'); controller.node.addChild(lobby.box);
@@ -1200,34 +1218,48 @@
     fillRound(emptyPen, -320, -60, 640, 120, 24, cc.color(20, 30, 60, 150));
     strokeRound(emptyPen, -320, -60, 640, 120, 24, cc.color(255, 255, 255, 107), 1.5);
     lobby.empty = lobbyLabel(emptyPen.node, '', 0, 0, 26, rgb('#ffffff'), 0.5, true);
-    // 底部只留快速开始，搬进桌卡区压在桌卡上面、放正中；加入房间、创建房间去掉（第三轮 R1）。
+    // 加入房间、创建房间去掉（第三轮 R1）；底部两句提示也去掉（11-01 反馈），只留右下角快速开始。
     hide(controller.views, ['left/joinbtn', 'left/createroom']);
-    lobby.bottom = ['left/quick_start'].map(function (name) { return controller.views[name]; }).filter(Boolean);
-    lobby.bottom.forEach(function (node) { node.parent = lobby.box; });
-    // 快速开始右边一句说明、左下角一句「点空位坐下」提示（样式稿）。
-    lobby.hint = lobbyNote(lobby.box, '自动坐进差人最少、豆子够的桌', 15, cc.color(15, 30, 60, 128), null, 13);
-    lobby.tip = lobbyNote(lobby.box, '👆 点哪个空位就坐哪个，直接进牌桌', 15, cc.color(15, 25, 50, 209), cc.color(255, 226, 122, 204), 11);
+    lobby.quick = lobbyQuickButton(controller);
     layoutLobby(controller);
     poll();
   }
-  // 深色圆角底的一句话；width 记在节点上，layoutLobby 按它摆。
-  function lobbyNote(parent, text, size, background, border, radius) {
-    var pen = lobbyPen(parent, 'standaloneLobbyNote');
-    var label = lobbyLabel(pen.node, text, 0, 0, size, rgb('#ffffff'), 0.5, false);
-    var width = labelWidth(label) + 26, height = size + 12;
-    fillRound(pen, -width / 2, -height / 2, width, height, radius, background);
-    if (border) strokeRound(pen, -width / 2, -height / 2, width, height, radius, border, 1.6);
+  // 快速开始（样式稿第二版 .quick）：18cqw × 5.4cqw 金色胶囊，上浅下深、底下一道深橙边、白色细描边，左边闪电。
+  // Graphics 没有渐变：从上往下叠一组越来越矮的圆角条，颜色从浅黄过渡到橙。
+  function lobbyQuickButton(controller) {
+    var width = 240, height = 72, radius = height / 2;
+    var pen = lobbyPen(controller._standaloneLobby.box, 'standaloneQuickStart');
     pen.node.setContentSize(width, height);
+    fillRound(pen, -width / 2 + 4, -radius - 14, width - 8, height, radius, cc.color(120, 50, 0, 70));
+    fillRound(pen, -width / 2, -radius - 6, width, height, radius, rgb('#b85f00'));
+    var stops = [[0, '#fff0a6'], [0.38, '#ffcf3f'], [1, '#f59a0c']], steps = 14;
+    for (var index = steps; index >= 1; index--) {
+      var t = index / steps, k = t <= 0.38 ? 0 : 1, a = stops[k], b = stops[k + 1], u = (t - a[0]) / (b[0] - a[0]);
+      var from = rgb(a[1]), to = rgb(b[1]), h = height * index / steps;
+      fillRound(pen, -width / 2, radius - h, width, h, Math.min(radius, h / 2),
+        cc.color(from.r + (to.r - from.r) * u, from.g + (to.g - from.g) * u, from.b + (to.b - from.b) * u));
+    }
+    strokeRound(pen, -width / 2 + 1, -radius + 1, width - 2, height - 2, radius - 1, cc.color(255, 255, 255, 150), 2);
+    var label = lobbyLabel(pen.node, '快速开始', 0, 0, 31, rgb('#6a2f00'), 0, true);
+    var icon = 32, gap = 10, total = icon + gap + labelWidth(label), x = -total / 2;
+    label.node.x = x + icon + gap;
+    // 闪电（24×24 的路径按 32 放大）。
+    var scale = icon / 24, point = function (px, py) { return [x + px * scale, (12 - py) * scale]; };
+    pen.fillColor = rgb('#7a3500');
+    [[13.5, 2], [4, 14], [10.5, 14], [9, 22], [20, 9], [13.2, 9]].forEach(function (p, i) { var at = point(p[0], p[1]); if (i) pen.lineTo(at[0], at[1]); else pen.moveTo(at[0], at[1]); });
+    pen.close(); pen.fill();
+    var button = pen.node.addComponent(cc.Button); button.transition = cc.Button.Transition.SCALE; button.zoomScale = 0.94;
+    cc.mm.uitools.addBtnLister(pen.node, function () { lobbyQuickStart(controller); }, controller);
     return pen.node;
   }
-  // 标签 3.4cqw 高、左右 1.5cqw、字 1.55cqw，两头全圆。
+  // 标签 3.4cqw 高、左右 1.8cqw、字 1.6cqw，两头全圆，标签之间留 1cqw。
   function lobbyTab(controller, key, text) {
     var lobby = controller._standaloneLobby, pen = lobbyPen(lobby.box, 'standaloneLobbyTab');
     pen.node.setContentSize(100, 45);
     pen.node.addComponent(cc.Button).transition = cc.Button.Transition.SCALE;
     var label = lobbyShadow(lobbyLabel(pen.node, text, 0, 0, 21, rgb('#ffffff'), 0.5, true));
     cc.mm.uitools.addBtnLister(pen.node, function () { lobby.tab = key; closeLobbyPlayer(lobby); renderLobby(controller); }, controller);
-    return { key: key, node: pen.node, pen: pen, label: label, natural: labelWidth(label) + 40 };
+    return { key: key, node: pen.node, pen: pen, label: label, natural: labelWidth(label) + 48 };
   }
   // 豆子框：深蓝半透明圆角，左边金豆，右边数字（样式稿 .beans），右边缘对齐节点原点。
   function drawLobbyBeans(lobby, text) {
@@ -1252,7 +1284,7 @@
     var pen = lobby.bar, view = lobby.view.height, content = lobby.content.height;
     pen.clear();
     if (!(content > view + 1)) return;
-    var track = 454, top = 375 - 107, width = 5, x = lobby.barX - width / 2;
+    var top = lobby.areaTop, track = lobby.areaTop - lobby.areaBottom, width = 5, x = lobby.barX - width / 2;
     var handle = Math.max(40, track * view / content);
     var ratio = Math.max(0, Math.min(1, (lobby.content.y - view / 2) / (content - view)));
     fillRound(pen, x, top - track, width, track, width / 2, cc.color(255, 255, 255, 64));
@@ -1276,25 +1308,26 @@
     });
     if (!lobby.tabs.some(function (tab) { return tab.key === lobby.tab && tab.node.active; })) lobby.tab = 'all';
   }
-  // 按窗口宽度排：一屏两排，每排能放下几张宽 290 以上的桌卡就放几张（16:9 四张，16:10、4:3 三张）。
+  // 按窗口宽度排：一屏两排，至少三列（16:9、4:3 都是三列），特别宽的屏每张卡够 420 宽再加列。
   // 返回 true 表示列数、卡宽或卡高变了，要重画桌卡。
   function layoutLobby(controller) {
     var lobby = controller._standaloneLobby, width = controller.node.width, half = width / 2;
     if (!lobby || !lobby.box) return false;
     var buttons = controller._gameBtns || [], single = buttons.length < 2;
     if (controller.views.games) controller.views.games.active = !single;
-    var left = single ? -half + 27 : -half + 290, right = half - 27, areaWidth = right - left;
-    var columns = Math.max(2, Math.min(5, Math.floor((areaWidth + LOBBY_GAP_X) / (290 + LOBBY_GAP_X))));
+    // 桌卡区左 3cqw、右 4.2cqw（右边留给滚动条），顶栏右边缘 3cqw。
+    var left = single ? -half + 40 : -half + 290, right = half - 56, headRight = half - 40, areaWidth = right - left;
+    var columns = Math.max(3, Math.min(5, Math.floor((areaWidth + LOBBY_GAP_X) / (420 + LOBBY_GAP_X))));
     var cardWidth = Math.floor((areaWidth - LOBBY_GAP_X * (columns - 1)) / columns);
     var center = (left + right) / 2, top = LOBBY_TOP, bottom = LOBBY_TOP - LOBBY_AREA;
     // 顶栏从右往左：「空位 N」、豆子框；标签接在「大厅」后面，排到豆子框前。放不下就略缩，
     // 再放不下挪到桌卡区上面单独一排，桌卡区往下让、卡变矮。
     var countWidth = lobby.count.node.width || 70, beansWidth = lobby.beans.node.width || 120;
-    lobby.count.node.setPosition(right, LOBBY_BAR_Y);
-    lobby.beans.node.setPosition(right - countWidth - 19, LOBBY_BAR_Y);
-    var tabs = lobby.tabs.filter(function (tab) { return tab.node.active; }), gap = 9;
+    lobby.count.node.setPosition(headRight, LOBBY_BAR_Y);
+    lobby.beans.node.setPosition(headRight - countWidth - 19, LOBBY_BAR_Y);
+    var tabs = lobby.tabs.filter(function (tab) { return tab.node.active; }), gap = 13;
     var natural = tabs.reduce(function (sum, tab) { return sum + tab.natural; }, 0) + gap * Math.max(0, tabs.length - 1);
-    var tabLeft = -half + 261, room = right - countWidth - 19 - beansWidth - 16 - tabLeft;
+    var tabLeft = -half + 261, room = headRight - countWidth - 19 - beansWidth - 16 - tabLeft;
     var scale = Math.min(1, room / natural), tabY = LOBBY_BAR_Y;
     if (scale < 0.85) { tabY = top - 25; top -= 60; tabLeft = left; scale = Math.min(1, areaWidth * 0.75 / natural); }
     var x = tabLeft;
@@ -1308,14 +1341,9 @@
     lobby.view.setContentSize(areaWidth, top - bottom);
     lobby.content.width = areaWidth; lobby.content.y = (top - bottom) / 2;
     lobby.empty.node.parent.x = center;
-    lobby.barX = half - 9 - 2.5;
-    // 底栏：快速开始（原图缩到 0.8，高和稿子的 5.4cqw 一样）和右边的说明一起居中，离底 1.4cqw；左下角提示压不到它们，挤的时候整组右挪。
-    var quickWidth = 258, groupWidth = quickWidth + 21 + lobby.hint.width, bottomY = -316;
-    var tipLeft = left, tipRight = tipLeft + lobby.tip.width;
-    var groupLeft = Math.max(center - groupWidth / 2, tipRight + 16);
-    lobby.bottom.forEach(function (node) { node.scale = 0.8; node.setPosition(groupLeft + quickWidth / 2, bottomY); });
-    lobby.hint.setPosition(groupLeft + quickWidth + 21 + lobby.hint.width / 2, bottomY);
-    lobby.tip.setPosition(tipLeft + lobby.tip.width / 2, -310);
+    // 滚动条离右边 2.4cqw；快速开始贴右下角，离右 3cqw、离底 1.5cqw。
+    lobby.barX = half - 32 - 2.5; lobby.areaTop = top; lobby.areaBottom = bottom;
+    lobby.quick.setPosition(headRight - 120, -375 + 26 + 36);
     var changed = lobby.columns !== columns || lobby.cardWidth !== cardWidth || lobby.cardHeight !== cardHeight;
     lobby.columns = columns; lobby.cardWidth = cardWidth; lobby.cardHeight = cardHeight; lobby.areaWidth = areaWidth;
     return changed;
@@ -1405,13 +1433,13 @@
     var mix = function (value) { return Math.round(((value - grey) * 0.75 + grey) * 0.9); };
     return cc.color(mix(color.r), mix(color.g), mix(color.b));
   }
-  // 俯视绿桌（样式稿 .felt）：卡宽 50%、卡高 44%，木框 0.45cqw、金色内线 0.18cqw，
-  // 中间偏上亮 #3aa56b、四周暗 #1d6e43（Graphics 没有渐变，用几层圆角叠出来）。
+  // 俯视绿桌（样式稿第二版 .felt）：卡宽、卡高各 42%，圆角 1.4cqw，木框 0.45cqw #8a5a2e、金色内线，
+  // 中间偏上亮 #3aa56b、四周暗 #1f7448（Graphics 没有渐变，用几层圆角叠出来）。
   function lobbyFelt(card, table, width, height, playing) {
-    var pen = lobbyPen(card, 'standaloneFelt'), x = -width / 2, y = -height / 2, radius = 21, frame = 6;
-    fillRound(pen, x + 1, y - 5, width - 2, height, radius, cc.color(0, 0, 0, 40));
-    fillRound(pen, x, y, width, height, radius, feltColor('#9a6533', playing));
-    var dark = rgb('#1d6e43'), light = rgb('#3aa56b'), steps = 12, inner = width - frame * 2, innerHeight = height - frame * 2;
+    var pen = lobbyPen(card, 'standaloneFelt'), x = -width / 2, y = -height / 2, radius = 19, frame = 6;
+    fillRound(pen, x + 1, y - 4, width - 2, height, radius, cc.color(0, 0, 0, 90));
+    fillRound(pen, x, y, width, height, radius, feltColor('#8a5a2e', playing));
+    var dark = rgb('#1f7448'), light = rgb('#3aa56b'), steps = 12, inner = width - frame * 2, innerHeight = height - frame * 2;
     for (var index = 0; index < steps; index++) {
       var t = index / (steps - 1), inset = frame + index * Math.min(inner, innerHeight) * 0.028, lift = index * 0.5;
       var hex = '#' + [dark.r + (light.r - dark.r) * t, dark.g + (light.g - dark.g) * t, dark.b + (light.b - dark.b) * t]
@@ -1419,16 +1447,16 @@
       fillRound(pen, x + inset, y + inset + lift, width - inset * 2, height - inset * 2, Math.max(6, radius - frame - index * 0.8), feltColor(hex, playing));
     }
     strokeRound(pen, x + frame + 1.2, y + frame + 1.2, width - frame * 2 - 2.4, height - frame * 2 - 2.4, radius - frame, feltColor('#d9a35f', playing), 2.4);
-    // 「底分 N」1.8cqw 粗体，下面一行 0.95cqw；打牌中写「第几场 · 第几局」；连着打过的桌多一行黄字「第 N 场」（第三轮 R4）。
+    // 「底分 N」1.9cqw 粗体，下面一行 1cqw；打牌中写「第几场 · 第几局」；连着打过的桌多一行黄字「第 N 场」（第三轮 R4）。
     var seq = table.matchSeq || 1, third = !playing && seq > 1;
-    lobbyShadow(lobbyLabel(pen.node, '底分 ' + table.baseBeans, 0, third ? 16 : 8, 24, rgb('#ffffff'), 0.5, true));
+    lobbyShadow(lobbyLabel(pen.node, '底分 ' + table.baseBeans, 0, third ? 16 : 8, 25, rgb('#ffffff'), 0.5, true));
     lobbyShadow(lobbyLabel(pen.node, playing ? '第 ' + seq + ' 场 · ' + table.currentRound + ' / ' + table.rounds + ' 局' : table.rounds + ' 局 · 门槛 ' + table.threshold + ' 豆',
       0, third ? -6 : -14, 13, cc.color(255, 255, 255, 230), 0.5, false));
     if (third) lobbyShadow(lobbyLabel(pen.node, '第 ' + seq + ' 场', 0, -22, 13, rgb('#ffe27a'), 0.5, true));
   }
-  // 座位按顺时针从上方排：4 人上右下左，3 人上右左，2 人上下。样式稿上下在卡高 14.5% / 85.5%，左右在卡宽 13% / 87%。
+  // 座位按顺时针从上方排：4 人上右下左，3 人上右左，2 人上下。样式稿第二版上下在卡高 15% / 85%，左右在卡宽 14% / 86%，都收在卡里。
   function lobbySeatSpots(count, width, height) {
-    var side = width * 0.37, vertical = height * 0.355;
+    var side = width * 0.36, vertical = height * 0.35;
     var top = [0, vertical], right = [side, 0], bottom = [0, -vertical], left = [-side, 0];
     return count >= 4 ? [top, right, bottom, left] : count === 3 ? [top, right, left] : [top, bottom];
   }
@@ -1437,27 +1465,22 @@
     return data.beans === undefined || Number(data.beans) >= Number(table.threshold);
   }
   function beanText(value) { return String(Math.round(value * 100) / 100); }
-  // 空位是「＋ 坐下」按钮：点哪个坐哪个（第三轮 R3）。差 1 人的桌空位亮黄框、轻轻闪；豆子不够门槛半透明，点了提示差多少。
+  // 空位是小圆座，只留「＋」：点哪个坐哪个（第三轮 R3；第二版样式去掉虚线框和「坐下」字）。
+  // 差 1 人的桌空位金色、外圈光轻轻闪；豆子不够门槛半透明，点了提示差多少。
   function lobbyEmptySeat(controller, card, table, seatNo, x, y) {
-    var lobby = controller._standaloneLobby, size = LOBBY_SEAT, half = size / 2;
+    var lobby = controller._standaloneLobby, size = LOBBY_EMPTY, half = size / 2;
     var enough = lobbyEnough(lobby.data || {}, table), go = enough && table.playerCount - table.seats.length === 1;
     var seat = new cc.Node('standaloneEmptySeat');
     seat.setContentSize(size, size); seat.setPosition(x, y); card.addChild(seat);
     if (go) {
       var glow = lobbyPen(seat, 'glow');
-      for (var ring = 4; ring >= 1; ring--) fillRound(glow, -half - ring * 4, -half - ring * 4, size + ring * 8, size + ring * 8, 12 + ring * 4, cc.color(255, 210, 60, 40));
+      for (var ring = 4; ring >= 1; ring--) { glow.fillColor = cc.color(255, 200, 80, 34); glow.circle(0, 0, half + ring * 4); glow.fill(); }
       cc.tween(glow.node).repeatForever(cc.tween().to(0.8, { opacity: 70 }, { easing: 'sineInOut' }).to(0.8, { opacity: 255 }, { easing: 'sineInOut' })).start();
     }
     var empty = lobbyPen(seat, 'face');
-    if (go) {
-      fillRound(empty, -half, -half, size, size, 12, cc.color(255, 196, 40, 115));
-      strokeRound(empty, -half, -half, size, size, 12, rgb('#ffe27a'), 3);
-    } else {
-      fillRound(empty, -half, -half, size, size, 12, cc.color(255, 255, 255, 71));
-      dashedRound(empty, -half, -half, size, size, 12, cc.color(255, 255, 255, 242), 2.4);
-    }
-    lobbyShadow(lobbyLabel(empty.node, '＋', 0, 10, 28, rgb('#ffffff'), 0.5));
-    lobbyShadow(lobbyLabel(empty.node, '坐下', 0, -14, 13, rgb('#ffffff'), 0.5, true));
+    empty.fillColor = go ? cc.color(255, 210, 90, 77) : cc.color(255, 255, 255, 36); empty.circle(0, 0, half); empty.fill();
+    empty.lineWidth = go ? 2.4 : 1.6; empty.strokeColor = go ? rgb('#ffd25a') : cc.color(255, 255, 255, 115); empty.circle(0, 0, half - 0.8); empty.stroke();
+    lobbyLabel(empty.node, '＋', 0, 1, 27, go ? rgb('#fff3c4') : cc.color(255, 255, 255, 217), 0.5);
     if (!enough) seat.opacity = 115;
     var button = seat.addComponent(cc.Button); button.transition = cc.Button.Transition.SCALE; button.zoomScale = 0.92;
     cc.mm.uitools.addBtnLister(seat, function () {
@@ -1486,51 +1509,46 @@
     var seat = new cc.Node('standaloneLobbySeat');
     seat.setContentSize(size, size); seat.setPosition(x, y); card.addChild(seat);
     var shadow = lobbyPen(seat, 'shadow', 0, -3);
-    fillRound(shadow, -half - 1, -half - 1, size + 2, size + 2, 13, cc.color(0, 0, 0, 64));
-    var clip = roundAvatar(seat, 0, 0, size, 12, player.avatarUrl);
-    // 头像底下一条深色名字条（1.6cqw 高），右上角性别符号（样式稿 .seat.who）。
+    fillRound(shadow, -half - 1, -half - 1, size + 2, size + 2, 12, cc.color(0, 0, 0, 64));
+    var clip = roundAvatar(seat, 0, 0, size, 11, player.avatarUrl);
+    // 头像底下一条深色名字条（1.3cqw 高），右上角性别符号（样式稿第二版 .seat.who）。
     var strip = lobbyPen(clip, 'nameStrip');
-    strip.fillColor = cc.color(0, 0, 0, 140); strip.rect(-half, -half, size, 21); strip.fill();
-    lobbyLabel(clip, seatName(player.nickname), 0, -half + 10.5, 13, rgb('#ffffff'), 0.5, false);
+    strip.fillColor = cc.color(0, 0, 0, 140); strip.rect(-half, -half, size, 18); strip.fill();
+    lobbyLabel(clip, seatName(player.nickname), 0, -half + 9, 12, rgb('#ffffff'), 0.5, false);
     var sex = { 1: ['♂', '#a8d4ff'], 2: ['♀', '#ffb3d1'] }[player.sex];
-    if (sex) lobbyShadow(lobbyLabel(clip, sex[0], half - 3, half - 9, 13, rgb(sex[1]), 1, true));
+    if (sex) lobbyShadow(lobbyLabel(clip, sex[0], half - 3, half - 8, 12, rgb(sex[1]), 1, true));
     var ring = lobbyPen(seat, 'ring');
-    strokeRound(ring, -half, -half, size, size, 12, rgb('#ffffff'), 2.7);
+    strokeRound(ring, -half, -half, size, size, 11, rgb('#ffffff'), 2.4);
     // 头像自己是按钮：点头像看信息卡，不会当成点桌子入座。
     var button = seat.addComponent(cc.Button); button.transition = cc.Button.Transition.SCALE; button.zoomScale = 0.94;
     cc.mm.uitools.addBtnLister(seat, function () { openLobbyPlayer(controller, seat, player); }, controller);
   }
-  // 桌卡（样式稿 .card）：一张张分开的圆角玻璃卡，圆角 1.3cqw，白 20% 底、白 55% 细边，打牌中的卡底深一点。
+  // 桌卡（样式稿第二版 .card）：深色磨砂底（背景图不再透出来抢眼），圆角 1.6cqw，白 22% 细边；
+  // 打牌中底更深；差 1 人的桌金边加一圈淡金光。
   function lobbyCard(controller, table, width, height) {
-    var playing = table.state === 'playing';
+    var playing = table.state === 'playing', missing = table.playerCount - table.seats.length, hot = !playing && missing === 1;
     var card = new cc.Node('standaloneLobbyCard');
     card.setContentSize(width, height);
-    var glass = lobbyPen(card, 'glass'), radius = 17;
-    fillRound(glass, -width / 2 + 2, -height / 2 - 5, width - 4, height, radius, cc.color(20, 40, 80, 26));
-    fillRound(glass, -width / 2, -height / 2, width, height, radius, playing ? cc.color(30, 45, 75, 71) : cc.color(255, 255, 255, 51));
-    strokeRound(glass, -width / 2, -height / 2, width, height, radius, cc.color(255, 255, 255, 140), 1.6);
-    lobbyFelt(card, table, Math.round(width * 0.5), Math.round(height * 0.44), playing);
+    var glass = lobbyPen(card, 'glass'), radius = 21;
+    fillRound(glass, -width / 2 + 3, -height / 2 - 7, width - 6, height, radius, cc.color(8, 18, 40, 70));
+    if (hot) fillRound(glass, -width / 2 - 2, -height / 2 - 2, width + 4, height + 4, radius + 2, cc.color(255, 180, 60, 90));
+    fillRound(glass, -width / 2, -height / 2, width, height, radius, playing ? cc.color(14, 28, 60, 205) : cc.color(16, 32, 68, 178));
+    strokeRound(glass, -width / 2, -height / 2, width, height, radius, hot ? cc.color(255, 196, 80, 191) : cc.color(255, 255, 255, 56), hot ? 1.8 : 1.3);
+    lobbyFelt(card, table, Math.round(width * 0.42), Math.round(height * 0.42), playing);
     var bySeat = {};
     table.seats.forEach(function (seat) { bySeat[seat.seat] = seat; });
     lobbySeatSpots(table.playerCount, width, height).forEach(function (spot, index) {
       if (bySeat[index + 1]) lobbySeat(controller, card, bySeat[index + 1], spot[0], spot[1]);
       else if (!playing) lobbyEmptySeat(controller, card, table, index + 1, spot[0], spot[1]);
     });
-    var missing = table.playerCount - table.seats.length;
-    // 状态：差 1 人橙色发光 / 差 N 人绿 / 空桌白底 / 打牌中深蓝（第三轮 R4）。
-    // 标签离卡边 0.8cqw、高 2.1cqw、字 1.15cqw。
-    var empty = !playing && table.seats.length === 0, hot = !playing && missing === 1, pillLeft = -width / 2 + 11, pillTop = height / 2 - 11;
+    // 状态：差 1 人橙 / 差 N 人绿 / 空桌淡白 / 打牌中暗色（第三轮 R4）。标签离卡边 1cqw、高 2.2cqw、字 1.15cqw。
+    var empty = !playing && table.seats.length === 0, pillLeft = -width / 2 + 13, pillTop = height / 2 - 13;
     var pill = lobbyPill(card, playing ? '打牌中' : empty ? '空桌' : '差 ' + missing + ' 人', pillLeft, pillTop, 15,
-      playing ? cc.color(30, 45, 80, 199) : empty ? cc.color(255, 255, 255, 217) : hot ? [rgb('#ffb340'), rgb('#ff7a00')] : rgb('#2fae63'),
-      playing ? rgb('#cfe0ff') : empty ? rgb('#2f7d52') : rgb('#ffffff'), 0, null, 28);
-    if (!playing && !empty) lobbyShadow(pill.getChildByName('label').getComponent(cc.Label));
-    if (hot) {
-      var halo = lobbyPen(card, 'standaloneHotHalo', pill.x, pill.y);
-      for (var ring = 3; ring >= 1; ring--) fillRound(halo, -ring * 4, -14 - ring * 4, pill.width + ring * 8, 28 + ring * 8, 14 + ring * 4, cc.color(255, 140, 0, 50));
-      halo.node.setSiblingIndex(pill.getSiblingIndex());
-    }
+      playing ? cc.color(0, 0, 0, 89) : empty ? cc.color(255, 255, 255, 41) : hot ? [rgb('#ffb340'), rgb('#ff7a00')] : rgb('#2f9e62'),
+      playing ? rgb('#c9d4e6') : empty ? rgb('#dfe8f7') : rgb('#ffffff'), 0, null, 29);
+    if (hot) lobbyShadow(pill.getChildByName('label').getComponent(cc.Label));
     // 有人的桌子都显示离我多远（S2-AC3），只给档位不给米数；我没开定位时服务端不给。
-    if (table.nearby) lobbyPill(card, table.nearby.band, width / 2 - 11, height / 2 - 11, 15, cc.color(255, 255, 255, 242), rgb('#1f6fc4'), 1, pinIcon, 28);
+    if (table.nearby) lobbyPill(card, table.nearby.band, width / 2 - 13, height / 2 - 13, 15, cc.color(255, 255, 255, 242), rgb('#1f6fc4'), 1, pinIcon, 29);
     return card;
   }
   // 点头像弹的信息卡（S2-AC2）：昵称、性别、对外数字 ID；点别处关闭。
@@ -1731,6 +1749,7 @@
   // 牌桌上点别人头像的资料窗：原 11 个按钮 btn_1–btn_11（编号 = 尾号 + 1，即 2–12）后面接 8 个，
   // 横向滚动照原版。原版 addEvent 在 onLoad 里已经跑完，新按钮自己挂点击，仍走原版 onClickItemBtn。
   function patchInteractionPanel(info) {
+    patchPlayerInfoStats(info);
     var content = info.views && info.views['root/items/view/content'];
     var sample = content && content.getChildByName('btn_11');
     if (!sample || info._standaloneExtraEmotes) return;
@@ -1751,6 +1770,28 @@
     })(id);
     var layout = content.getComponent(cc.Layout);
     if (layout) layout.updateLayout();
+  }
+  // 牌桌上点头像的信息窗：成就墙（勋章第三轮已下线，原来压着「暂未开启」）、右上空圆圈和三行小字去掉，
+  // 换成和个人中心一样的三张战绩卡放在头像下面；窗口从 600 高缩到 540，上半往下收 30、表情往上收 30（样式稿第二版）。
+  function patchPlayerInfoStats(info) {
+    var views = info.views, root = views && views.root;
+    if (!root) return;
+    if (!info._standaloneStats) {
+      hide(views, ['root/doushisi-gerenzhongxin-pic-xunzhang-di', 'root/doushisi-geren-icon-dashi', 'root/doushisi-gerenzhongxin-pic-chendi2', 'root/buttom']);
+      ['res_dating_hall_head', 'headcase', 'namelabel', 'userid', 'useridlabel', 'sexLabel', 'label', 'douzishu'].forEach(function (name) {
+        if (views['root/' + name]) views['root/' + name].y -= 30;
+      });
+      ['doushisi-gerenzhongxin-pic-biaoqing', 'doushisi-gerenzhongxin-pic-mianfei'].forEach(function (name) {
+        if (views['root/' + name]) views['root/' + name].y += 30;
+      });
+      // 关闭键贴顶、表情条贴底都由 Widget 跟着窗口高度走；表情条上沿跟着少 60，高度保持 120。
+      var items = views['root/items'] && views['root/items'].getComponent(cc.Widget);
+      if (items) items.top -= 60;
+      root.height = 540;
+      info._standaloneStats = statTiles(root, 0, 0, 870, 140, 24, 50, 24);
+    }
+    var target = info.target || {};
+    fillStatTiles(info._standaloneStats, { rounds: target.gameNum, wins: target.winNum, winRate: target.winRate });
   }
   // 收到 13–20：从发的人头像飞到对方头像，放大、抖两下、停一会儿淡出。12 以内照原版。
   function patchTableEmotes(table) {
