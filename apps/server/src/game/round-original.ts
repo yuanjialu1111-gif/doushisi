@@ -232,10 +232,21 @@ export function createRoundOriginalAdapter(options: RoundAdapterOptions): Engine
     enter(snapshot, userId) { return enterBody(snapshot, userId); },
     notifications(snapshot, events, userId, phase): EngineOriginalPacket[] {
       const s = state(snapshot);
-      if (phase === 'start') return [{ command: MSGEvent.HWNotifyGameStart,
-        body: (enterBody(snapshot, userId).body as { gameStart: Record<string, unknown> }).gameStart }];
+      if (phase === 'start') {
+        // 开局庄家先出牌：只发开局不发选项，庄家看不到出牌提示和倒计时，15 秒后被托管打掉一张（10-31 本机试玩）。
+        // 开局摸鬼补牌已经体现在开局手牌和鬼牌区里，这里不再重播。
+        const packets: EngineOriginalPacket[] = [{ command: MSGEvent.HWNotifyGameStart,
+          body: (enterBody(snapshot, userId).body as { gameStart: Record<string, unknown> }).gameStart }];
+        const own = choices(s, userId);
+        if (own.length) packets.push({ command: MSGEvent.HWNotifySeatOperationChoice, body: { choices: own } });
+        if (s.phase !== 'finished' && s.activeId !== userId) packets.push({ command: MSGEvent.HWNotifyNextOperation,
+          body: { seatIndex: seatOf(s, s.activeId), leftCardNum: ids(s, 'deck').length, autoIntoSecond: options.turnSeconds?.(s) ?? 0 } });
+        return packets;
+      }
       const packets: EngineOriginalPacket[] = [];
-      const visible = (events.length ? events : s.startEvents ?? []) as { type: string; [key: string]: unknown }[];
+      // 只播这一步的事件。以前没事件（比如有人点「过」）时会把开局摸鬼、偷牌重播一遍，
+      // 客户端手里多出牌、冒出点了是空的「偷」按钮（10-31 本机试玩）。开局的选项已随开局一起发。
+      const visible = events as { type: string; [key: string]: unknown }[];
       // 某一刻的鬼牌区：最终的鬼减去本批之后才摸到的鬼。
       const protectAt = (playerId: string, index: number) => {
         const codes = ids(s, `bonus:${playerId}`).map(id => codeFor(s, id));

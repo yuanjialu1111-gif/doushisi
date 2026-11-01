@@ -168,3 +168,30 @@ test('v2 偷出三张后摸到第四张可以巴杠', () => {
   assert.equal(next.players[0]!.melds[0]!.kind, 'ba');
   assert.equal(next.players[0]!.melds[0]!.cardIds.length, 4);
 });
+
+test('开局庄家收到出牌选项，别家收到倒计时；之后没事件的一步不重播开局摸鬼', () => {
+  // 这个种子的牌开局有三家摸到鬼、补牌（startEvents 6 条）。
+  let seed = 0;
+  const engine = createXinjinEngine('v2-start', max => (seed = (seed * 1103515245 + 12345) % 2147483648) % max);
+  const roundInput = input(4);
+  let snapshot: any = engine.create(roundInput);
+  assert.ok(snapshot.startEvents.length > 0);
+  const dealer = snapshot.dealerId as string, other = ['a', 'b', 'c', 'd'].find(id => id !== dealer)!;
+  const start = (userId: string) => engine.original!.notifications(snapshot, [], userId, 'start').map(packet => packet.command);
+  assert.deepEqual(start(dealer), [MSGEvent.HWNotifyGameStart, MSGEvent.HWNotifySeatOperationChoice]);
+  assert.deepEqual(start(other), [MSGEvent.HWNotifyGameStart, MSGEvent.HWNotifyNextOperation]);
+  // 庄家出牌后，第一个能响应的人点「过」：这一步没有事件，不能把开局的摸鬼、偷再发一遍。
+  snapshot = engine.apply(snapshot, dealer, engine.interactions!.legalActions(snapshot, dealer)[0]!).snapshot;
+  const responder = ['a', 'b', 'c', 'd'].find(id => engine.interactions!.legalActions(snapshot, id).some((item: any) => item.type === 'respond'));
+  assert.ok(responder);
+  const pass = (engine.interactions!.legalActions(snapshot, responder) as any[]).find(item => item.type === 'respond' && item.choiceId === null);
+  const passed = engine.apply(snapshot, responder, pass);
+  if (passed.events.length === 0) for (const userId of ['a', 'b', 'c', 'd']) {
+    const commands = engine.original!.notifications(passed.snapshot, [], userId, 'action').map(packet => packet.command);
+    assert.ok(!commands.includes(MSGEvent.HWNotifyPlayerDealCard) && !commands.includes(MSGEvent.HWNotifyActionFlow), userId);
+  }
+  for (const userId of ['a', 'b', 'c', 'd']) {
+    const commands = engine.original!.notifications(snapshot, [], userId, 'action').map(packet => packet.command);
+    assert.ok(!commands.includes(MSGEvent.HWNotifyPlayerDealCard) && !commands.includes(MSGEvent.HWNotifyActionFlow), userId);
+  }
+});

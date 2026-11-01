@@ -241,8 +241,11 @@ window.StandaloneNativeBoot = (function () {
     }
 
     // GET text with a hard timeout; done(error, text) runs exactly once.
+    // 10-31 真机：JSB 的 setTimeout 起点用 performance.now()、触发用帧时间，两边时钟不一致时
+    // 第一帧就会触发（清单 200 回来了却报 manifest-timeout）。所以到点先用 Date.now() 核对真过了多久，
+    // 没到就重新等；也不再设原生 xhr.timeout。
     function request(url, timeoutMs, done) {
-        var settled = false, xhr = null, timer = null;
+        var settled = false, xhr = null, timer = null, startedAt = Date.now();
         function finish(error, text) {
             if (settled) return;
             settled = true;
@@ -250,18 +253,24 @@ window.StandaloneNativeBoot = (function () {
             if (error && xhr) { try { xhr.abort(); } catch (_) {} }
             done(error, text);
         }
+        function arm(delay) {
+            timer = setTimeout(function () {
+                timer = null;
+                var left = timeoutMs - (Date.now() - startedAt);
+                if (left > 0) return arm(Math.max(left, 50));
+                finish(new Error('timeout'));
+            }, delay);
+        }
         try {
-            timer = setTimeout(function () { timer = null; finish(new Error('timeout')); }, timeoutMs);
+            arm(timeoutMs);
             xhr = new XMLHttpRequest();
             xhr.open('GET', url, true);
-            try { xhr.timeout = timeoutMs; } catch (_) {}
             xhr.onreadystatechange = function () {
                 if (settled || xhr.readyState !== 4) return;
                 if (xhr.status === 200 && typeof xhr.responseText === 'string') finish(null, xhr.responseText);
                 else finish(new Error('http-' + xhr.status));
             };
             xhr.onerror = function () { finish(new Error('network')); };
-            xhr.ontimeout = function () { finish(new Error('timeout')); };
             xhr.send();
         } catch (error) {
             finish(error instanceof Error ? error : new Error('request'));

@@ -154,7 +154,8 @@ const THROWING_CODE = "window.__partial = true;\nthrow new Error('boom');\n";
 const BUNDLED = { version: 100, sha256: sha256(BUNDLED_CODE) };
 const manifestFor = (code, version = 200, extra = {}) => JSON.stringify({ version, sha256: sha256(code), path: SCRIPT_ROUTE, ...extra });
 
-function simulateBoot(script, { routes = {}, files = {}, writeOk = true } = {}) {
+// earlyTimers：模拟 JSB 的 setTimeout 两边时钟不一致、下一帧（16 ms）就触发（10-31 真机实况）。
+function simulateBoot(script, { routes = {}, files = {}, writeOk = true, earlyTimers = false } = {}) {
   const state = { now: 0, timers: [], nextId: 1, requests: [], required: [], bootCalls: 0, bootAt: null, aborted: 0, dirs: new Set(), files: new Map(Object.entries(files)) };
   const context = vm.createContext({});
   const win = {};
@@ -165,7 +166,9 @@ function simulateBoot(script, { routes = {}, files = {}, writeOk = true } = {}) 
   });
   context.window = win;
   context.console = { log() {} };
-  context.setTimeout = (fn, ms) => { const id = state.nextId++; state.timers.push({ id, at: state.now + Math.max(0, Number(ms) || 0), fn }); return id; };
+  const schedule = (fn, ms) => { const id = state.nextId++; state.timers.push({ id, at: state.now + Math.max(0, Number(ms) || 0), fn }); return id; };
+  context.setTimeout = (fn, ms) => schedule(fn, earlyTimers ? Math.min(16, Number(ms) || 0) : ms);
+  context.Date = class extends Date { static now() { return state.now; } };
   context.clearTimeout = id => { state.timers = state.timers.filter(timer => timer.id !== id); };
   context.cc = { macro: {} };
   context.CC_PHYSICS_BUILTIN = false;
@@ -189,7 +192,7 @@ function simulateBoot(script, { routes = {}, files = {}, writeOk = true } = {}) 
       const route = routes[new URL(this.url).pathname] || { status: 404, body: 'not found' };
       if (route.never) return;
       // Replies even after abort(): the loader must ignore late answers on its own.
-      context.setTimeout(() => {
+      schedule(() => {
         if (route.error === 'network') { if (this.onerror) this.onerror(); return; }
         this.readyState = 4;
         this.status = route.status === undefined ? 200 : route.status;
@@ -272,6 +275,8 @@ await section('2. Hot-update loader (simulated JSB)', () => {
     { name: 'cached script throws', files: { [CACHE_JS]: THROWING_CODE, [CACHE_META]: '{}' }, routes: { [MANIFEST_ROUTE]: { status: 200, body: manifestFor(THROWING_CODE) } }, expect: { kind: 'bundled', reason: 'hot-error', requests: 1 },
       more: r => [['cache dropped', !r.files.has(CACHE_JS) && !r.files.has(CACHE_META)]] },
     { name: 'cache not writable', writeOk: false, routes: { [MANIFEST_ROUTE]: okManifest, [SCRIPT_ROUTE]: hotScript }, expect: { kind: 'hot', requests: 2 }, more: r => [['nothing cached', !r.files.has(CACHE_JS)]] },
+    { name: 'engine timers fire early, manifest at 1.2 s', earlyTimers: true, routes: { [MANIFEST_ROUTE]: { ...okManifest, delay: 1200 }, [SCRIPT_ROUTE]: hotScript }, expect: { kind: 'hot', reason: '', requests: 2 } },
+    { name: 'engine timers fire early, manifest never answers', earlyTimers: true, routes: { [MANIFEST_ROUTE]: { never: true } }, expect: { kind: 'bundled', reason: 'manifest-timeout', requests: 1 }, more: r => [['still boots at about 8 s', r.bootAt >= 8000 && r.bootAt < 8100]] },
     { name: 'slowest successful start', routes: { [MANIFEST_ROUTE]: { ...okManifest, delay: 7999 }, [SCRIPT_ROUTE]: { ...hotScript, delay: 5999 } }, expect: { kind: 'hot' }, more: r => [['boots at 13998 ms', r.bootAt === 13998]] },
   ];
   for (const scenario of scenarios) {
@@ -284,7 +289,7 @@ await section('2. Hot-update loader (simulated JSB)', () => {
   check('no build config: boots synchronously', noConfig.bootAt === 0);
   const plainHttp = simulateBoot(renderBootScript(template, { config: { apiBase: 'http://10.0.2.2:3000' }, bundled: BUNDLED }));
   expectBoot('plain http build config', plainHttp, { kind: 'bundled', reason: 'insecure-origin', requests: 0 });
-  note('worst cases: manifest unreachable -> boot after 3.0 s; new version on a slow link -> up to 9.0 s (3 s manifest + 6 s script)');
+  note('worst cases: manifest unreachable -> boot after 8.0 s; new version on a slow link -> up to 14.0 s (8 s manifest + 6 s script)');
   note('a hot script that throws half way has already run its first statements before the bundled copy runs (window.__partial in the test)');
 });
 

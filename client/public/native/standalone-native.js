@@ -977,10 +977,19 @@
   // 大厅（R1、R2、R4、R5；第二轮 S2 换成 A2 样式）：「好友约局」打开原版娱乐场窗口，中间换成公开桌。
   // 界面只露一个玩法时收起左边玩法列表、桌卡铺满整屏；多于一种时左边列表仍当筛选。
   var LOBBY_ALL = '全部玩法';
-  var LOBBY_CARD_HEIGHT = 248, LOBBY_GAP_X = 22, LOBBY_GAP_Y = 16, LOBBY_SEAT = 66;
+  // 尺寸照样式稿 docs/plan/斗十四-大厅样式.html：稿子按 16:9 画，1cqw = 1334 / 100 = 13.34。
+  // 桌卡区上沿离顶 7.4cqw、高 39.4cqw 放两排，列距 1.2cqw、行距 1.4cqw；座位 4.4cqw。
+  var LOBBY_TOP = 375 - 99, LOBBY_AREA = 525, LOBBY_GAP_X = 16, LOBBY_GAP_Y = 19, LOBBY_SEAT = 58, LOBBY_BAR_Y = 326;
   function lobbyLabel(parent, text, x, y, size, color, anchorX, bold) {
     var label = kitLabel(parent, text, x, y, size, color, anchorX);
     label.enableBold = !!bold;
+    return label;
+  }
+  // 稿子里白字带的深蓝投影（text-shadow 0 0.15cqw）。
+  function lobbyShadow(label) {
+    if (!cc.LabelShadow) return label;
+    var shadow = label.node.addComponent(cc.LabelShadow);
+    shadow.color = cc.color(20, 35, 70, 140); shadow.offset = cc.v2(0, -2); shadow.blur = 2;
     return label;
   }
   function rgb(hex, alpha) {
@@ -1057,14 +1066,18 @@
     return label.node.width;
   }
   // 圆角小标签（状态、距离、性别）。left/top 是标签左上角；anchorX 为 1 时 left 当右边缘用。
-  function lobbyPill(parent, text, left, top, size, background, color, anchorX, icon) {
+  // tall 给了就按这个高度画（桌卡上的状态、距离标签 2.1cqw 高）；background 可以是 [上色, 下色] 两段。
+  function lobbyPill(parent, text, left, top, size, background, color, anchorX, icon, tall) {
     var pen = lobbyPen(parent, 'standalonePill');
     var label = lobbyLabel(pen.node, text, 0, 0, size, color, 0, true);
-    var height = size + 8, padding = size * 0.7, iconWidth = icon ? size : 0;
+    var height = tall || size + 8, padding = tall ? tall * 0.42 : size * 0.7, iconWidth = icon ? size : 0;
     var width = labelWidth(label) + padding * 2 + iconWidth;
     var x = anchorX === 1 ? left - width : left;
     pen.node.setPosition(x, top - height / 2);
-    fillRound(pen, 0, -height / 2, width, height, height / 2, background);
+    if (Array.isArray(background)) {
+      fillRound(pen, 0, -height / 2, width, height, height / 2, background[1]);
+      fillRound(pen, 1.5, -height * 0.05, width - 3, height * 0.5, height * 0.25, background[0]);
+    } else fillRound(pen, 0, -height / 2, width, height, height / 2, background);
     label.node.x = padding + iconWidth;
     if (icon) icon(pen, padding + size * 0.4, 0, size, color);
     pen.node.width = width;
@@ -1079,10 +1092,12 @@
   }
   function seatName(text) {
     text = String(text || '');
-    return text.length > 3 ? text.substring(0, 3) + '…' : text;
+    return text.length > 4 ? text.substring(0, 3) + '…' : text;
   }
+  // 大厅里豆子数挪到右上角「空位 N」左边（样式稿）：首页的豆子框收起来，大厅自己画一个；回首页时原版 showView 会把它放出来。
   function openLobby(hall) {
     hall.hideView();
+    if (hall.hideCoinView) hall.hideCoinView(false);
     hall.onClickBgBtn();
     cc.mm.uimanager.showWindow(cc.mm.config.hall, 'HallAmuseUI');
   }
@@ -1165,16 +1180,21 @@
     lobby.box = new cc.Node('standaloneLobbyBox'); controller.node.addChild(lobby.box);
     // 标签：全部 / 附近 / 底分 1、2、5……（第三轮 R4），底分标签按桌上有的底分在 renderLobby 里补。
     lobby.tabs = [lobbyTab(controller, 'all', '全部'), lobbyTab(controller, 'nearby', '附近')];
-    // 右上角「空位 N」，数字黄色。
+    // 右上角「空位 N」，数字黄色；左边是我的豆子。
     var countNode = new cc.Node('standaloneLobbyCount'); countNode.anchorX = 1; lobby.box.addChild(countNode);
     lobby.count = countNode.addComponent(cc.RichText);
-    lobby.count.fontSize = 24; lobby.count.lineHeight = 30; lobby.count.horizontalAlign = cc.macro.TextAlignment.RIGHT;
+    lobby.count.fontSize = 20; lobby.count.lineHeight = 26; lobby.count.horizontalAlign = cc.macro.TextAlignment.RIGHT;
+    lobby.beans = lobbyPen(lobby.box, 'standaloneLobbyBeans');
+    lobby.beansLabel = lobbyShadow(lobbyLabel(lobby.beans.node, '', 0, 0, 21, rgb('#ffffff'), 1, true));
     var scrollNode = new cc.Node('standaloneLobbyTables'); lobby.box.addChild(scrollNode);
     var view = new cc.Node('view'); view.addComponent(cc.Mask); scrollNode.addChild(view);
     var content = new cc.Node('content'); content.anchorY = 1; view.addChild(content);
     var scroll = scrollNode.addComponent(cc.ScrollView);
     scroll.content = content; scroll.horizontal = false; scroll.vertical = true; scroll.inertia = true; scroll.elastic = true; scroll.brake = 0.75;
     lobby.scroll = scrollNode; lobby.view = view; lobby.content = content; lobby.cards = {};
+    // 右边细滚动条：桌子多于一屏才画（样式稿右沿 0.7cqw、上沿 8cqw、高 34cqw）。
+    lobby.bar = lobbyPen(lobby.box, 'standaloneLobbyBar');
+    scrollNode.on('scrolling', function () { drawLobbyBar(lobby); });
     // 空状态放在深色玻璃底板上，雪景背景上也看得清。
     var emptyPen = lobbyPen(lobby.box, 'standaloneLobbyEmpty', 0, 40);
     fillRound(emptyPen, -320, -60, 640, 120, 24, cc.color(20, 30, 60, 150));
@@ -1184,16 +1204,59 @@
     hide(controller.views, ['left/joinbtn', 'left/createroom']);
     lobby.bottom = ['left/quick_start'].map(function (name) { return controller.views[name]; }).filter(Boolean);
     lobby.bottom.forEach(function (node) { node.parent = lobby.box; });
+    // 快速开始右边一句说明、左下角一句「点空位坐下」提示（样式稿）。
+    lobby.hint = lobbyNote(lobby.box, '自动坐进差人最少、豆子够的桌', 15, cc.color(15, 30, 60, 128), null, 13);
+    lobby.tip = lobbyNote(lobby.box, '👆 点哪个空位就坐哪个，直接进牌桌', 15, cc.color(15, 25, 50, 209), cc.color(255, 226, 122, 204), 11);
     layoutLobby(controller);
     poll();
   }
+  // 深色圆角底的一句话；width 记在节点上，layoutLobby 按它摆。
+  function lobbyNote(parent, text, size, background, border, radius) {
+    var pen = lobbyPen(parent, 'standaloneLobbyNote');
+    var label = lobbyLabel(pen.node, text, 0, 0, size, rgb('#ffffff'), 0.5, false);
+    var width = labelWidth(label) + 26, height = size + 12;
+    fillRound(pen, -width / 2, -height / 2, width, height, radius, background);
+    if (border) strokeRound(pen, -width / 2, -height / 2, width, height, radius, border, 1.6);
+    pen.node.setContentSize(width, height);
+    return pen.node;
+  }
+  // 标签 3.4cqw 高、左右 1.5cqw、字 1.55cqw，两头全圆。
   function lobbyTab(controller, key, text) {
     var lobby = controller._standaloneLobby, pen = lobbyPen(lobby.box, 'standaloneLobbyTab');
-    pen.node.setContentSize(122, 52);
+    pen.node.setContentSize(100, 45);
     pen.node.addComponent(cc.Button).transition = cc.Button.Transition.SCALE;
-    var label = lobbyLabel(pen.node, text, 0, 0, 24, rgb('#ffffff'), 0.5, true);
+    var label = lobbyShadow(lobbyLabel(pen.node, text, 0, 0, 21, rgb('#ffffff'), 0.5, true));
     cc.mm.uitools.addBtnLister(pen.node, function () { lobby.tab = key; closeLobbyPlayer(lobby); renderLobby(controller); }, controller);
-    return { key: key, node: pen.node, pen: pen, label: label, natural: Math.max(96, labelWidth(label) + 44) };
+    return { key: key, node: pen.node, pen: pen, label: label, natural: labelWidth(label) + 40 };
+  }
+  // 豆子框：深蓝半透明圆角，左边金豆，右边数字（样式稿 .beans），右边缘对齐节点原点。
+  function drawLobbyBeans(lobby, text) {
+    var pen = lobby.beans, label = lobby.beansLabel, height = 43;
+    label.string = text;
+    var width = 8 + 35 + 9 + labelWidth(label) + 19;
+    pen.clear();
+    fillRound(pen, -width, -height / 2, width, height, height / 2, cc.color(15, 30, 60, 140));
+    var x = -width + 8 + 17.5;
+    pen.fillColor = rgb('#b9780a'); pen.ellipse(x, 0, 17.5, 13.5); pen.fill();
+    pen.fillColor = rgb('#f2b51c'); pen.ellipse(x - 1.5, 1.5, 14.5, 11); pen.fill();
+    pen.fillColor = rgb('#fff3a8'); pen.ellipse(x - 5, 4, 6, 4.5); pen.fill();
+    label.node.x = -19;
+    pen.node.width = width;
+  }
+  function groupDigits(text) {
+    var parts = String(text).split('.');
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    return parts.join('.');
+  }
+  function drawLobbyBar(lobby) {
+    var pen = lobby.bar, view = lobby.view.height, content = lobby.content.height;
+    pen.clear();
+    if (!(content > view + 1)) return;
+    var track = 454, top = 375 - 107, width = 5, x = lobby.barX - width / 2;
+    var handle = Math.max(40, track * view / content);
+    var ratio = Math.max(0, Math.min(1, (lobby.content.y - view / 2) / (content - view)));
+    fillRound(pen, x, top - track, width, track, width / 2, cc.color(255, 255, 255, 64));
+    fillRound(pen, x, top - handle - (track - handle) * ratio, width, handle, width / 2, cc.color(255, 255, 255, 191));
   }
   // 底分标签跟着桌上有的底分走，从小到大；没有的藏掉。
   function lobbyBaseTabs(controller, tables) {
@@ -1214,37 +1277,47 @@
     if (!lobby.tabs.some(function (tab) { return tab.key === lobby.tab && tab.node.active; })) lobby.tab = 'all';
   }
   // 按窗口宽度排：一屏两排，每排能放下几张宽 290 以上的桌卡就放几张（16:9 四张，16:10、4:3 三张）。
-  // 返回 true 表示列数或卡宽变了，要重画桌卡。
+  // 返回 true 表示列数、卡宽或卡高变了，要重画桌卡。
   function layoutLobby(controller) {
     var lobby = controller._standaloneLobby, width = controller.node.width, half = width / 2;
     if (!lobby || !lobby.box) return false;
     var buttons = controller._gameBtns || [], single = buttons.length < 2;
     if (controller.views.games) controller.views.games.active = !single;
-    var left = single ? -half + 40 : -half + 290, right = half - 40, areaWidth = right - left;
+    var left = single ? -half + 27 : -half + 290, right = half - 27, areaWidth = right - left;
     var columns = Math.max(2, Math.min(5, Math.floor((areaWidth + LOBBY_GAP_X) / (290 + LOBBY_GAP_X))));
     var cardWidth = Math.floor((areaWidth - LOBBY_GAP_X * (columns - 1)) / columns);
-    var center = (left + right) / 2, top = 375 - 108, bottom = -375 + 130;
-    // 大厅顶栏的豆子框离右边约 340、宽约 160：标签排在返回键和豆子框之间；放不下就略缩，
-    // 再放不下（4:3 这类窄屏）挪到桌卡区上面单独一排，桌卡区往下让一点。
-    var tabs = lobby.tabs.filter(function (tab) { return tab.node.active; }), gap = 10;
+    var center = (left + right) / 2, top = LOBBY_TOP, bottom = LOBBY_TOP - LOBBY_AREA;
+    // 顶栏从右往左：「空位 N」、豆子框；标签接在「大厅」后面，排到豆子框前。放不下就略缩，
+    // 再放不下挪到桌卡区上面单独一排，桌卡区往下让、卡变矮。
+    var countWidth = lobby.count.node.width || 70, beansWidth = lobby.beans.node.width || 120;
+    lobby.count.node.setPosition(right, LOBBY_BAR_Y);
+    lobby.beans.node.setPosition(right - countWidth - 19, LOBBY_BAR_Y);
+    var tabs = lobby.tabs.filter(function (tab) { return tab.node.active; }), gap = 9;
     var natural = tabs.reduce(function (sum, tab) { return sum + tab.natural; }, 0) + gap * Math.max(0, tabs.length - 1);
-    var room = width - 790, scale = Math.min(1, room / natural), tabY = 326, tabLeft = -half + 290;
-    if (scale < 0.85) { tabY = top - 26; top -= 62; tabLeft = left; scale = Math.min(1, areaWidth * 0.75 / natural); }
+    var tabLeft = -half + 261, room = right - countWidth - 19 - beansWidth - 16 - tabLeft;
+    var scale = Math.min(1, room / natural), tabY = LOBBY_BAR_Y;
+    if (scale < 0.85) { tabY = top - 25; top -= 60; tabLeft = left; scale = Math.min(1, areaWidth * 0.75 / natural); }
     var x = tabLeft;
     tabs.forEach(function (tab) {
-      tab.width = Math.floor(tab.natural * scale); tab.node.setContentSize(tab.width, 52);
+      tab.width = Math.floor(tab.natural * scale); tab.node.setContentSize(tab.width, 45);
       tab.node.setPosition(x + tab.width / 2, tabY);
       x += tab.width + gap * scale;
     });
-    lobby.count.node.setPosition(right, tabY);
+    var cardHeight = Math.floor((top - bottom - LOBBY_GAP_Y) / 2);
     lobby.scroll.setContentSize(areaWidth, top - bottom); lobby.scroll.setPosition(center, (top + bottom) / 2);
     lobby.view.setContentSize(areaWidth, top - bottom);
     lobby.content.width = areaWidth; lobby.content.y = (top - bottom) / 2;
     lobby.empty.node.parent.x = center;
-    lobby.bottom.forEach(function (node) { node.scale = 1; node.setPosition(center, -295); });
-    var changed = lobby.columns !== columns || lobby.cardWidth !== cardWidth || lobby.areaTop !== top;
-    lobby.areaTop = top;
-    lobby.columns = columns; lobby.cardWidth = cardWidth; lobby.areaWidth = areaWidth;
+    lobby.barX = half - 9 - 2.5;
+    // 底栏：快速开始（原图缩到 0.8，高和稿子的 5.4cqw 一样）和右边的说明一起居中，离底 1.4cqw；左下角提示压不到它们，挤的时候整组右挪。
+    var quickWidth = 258, groupWidth = quickWidth + 21 + lobby.hint.width, bottomY = -316;
+    var tipLeft = left, tipRight = tipLeft + lobby.tip.width;
+    var groupLeft = Math.max(center - groupWidth / 2, tipRight + 16);
+    lobby.bottom.forEach(function (node) { node.scale = 0.8; node.setPosition(groupLeft + quickWidth / 2, bottomY); });
+    lobby.hint.setPosition(groupLeft + quickWidth + 21 + lobby.hint.width / 2, bottomY);
+    lobby.tip.setPosition(tipLeft + lobby.tip.width / 2, -310);
+    var changed = lobby.columns !== columns || lobby.cardWidth !== cardWidth || lobby.cardHeight !== cardHeight;
+    lobby.columns = columns; lobby.cardWidth = cardWidth; lobby.cardHeight = cardHeight; lobby.areaWidth = areaWidth;
     return changed;
   }
   function lobbyRefresh(controller, reset) {
@@ -1271,18 +1344,21 @@
     });
   }
   function drawLobbyTab(tab, on) {
-    var pen = tab.pen, width = tab.width || 122, half = width / 2;
+    // 选中：上黄下橙、底下一道 0.25cqw 深橙边、浅黄描边；没选中：深蓝半透明、白描边。
+    var pen = tab.pen, width = tab.width || 100, half = width / 2, height = 45, radius = height / 2;
     pen.clear();
     if (on) {
-      fillRound(pen, -half, -30, width, 52, 14, rgb('#c97a10'));
-      fillRound(pen, -half, -26, width, 52, 14, rgb('#ffb21f'));
-      fillRound(pen, -half + 4, -2, width - 8, 24, 11, rgb('#ffe25a', 0.75));
-      strokeRound(pen, -half, -26, width, 52, 14, rgb('#fff3b0'), 2);
+      fillRound(pen, -half, -radius - 3, width, height, radius, rgb('#c77700'));
+      fillRound(pen, -half, -radius, width, height, radius, rgb('#f6a91f'));
+      fillRound(pen, -half + 2, -2, width - 4, radius, radius - 2, rgb('#ffe27a', 0.85));
+      strokeRound(pen, -half, -radius, width, height, radius, rgb('#fff3c4'), 1.6);
     } else {
-      fillRound(pen, -half, -26, width, 52, 14, cc.color(40, 70, 140, 140));
-      strokeRound(pen, -half, -26, width, 52, 14, cc.color(255, 255, 255, 90), 2);
+      fillRound(pen, -half, -radius, width, height, radius, cc.color(22, 44, 88, 128));
+      strokeRound(pen, -half, -radius, width, height, radius, cc.color(255, 255, 255, 89), 1.6);
     }
-    tab.label.node.color = on ? rgb('#8a3b00') : rgb('#ffffff');
+    tab.label.node.color = on ? rgb('#6a3500') : rgb('#ffffff');
+    var shadow = tab.label.getComponent(cc.LabelShadow);
+    if (shadow) shadow.enabled = !on;
   }
   function renderLobby(controller) {
     var lobby = controller._standaloneLobby, data = lobby.data || { tables: [], variants: [], hasLocation: false };
@@ -1293,63 +1369,66 @@
     if (lobby.tab === 'nearby') tables = tables.filter(function (table) { return table.nearby; }).sort(function (a, b) { return a.nearby.rank - b.nearby.rank; });
     else if (lobby.tab.indexOf('base:') === 0) tables = tables.filter(function (table) { return 'base:' + table.baseBeans === lobby.tab; });
     var open = tables.reduce(function (sum, table) { return sum + (table.state === 'playing' ? 0 : Math.max(0, table.playerCount - table.seats.length)); }, 0);
-    lobby.count.string = lobby.data ? '<outline color=#14203c width=2><b><color=#ffffff>空位 </color><color=#ffe27a>' + open + '</color></b></outline>' : '';
+    lobby.count.string = lobby.data ? '<outline color=#14203c width=1><b><color=#ffffff>空位 </color><color=#ffe27a>' + open + '</color></b></outline>' : '';
+    var beans = data.beans !== undefined ? data.beans : cc.mm.framemodel && cc.mm.framemodel.goldNum;
+    drawLobbyBeans(lobby, groupDigits(beanText(Number(beans) || 0)));
+    lobby.beans.node.active = !!lobby.data;
+    layoutLobby(controller);
     lobby.empty.string = lobby.failed ? '大厅加载失败，稍后会自动重试' : !lobby.data ? '正在加载…'
       : tables.length ? '' : lobby.tab === 'nearby' ? '附近暂时没有人在玩，去「全部」看看'
       : '这个玩法暂时没有桌子，稍后再来看看';
     lobby.empty.node.parent.active = !!lobby.empty.string;
-    var next = {}, columns = lobby.columns, cardWidth = lobby.cardWidth;
+    var next = {}, columns = lobby.columns, cardWidth = lobby.cardWidth, cardHeight = lobby.cardHeight;
     tables.forEach(function (table, index) {
-      var signature = JSON.stringify([table, cardWidth, lobbyEnough(data, table)]), card = lobby.cards[table.code];
+      var signature = JSON.stringify([table, cardWidth, cardHeight, lobbyEnough(data, table)]), card = lobby.cards[table.code];
       if (!card || !cc.isValid(card) || card._standaloneSignature !== signature) {
         if (card && cc.isValid(card)) card.destroy();
-        card = lobbyCard(controller, table, cardWidth);
+        card = lobbyCard(controller, table, cardWidth, cardHeight);
         card._standaloneSignature = signature;
         lobby.content.addChild(card);
       }
       card.setPosition(-lobby.areaWidth / 2 + cardWidth / 2 + index % columns * (cardWidth + LOBBY_GAP_X),
-        -LOBBY_CARD_HEIGHT / 2 - Math.floor(index / columns) * (LOBBY_CARD_HEIGHT + LOBBY_GAP_Y));
+        -cardHeight / 2 - Math.floor(index / columns) * (cardHeight + LOBBY_GAP_Y));
       next[table.code] = card;
     });
     Object.keys(lobby.cards).forEach(function (code) { if (!next[code] && cc.isValid(lobby.cards[code])) lobby.cards[code].destroy(); });
     lobby.cards = next;
     var rows = Math.ceil(tables.length / columns);
-    lobby.content.height = Math.max(lobby.view.height, rows * LOBBY_CARD_HEIGHT + Math.max(0, rows - 1) * LOBBY_GAP_Y);
+    lobby.content.height = Math.max(lobby.view.height, rows * cardHeight + Math.max(0, rows - 1) * LOBBY_GAP_Y);
+    drawLobbyBar(lobby);
   }
-  // 进行中的桌子绿桌压灰（饱和度 0.35、亮度 0.88），和效果图一致。
+  // 进行中的桌子绿桌压暗（样式稿 saturate(.75) brightness(.9)）。
   function feltColor(hex, playing) {
     var color = rgb(hex);
     if (!playing) return color;
     var grey = 0.3 * color.r + 0.59 * color.g + 0.11 * color.b;
-    var mix = function (value) { return Math.round(((value - grey) * 0.35 + grey) * 0.88); };
+    var mix = function (value) { return Math.round(((value - grey) * 0.75 + grey) * 0.9); };
     return cc.color(mix(color.r), mix(color.g), mix(color.b));
   }
-  // 俯视绿桌：木框 8、金色内线，中间亮四周暗（Graphics 没有渐变，用几层圆角叠出来）。
+  // 俯视绿桌（样式稿 .felt）：卡宽 50%、卡高 44%，木框 0.45cqw、金色内线 0.18cqw，
+  // 中间偏上亮 #3aa56b、四周暗 #1d6e43（Graphics 没有渐变，用几层圆角叠出来）。
   function lobbyFelt(card, table, width, height, playing) {
-    var pen = lobbyPen(card, 'standaloneFelt'), x = -width / 2, y = -height / 2;
-    fillRound(pen, x + 2, y - 7, width - 4, height, 30, cc.color(40, 20, 0, 75));
-    fillRound(pen, x, y, width, height, 30, feltColor('#a3672c', playing));
-    var dark = rgb('#1a6347'), light = rgb('#43b184'), steps = 14;
+    var pen = lobbyPen(card, 'standaloneFelt'), x = -width / 2, y = -height / 2, radius = 21, frame = 6;
+    fillRound(pen, x + 1, y - 5, width - 2, height, radius, cc.color(0, 0, 0, 40));
+    fillRound(pen, x, y, width, height, radius, feltColor('#9a6533', playing));
+    var dark = rgb('#1d6e43'), light = rgb('#3aa56b'), steps = 12, inner = width - frame * 2, innerHeight = height - frame * 2;
     for (var index = 0; index < steps; index++) {
-      var t = index / (steps - 1), inset = 8 + index * 2.6, lift = index * 0.7;
+      var t = index / (steps - 1), inset = frame + index * Math.min(inner, innerHeight) * 0.028, lift = index * 0.5;
       var hex = '#' + [dark.r + (light.r - dark.r) * t, dark.g + (light.g - dark.g) * t, dark.b + (light.b - dark.b) * t]
         .map(function (value) { return ('0' + Math.round(value).toString(16)).slice(-2); }).join('');
-      fillRound(pen, x + inset, y + inset + lift, width - inset * 2, height - inset * 2, Math.max(8, 22 - index * 1.1), feltColor(hex, playing));
+      fillRound(pen, x + inset, y + inset + lift, width - inset * 2, height - inset * 2, Math.max(6, radius - frame - index * 0.8), feltColor(hex, playing));
     }
-    strokeRound(pen, x + 9, y + 9, width - 18, height - 18, 21, feltColor('#e6b866', playing), 2);
-    var base = new cc.Node('base'), rich = base.addComponent(cc.RichText);
-    rich.fontSize = 34; rich.lineHeight = 40; rich.horizontalAlign = cc.macro.TextAlignment.CENTER;
-    rich.string = '<b><color=#ffffff><size=16>底分 </size>' + table.baseBeans + '</color></b>';
-    // 打牌中写「第几场 · 第几局」；连着打过的桌多一行黄字「第 N 场」（第三轮 R4）。
+    strokeRound(pen, x + frame + 1.2, y + frame + 1.2, width - frame * 2 - 2.4, height - frame * 2 - 2.4, radius - frame, feltColor('#d9a35f', playing), 2.4);
+    // 「底分 N」1.8cqw 粗体，下面一行 0.95cqw；打牌中写「第几场 · 第几局」；连着打过的桌多一行黄字「第 N 场」（第三轮 R4）。
     var seq = table.matchSeq || 1, third = !playing && seq > 1;
-    base.setPosition(0, third ? 20 : 12); pen.node.addChild(base);
-    lobbyLabel(pen.node, playing ? '第 ' + seq + ' 场 · ' + table.currentRound + ' / ' + table.rounds + ' 局' : table.rounds + ' 局 · 门槛 ' + table.threshold + ' 豆',
-      0, third ? -12 : -22, 14, playing ? cc.color(214, 224, 218) : rgb('#d9f5e8'), 0.5, true);
-    if (third) lobbyLabel(pen.node, '第 ' + seq + ' 场', 0, -32, 14, rgb('#ffe27a'), 0.5, true);
+    lobbyShadow(lobbyLabel(pen.node, '底分 ' + table.baseBeans, 0, third ? 16 : 8, 24, rgb('#ffffff'), 0.5, true));
+    lobbyShadow(lobbyLabel(pen.node, playing ? '第 ' + seq + ' 场 · ' + table.currentRound + ' / ' + table.rounds + ' 局' : table.rounds + ' 局 · 门槛 ' + table.threshold + ' 豆',
+      0, third ? -6 : -14, 13, cc.color(255, 255, 255, 230), 0.5, false));
+    if (third) lobbyShadow(lobbyLabel(pen.node, '第 ' + seq + ' 场', 0, -22, 13, rgb('#ffe27a'), 0.5, true));
   }
-  // 座位按顺时针从上方排：4 人上右下左，3 人上右左，2 人上下。
-  function lobbySeatSpots(count, width) {
-    var side = width / 2 - 10 - LOBBY_SEAT / 2, vertical = LOBBY_CARD_HEIGHT / 2 - 6 - LOBBY_SEAT / 2;
+  // 座位按顺时针从上方排：4 人上右下左，3 人上右左，2 人上下。样式稿上下在卡高 14.5% / 85.5%，左右在卡宽 13% / 87%。
+  function lobbySeatSpots(count, width, height) {
+    var side = width * 0.37, vertical = height * 0.355;
     var top = [0, vertical], right = [side, 0], bottom = [0, -vertical], left = [-side, 0];
     return count >= 4 ? [top, right, bottom, left] : count === 3 ? [top, right, left] : [top, bottom];
   }
@@ -1366,20 +1445,19 @@
     seat.setContentSize(size, size); seat.setPosition(x, y); card.addChild(seat);
     if (go) {
       var glow = lobbyPen(seat, 'glow');
-      for (var ring = 4; ring >= 1; ring--) fillRound(glow, -half - ring * 3, -half - ring * 3, size + ring * 6, size + ring * 6, 12 + ring * 3, cc.color(255, 210, 60, 34));
-      cc.tween(glow.node).repeatForever(cc.tween().to(0.8, { opacity: 90 }, { easing: 'sineInOut' }).to(0.8, { opacity: 255 }, { easing: 'sineInOut' })).start();
+      for (var ring = 4; ring >= 1; ring--) fillRound(glow, -half - ring * 4, -half - ring * 4, size + ring * 8, size + ring * 8, 12 + ring * 4, cc.color(255, 210, 60, 40));
+      cc.tween(glow.node).repeatForever(cc.tween().to(0.8, { opacity: 70 }, { easing: 'sineInOut' }).to(0.8, { opacity: 255 }, { easing: 'sineInOut' })).start();
     }
     var empty = lobbyPen(seat, 'face');
-    fillRound(empty, -half, -half, size, size, 12, cc.color(20, 40, 60, 110));
     if (go) {
       fillRound(empty, -half, -half, size, size, 12, cc.color(255, 196, 40, 115));
       strokeRound(empty, -half, -half, size, size, 12, rgb('#ffe27a'), 3);
     } else {
-      fillRound(empty, -half, -half, size, size, 12, cc.color(255, 255, 255, 72));
-      dashedRound(empty, -half, -half, size, size, 12, cc.color(255, 255, 255, 242), 2.5);
+      fillRound(empty, -half, -half, size, size, 12, cc.color(255, 255, 255, 71));
+      dashedRound(empty, -half, -half, size, size, 12, cc.color(255, 255, 255, 242), 2.4);
     }
-    lobbyLabel(empty.node, '＋', 0, 9, 28, rgb('#ffffff'), 0.5);
-    lobbyLabel(empty.node, '坐下', 0, -16, 13, rgb('#ffffff'), 0.5, true);
+    lobbyShadow(lobbyLabel(empty.node, '＋', 0, 10, 28, rgb('#ffffff'), 0.5));
+    lobbyShadow(lobbyLabel(empty.node, '坐下', 0, -14, 13, rgb('#ffffff'), 0.5, true));
     if (!enough) seat.opacity = 115;
     var button = seat.addComponent(cc.Button); button.transition = cc.Button.Transition.SCALE; button.zoomScale = 0.92;
     cc.mm.uitools.addBtnLister(seat, function () {
@@ -1408,45 +1486,51 @@
     var seat = new cc.Node('standaloneLobbySeat');
     seat.setContentSize(size, size); seat.setPosition(x, y); card.addChild(seat);
     var shadow = lobbyPen(seat, 'shadow', 0, -3);
-    fillRound(shadow, -half - 1, -half - 1, size + 2, size + 2, 13, cc.color(0, 0, 0, 80));
+    fillRound(shadow, -half - 1, -half - 1, size + 2, size + 2, 13, cc.color(0, 0, 0, 64));
     var clip = roundAvatar(seat, 0, 0, size, 12, player.avatarUrl);
+    // 头像底下一条深色名字条（1.6cqw 高），右上角性别符号（样式稿 .seat.who）。
     var strip = lobbyPen(clip, 'nameStrip');
     strip.fillColor = cc.color(0, 0, 0, 140); strip.rect(-half, -half, size, 21); strip.fill();
-    lobbyLabel(clip, seatName(player.nickname), 0, -half + 10.5, 13, rgb('#ffffff'), 0.5, true);
+    lobbyLabel(clip, seatName(player.nickname), 0, -half + 10.5, 13, rgb('#ffffff'), 0.5, false);
+    var sex = { 1: ['♂', '#a8d4ff'], 2: ['♀', '#ffb3d1'] }[player.sex];
+    if (sex) lobbyShadow(lobbyLabel(clip, sex[0], half - 3, half - 9, 13, rgb(sex[1]), 1, true));
     var ring = lobbyPen(seat, 'ring');
-    strokeRound(ring, -half, -half, size, size, 12, rgb('#ffffff'), 2.5);
+    strokeRound(ring, -half, -half, size, size, 12, rgb('#ffffff'), 2.7);
     // 头像自己是按钮：点头像看信息卡，不会当成点桌子入座。
     var button = seat.addComponent(cc.Button); button.transition = cc.Button.Transition.SCALE; button.zoomScale = 0.94;
     cc.mm.uitools.addBtnLister(seat, function () { openLobbyPlayer(controller, seat, player); }, controller);
   }
-  function lobbyCard(controller, table, width) {
-    var playing = table.state === 'playing', height = LOBBY_CARD_HEIGHT;
+  // 桌卡（样式稿 .card）：一张张分开的圆角玻璃卡，圆角 1.3cqw，白 20% 底、白 55% 细边，打牌中的卡底深一点。
+  function lobbyCard(controller, table, width, height) {
+    var playing = table.state === 'playing';
     var card = new cc.Node('standaloneLobbyCard');
     card.setContentSize(width, height);
-    var glass = lobbyPen(card, 'glass');
-    fillRound(glass, -width / 2, -height / 2, width, height, 24, playing ? cc.color(30, 45, 75, 71) : cc.color(255, 255, 255, 41));
-    strokeRound(glass, -width / 2, -height / 2, width, height, 24, cc.color(255, 255, 255, 107), 1.5);
-    lobbyFelt(card, table, width - 108, height - 116, playing);
+    var glass = lobbyPen(card, 'glass'), radius = 17;
+    fillRound(glass, -width / 2 + 2, -height / 2 - 5, width - 4, height, radius, cc.color(20, 40, 80, 26));
+    fillRound(glass, -width / 2, -height / 2, width, height, radius, playing ? cc.color(30, 45, 75, 71) : cc.color(255, 255, 255, 51));
+    strokeRound(glass, -width / 2, -height / 2, width, height, radius, cc.color(255, 255, 255, 140), 1.6);
+    lobbyFelt(card, table, Math.round(width * 0.5), Math.round(height * 0.44), playing);
     var bySeat = {};
     table.seats.forEach(function (seat) { bySeat[seat.seat] = seat; });
-    lobbySeatSpots(table.playerCount, width).forEach(function (spot, index) {
+    lobbySeatSpots(table.playerCount, width, height).forEach(function (spot, index) {
       if (bySeat[index + 1]) lobbySeat(controller, card, bySeat[index + 1], spot[0], spot[1]);
       else if (!playing) lobbyEmptySeat(controller, card, table, index + 1, spot[0], spot[1]);
     });
     var missing = table.playerCount - table.seats.length;
     // 状态：差 1 人橙色发光 / 差 N 人绿 / 空桌白底 / 打牌中深蓝（第三轮 R4）。
-    var empty = !playing && table.seats.length === 0, hot = !playing && missing === 1, pillLeft = -width / 2 + 12, pillTop = height / 2 - 12;
-    var pill = lobbyPill(card, playing ? '打牌中' : empty ? '空桌' : '差 ' + missing + ' 人', pillLeft, pillTop, 14,
-      playing ? cc.color(30, 45, 80, 199) : empty ? cc.color(255, 255, 255, 217) : hot ? rgb('#ff8a10') : rgb('#2fae63'),
-      playing ? rgb('#cfe0ff') : empty ? rgb('#2f7d52') : rgb('#ffffff'), 0);
+    // 标签离卡边 0.8cqw、高 2.1cqw、字 1.15cqw。
+    var empty = !playing && table.seats.length === 0, hot = !playing && missing === 1, pillLeft = -width / 2 + 11, pillTop = height / 2 - 11;
+    var pill = lobbyPill(card, playing ? '打牌中' : empty ? '空桌' : '差 ' + missing + ' 人', pillLeft, pillTop, 15,
+      playing ? cc.color(30, 45, 80, 199) : empty ? cc.color(255, 255, 255, 217) : hot ? [rgb('#ffb340'), rgb('#ff7a00')] : rgb('#2fae63'),
+      playing ? rgb('#cfe0ff') : empty ? rgb('#2f7d52') : rgb('#ffffff'), 0, null, 28);
+    if (!playing && !empty) lobbyShadow(pill.getChildByName('label').getComponent(cc.Label));
     if (hot) {
       var halo = lobbyPen(card, 'standaloneHotHalo', pill.x, pill.y);
-      for (var ring = 3; ring >= 1; ring--) fillRound(halo, -ring * 3, -11 - ring * 3, pill.width + ring * 6, 22 + ring * 6, 11 + ring * 3, cc.color(255, 140, 0, 40));
+      for (var ring = 3; ring >= 1; ring--) fillRound(halo, -ring * 4, -14 - ring * 4, pill.width + ring * 8, 28 + ring * 8, 14 + ring * 4, cc.color(255, 140, 0, 50));
       halo.node.setSiblingIndex(pill.getSiblingIndex());
     }
     // 有人的桌子都显示离我多远（S2-AC3），只给档位不给米数；我没开定位时服务端不给。
-    if (table.nearby) lobbyPill(card, table.nearby.band, width / 2 - 12, height / 2 - 12, 14, cc.color(255, 255, 255, 242), rgb('#1f6fc4'), 1, pinIcon);
-    if (playing) card.opacity = 225;
+    if (table.nearby) lobbyPill(card, table.nearby.band, width / 2 - 11, height / 2 - 11, 15, cc.color(255, 255, 255, 242), rgb('#1f6fc4'), 1, pinIcon, 28);
     return card;
   }
   // 点头像弹的信息卡（S2-AC2）：昵称、性别、对外数字 ID；点别处关闭。
