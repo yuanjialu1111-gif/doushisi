@@ -1885,6 +1885,73 @@
     };
   }
   var SICHUAN_TITLE = '/client/extra/table/sichuan-title.png';
+  // 胡牌特效（DEC-20261101-胡牌特效补齐）：原版按地区挑特效，新津桌（四川斗十四）红五十、黑五十、金钩钓、报叫、龙对都不播。
+  // 红五十、黑五十用原版自带的；金钩钓、报叫、龙对原版没有，借原版一段动画（金二十、天胡、大胡），把动画里那块字
+  // 指到 tools/hu-effects.mjs 出的字图上（字图当图集的新一页）。字图没取到就不播，不影响别的特效。
+  var HU_EFFECTS = { 26: 'hongwushi', 27: 'heiwushi', 28: 'jingoudiao', 11: 'baojiao', 110: 'longdui' };
+  // 金二十那块字是贴着字形的网格，换了字会被裁掉，复制时换成同位置的整块矩形（网格 x = 388u − 186.39，y = 61.86 − 139v，中心 7.61, −7.64）。
+  var HU_EFFECT_ART = { jingoudiao: { base: 'jinershi', region: 'zi', quad: { x: 7.61, y: -7.64, width: 388, height: 139 } },
+    baojiao: { base: 'tianhu', region: 'zi' }, longdui: { base: 'dahu', region: 'wenzi' } };
+  var huEffectTextures = {};
+  function huEffects() {
+    Object.keys(HU_EFFECT_ART).forEach(function (name) {
+      if (huEffectTextures[name] !== undefined) return;
+      huEffectTextures[name] = null;
+      cc.assetManager.loadRemote(apiOrigin + '/client/extra/effects/' + name + '.png', { ext: '.png' }, function (error, texture) {
+        if (error) huEffectTextures[name] = undefined; else huEffectTextures[name] = texture;
+      });
+    });
+    var Player = cc.js.getClassByName('dss_playerController');
+    if (!Player || Player.prototype._standaloneHuEffects || typeof Player.prototype.addHuEffect !== 'function') return;
+    Player.prototype._standaloneHuEffects = true;
+    var addHuEffect = Player.prototype.addHuEffect;
+    Player.prototype.addHuEffect = function (cardType, list, areaType) {
+      var result = addHuEffect.apply(this, arguments), name = HU_EFFECTS[cardType];
+      if (Number(areaType) !== AREA_XINJIN || !name || result.indexOf(name) >= 0 || !huEffectData(name)) return result;
+      result.push(name);
+      return result;
+    };
+  }
+  function huEffectData(name) {
+    var resmap = cc.mm.dss && cc.mm.dss.resmap, art = HU_EFFECT_ART[name];
+    if (!resmap || resmap.has(name) || !art) return resmap && resmap.has(name);
+    var base = resmap.get(art.base), texture = huEffectTextures[name];
+    if (!base || !texture) return false;
+    // 图集里去掉原来那块字，加一页只有这块字的：大小、留边（orig、offset）照原样。
+    var lines = String(base.atlasText).split(/\r?\n/), kept = [], orig = null, offset = null, skipping = false;
+    lines.forEach(function (line) {
+      if (skipping && /^\s+\S/.test(line)) {
+        var field = line.trim().split(': ');
+        if (field[0] === 'orig') orig = field[1];
+        if (field[0] === 'offset') offset = field[1];
+        return;
+      }
+      skipping = line === art.region;
+      if (!skipping) kept.push(line);
+    });
+    if (!orig || !offset) return false;
+    var page = name + '.png', w = texture.width, h = texture.height, data = new sp.SkeletonData();
+    data._uuid = 'standalone-hu-effect-' + name;
+    data.name = name;
+    var json = base.skeletonJson;
+    if (art.quad) {
+      json = JSON.parse(JSON.stringify(json));
+      var skins = Array.isArray(json.skins) ? json.skins : Object.keys(json.skins || {}).map(function (key) { return { attachments: json.skins[key] }; });
+      skins.forEach(function (skin) {
+        Object.keys(skin.attachments || {}).forEach(function (slot) {
+          var attachment = skin.attachments[slot][art.region];
+          if (attachment && attachment.type === 'mesh') skin.attachments[slot][art.region] = { x: art.quad.x, y: art.quad.y, width: art.quad.width, height: art.quad.height };
+        });
+      });
+    }
+    data.skeletonJson = json;
+    data.atlasText = kept.join('\n').replace(/\s+$/, '') + '\n\n' + page + '\nsize: ' + w + ',' + h + '\nformat: RGBA8888\nfilter: Linear,Linear\nrepeat: none\n' +
+      art.region + '\n  rotate: false\n  xy: 0, 0\n  size: ' + w + ', ' + h + '\n  orig: ' + orig + '\n  offset: ' + offset + '\n  index: -1\n';
+    data.textures = base.textures.concat([texture]);
+    data.textureNames = base.textureNames.concat([page]);
+    resmap.set(name, data);
+    return true;
+  }
   function followServerPlays() {
     var Select = cc.js.getClassByName('dss_selectController');
     if (!Select || Select.prototype._standaloneServerPlays) return;
@@ -2319,6 +2386,7 @@
       ownBeansOnly(controller);
       xinjinRuleText();
       sichuanName();
+      huEffects();
       // 原版 onLoad 就把「报」绑在当时的 onClickOperator 上，早于上面改原型：每页第一张桌点「报」走的是原版，被服务端拒。重新绑一次。
       var baoButton = controller.views['ntfOperate/actionBtn_bao'];
       if (baoButton && !controller._standaloneBaoButton) {

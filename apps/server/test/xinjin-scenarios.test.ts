@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { freezeXinjinOptions, getDefaultOptions, XINJIN_V2_OPTIONS } from '@dss/rules';
 import type { RoundInput } from '../src/engines.js';
 import { createXinjinEngine } from '../src/game/xinjin-engine.js';
-import type { XinjinAction, XinjinRound } from '../src/game/xinjin-round.js';
+import { xinjinSettlementBrand, type XinjinAction, type XinjinRound } from '../src/game/xinjin-round.js';
 import { XINJIN_SCENARIOS } from '../src/game/xinjin-scenarios.js';
 
 // 测试台的每个场景都按 tip 打一遍：1号=a（庄家），2、3、4 号 = b、c、d。
@@ -86,7 +86,13 @@ test('番型：报叫', () => {
 test('番型：金二十、暗四对、龙对、全红、全黑、红五十、黑五十', () => {
   assert.equal(flipWin('qia20', 412, ['qia20'], 3).redPoints, 20);
   flipWin('anDui', 413, ['anDui'], 3);
-  flipWin('longDui', 413, ['anDui', 'longDui'], 5);
+  // 龙对是 3号胡：开局 3号手里四个5，胡之前轮不到自己、没有偷杠可点。
+  const longDui = pass(step(start('longDui'), 'a', 'discard', [413]), ['c']);
+  assert.equal(options(start('longDui'), 'c', 'tou').length + options(start('longDui'), 'c', 'gang').length, 0);
+  const longDuiWon = claim(longDui, 'c', 'hu');
+  won(longDuiWon, 'c', ['anDui', 'longDui'], 5);
+  // 胡牌特效按番型编号播：暗四对 14（对子胡）、龙对 110（热更新脚本借大胡动画换字），DEC-20261101-胡牌特效补齐。
+  assert.deepEqual(xinjinSettlementBrand(longDuiWon, 'c').cardType, [14, 110]);
   assert.equal(flipWin('quanHong', 207, ['quanHong'], 3).redPoints, 12);
   flipWin('quanHei', 107, ['quanHei'], 3);
   assert.equal(flipWin('hong50', 212, ['hong50'], 3).redPoints, 52);
