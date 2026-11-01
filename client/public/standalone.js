@@ -1798,6 +1798,43 @@
     var target = info.target || {};
     fillStatTiles(info._standaloneStats, { rounds: target.gameNum, wins: target.winNum, winRate: target.winRate });
   }
+  // 超时由服务端代打，不进托管。原版只在托管时把「服务端替我出的牌」从手里拿掉、收起出牌，
+  // 不托管时那张牌留在手里还能拖，等下一手只能吃/过时一拖就被服务端拒（11-01 本机试玩）。
+  // 这里照托管的路子补上；并且只有这一手的选项里有出牌，手牌才能拖出去。
+  var ACTION_CHUPAI = 3, ACTION_KOU = 18;
+  var handPlayedCard = null;
+  function selfAtTable() {
+    var table = cc.mm.uimanager.getWindow('dss_game');
+    return table && table.model && typeof table.model.getSelf === 'function' ? { table: table, self: table.model.getSelf() } : null;
+  }
+  function followServerPlays() {
+    var Select = cc.js.getClassByName('dss_selectController');
+    if (!Select || Select.prototype._standaloneServerPlays) return;
+    Select.prototype._standaloneServerPlays = true;
+    var sendCard = Select.prototype.sendCard;
+    Select.prototype.sendCard = function (card) {
+      if (!this._isKoupai) handPlayedCard = card.value;
+      return sendCard.apply(this, arguments);
+    };
+    var notice = cc.mm.frametype.MSG_NOTICE_CMD;
+    cc.mm.notification.on(notice + cc.mm.msgEvent.HWNotifySeatOperationChoice, function (body) {
+      if (cc.mm.gameserver.isReplay() || !body || !body.choices || !body.choices.length) return;
+      var canPlay = body.choices.some(function (choice) { return choice.actType === ACTION_CHUPAI || choice.actType === ACTION_KOU; });
+      if (canPlay) handPlayedCard = null;
+      else cc.mm.notification.emit('NOTICE_STATE_PLAY');
+    });
+    cc.mm.notification.on(notice + cc.mm.msgEvent.HWNotifyActionFlow, function (body) {
+      var action = body && body.action, at = selfAtTable();
+      if (!action || action.actType !== ACTION_CHUPAI || !at || !at.self || action.seatIndex !== at.self.seatIndex) return;
+      if (handPlayedCard === action.destCard) { handPlayedCard = null; return; }
+      if (at.self.auto || cc.mm.gameserver.isReplay()) return;
+      at.self.deathCard = [];
+      cc.mm.notification.emit('NOTICE_STATE_PLAY');
+      cc.mm.notification.emit(cc.mm.frametype.NTF_PLAY_BACK_OUT_CARD, action.destCard);
+      var tip = at.table.views && at.table.views['doushisi-dapai-tishi-shoujia-di'];
+      if (tip) tip.active = false;
+    });
+  }
   // 收到 13–20：从发的人头像飞到对方头像，放大、抖两下、停一会儿淡出。12 以内照原版。
   function patchTableEmotes(table) {
     if (table._standaloneExtraEmotes || typeof table._moveEffect !== 'function') return;
@@ -2170,6 +2207,7 @@
       hide(controller.views, ['qifu-button', 'qifu-dikuang', 'buchongdou', 'invateBtn']);
       // 原版邀请键（复制分享文字）藏起来；好友、邀请第三轮已下线。
       patchTableEmotes(controller);
+      followServerPlays();
       afterLoadUI('dss_settle_UIController', patchFinalSettle);
       // 牌桌不显示距离（R11 AC1）：原版进房时会重新打开定位按钮，透明度清零免得闪一下。
       var locationButton = controller.views.locationbtn;

@@ -114,6 +114,7 @@ test('replacement stays private and keeps the real card face for its owner', () 
   assert.ok(owner);
   assert.equal((owner!.body as any).value, 101);
   assert.equal((owner!.body as any).isFanPai, false);
+  assert.equal((owner!.body as any).isShangShou, true);
   assert.equal(adapter().notifications(state, events, 'b', 'action').some(packet => packet.command === 27), false);
 });
 

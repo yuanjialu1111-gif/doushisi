@@ -195,7 +195,8 @@ export function createQionglaiOriginalAdapter(): EngineOriginalAdapter {
         if (event.type === 'flip' || event.type === 'replacement') {
           packets.push({ command: MSGEvent.HWNotifyPlayerDealCard, body: { seatIndex: seat(state, String(event.userId)), value: Number((event.card as { code?: number } | undefined)?.code ?? 0),
             isFanPai: event.type === 'flip', leftCardNum: cards(state, 'deck').length, tilesOnHandNum: cards(state, `hand:${event.userId}`).length,
-            pointNum: 0, blackPoint: 0, isShangShou: false } });
+            // 补的牌进本人手里：原版只认 isShangShou 才把牌加进手牌（11-01 本机试玩）。
+            pointNum: 0, blackPoint: 0, isShangShou: event.type === 'replacement' } });
         }
         if (event.type === 'bonus') packets.push({ command: MSGEvent.HWNotifyPlayerDealCard, body: { seatIndex: seat(state, String(event.userId)),
           value: (event.card as { code: number }).code, isFanPai: false, leftCardNum: cards(state, 'deck').length,

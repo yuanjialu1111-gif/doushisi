@@ -302,7 +302,8 @@ export function createRoundOriginalAdapter(options: RoundAdapterOptions): Engine
             value: Number((raw.card as { code?: number } | undefined)?.code ?? 0),
             isFanPai: raw.type === 'flip', leftCardNum: ids(s, 'deck').length,
             tilesOnHandNum: ids(s, `hand:${raw.userId}`).length, pointNum: pointsFor(s, String(raw.userId), userId).redPoint,
-            blackPoint: pointsFor(s, String(raw.userId), userId).blackPoint, isShangShou: false } });
+            // 摸鬼后补的牌进本人手里：原版只认 isShangShou 才把牌加进手牌，否则只亮一下，手里少一张（11-01 本机试玩）。
+            blackPoint: pointsFor(s, String(raw.userId), userId).blackPoint, isShangShou: raw.type === 'replacement' } });
         }
         if (raw.type === 'bonus') packets.push({ command: MSGEvent.HWNotifyPlayerDealCard, body: {
           seatIndex: seatOf(s, String(raw.userId)), value: (raw.card as { code: number }).code,

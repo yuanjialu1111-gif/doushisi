@@ -195,3 +195,16 @@ test('开局庄家收到出牌选项，别家收到倒计时；之后没事件�
     assert.ok(!commands.includes(MSGEvent.HWNotifyPlayerDealCard) && !commands.includes(MSGEvent.HWNotifyActionFlow), userId);
   }
 });
+
+test('摸到鬼后补的牌标成进手（isShangShou），只发给本人', () => {
+  let state = make([[102, 103, 104, 105, 106, 108, 109, 110], [202, 203, 204, 205, 206, 208, 209]], [1001, 107]);
+  state = run(state, 'a', 'begin');
+  state = passAll(run(state, 'a', 'discard', 110));
+  assert.equal(state.phase, 'draw');
+  const drawn = applyXinjinAction(state, 'b', action(state, 'b', 'draw'));
+  const adapter = createXinjinEngine('v2-replacement', () => 0).original!;
+  const deals = (userId: string) => adapter.notifications({ ...(drawn.snapshot as XinjinRound), deal: {} }, drawn.events, userId, 'action')
+    .filter(packet => packet.command === MSGEvent.HWNotifyPlayerDealCard).map(packet => packet.body as any);
+  assert.deepEqual(deals('b').map(body => [body.value, body.isShangShou]), [[1001, false], [107, true]]);
+  assert.deepEqual(deals('a').map(body => body.value), [1001]);
+});
