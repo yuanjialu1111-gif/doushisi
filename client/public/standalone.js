@@ -1088,9 +1088,11 @@
   }
   // 圆角小标签（状态、距离、性别）。left/top 是标签左上角；anchorX 为 1 时 left 当右边缘用。
   // tall 给了就按这个高度画（桌卡上的状态、距离标签 2.1cqw 高）；background 可以是 [上色, 下色] 两段。
+  // 中文字在 Label 框里画得偏上（苹方等字体），小标签和按钮里的字按字号往下挪一点才居中。
+  var TEXT_DROP = 0.16;
   function lobbyPill(parent, text, left, top, size, background, color, anchorX, icon, tall) {
     var pen = lobbyPen(parent, 'standalonePill');
-    var label = lobbyLabel(pen.node, text, 0, 0, size, color, 0, true);
+    var label = lobbyLabel(pen.node, text, 0, -TEXT_DROP * size, size, color, 0, true);
     var height = tall || size + 8, padding = tall ? tall * 0.42 : size * 0.7, iconWidth = icon ? size : 0;
     var width = labelWidth(label) + padding * 2 + iconWidth;
     var x = anchorX === 1 ? left - width : left;
@@ -1225,22 +1227,23 @@
     poll();
   }
   // 快速开始（样式稿第二版 .quick）：18cqw × 5.4cqw 金色胶囊，上浅下深、底下一道深橙边、白色细描边，左边闪电。
-  // Graphics 没有渐变：从上往下叠一组越来越矮的圆角条，颜色从浅黄过渡到橙。
+  // Graphics 没有渐变：按 2 像素一条横切胶囊，每条按胶囊在这一高度的宽度画，颜色从浅黄过渡到橙（叠圆角条会在上角露毛边）。
   function lobbyQuickButton(controller) {
     var width = 240, height = 72, radius = height / 2;
     var pen = lobbyPen(controller._standaloneLobby.box, 'standaloneQuickStart');
     pen.node.setContentSize(width, height);
     fillRound(pen, -width / 2 + 4, -radius - 14, width - 8, height, radius, cc.color(120, 50, 0, 70));
     fillRound(pen, -width / 2, -radius - 6, width, height, radius, rgb('#b85f00'));
-    var stops = [[0, '#fff0a6'], [0.38, '#ffcf3f'], [1, '#f59a0c']], steps = 14;
-    for (var index = steps; index >= 1; index--) {
-      var t = index / steps, k = t <= 0.38 ? 0 : 1, a = stops[k], b = stops[k + 1], u = (t - a[0]) / (b[0] - a[0]);
-      var from = rgb(a[1]), to = rgb(b[1]), h = height * index / steps;
-      fillRound(pen, -width / 2, radius - h, width, h, Math.min(radius, h / 2),
-        cc.color(from.r + (to.r - from.r) * u, from.g + (to.g - from.g) * u, from.b + (to.b - from.b) * u));
+    var stops = [[0, '#fff0a6'], [0.38, '#ffcf3f'], [1, '#f59a0c']], strip = 2;
+    var halfAt = function (y) { return width / 2 - radius + Math.sqrt(Math.max(0, radius * radius - y * y)); };
+    for (var top = radius; top > -radius; top -= strip) {
+      var bottom = Math.max(-radius, top - strip - 0.6), t = (radius - top) / height, k = t <= 0.38 ? 0 : 1, a = stops[k], b = stops[k + 1], u = (t - a[0]) / (b[0] - a[0]);
+      var from = rgb(a[1]), to = rgb(b[1]), up = halfAt(top), down = halfAt(bottom);
+      pen.fillColor = cc.color(from.r + (to.r - from.r) * u, from.g + (to.g - from.g) * u, from.b + (to.b - from.b) * u);
+      pen.moveTo(-up, top); pen.lineTo(up, top); pen.lineTo(down, bottom); pen.lineTo(-down, bottom); pen.close(); pen.fill();
     }
     strokeRound(pen, -width / 2 + 1, -radius + 1, width - 2, height - 2, radius - 1, cc.color(255, 255, 255, 150), 2);
-    var label = lobbyLabel(pen.node, '快速开始', 0, 0, 31, rgb('#6a2f00'), 0, true);
+    var label = lobbyLabel(pen.node, '快速开始', 0, -3, 31, rgb('#6a2f00'), 0, true);
     var icon = 32, gap = 10, total = icon + gap + labelWidth(label), x = -total / 2;
     label.node.x = x + icon + gap;
     // 闪电（24×24 的路径按 32 放大）。
@@ -1480,7 +1483,9 @@
     var empty = lobbyPen(seat, 'face');
     empty.fillColor = go ? cc.color(255, 210, 90, 77) : cc.color(255, 255, 255, 36); empty.circle(0, 0, half); empty.fill();
     empty.lineWidth = go ? 2.4 : 1.6; empty.strokeColor = go ? rgb('#ffd25a') : cc.color(255, 255, 255, 115); empty.circle(0, 0, half - 0.8); empty.stroke();
-    lobbyLabel(empty.node, '＋', 0, 1, 27, go ? rgb('#fff3c4') : cc.color(255, 255, 255, 217), 0.5);
+    // 「＋」用两道圆头线画，不用字（字形偏上，圆里不居中）。
+    empty.lineWidth = 2.6; empty.lineCap = cc.Graphics.LineCap.ROUND; empty.strokeColor = go ? rgb('#fff3c4') : cc.color(255, 255, 255, 217);
+    empty.moveTo(-9, 0); empty.lineTo(9, 0); empty.moveTo(0, -9); empty.lineTo(0, 9); empty.stroke();
     if (!enough) seat.opacity = 115;
     var button = seat.addComponent(cc.Button); button.transition = cc.Button.Transition.SCALE; button.zoomScale = 0.92;
     cc.mm.uitools.addBtnLister(seat, function () {
@@ -1541,14 +1546,14 @@
       if (bySeat[index + 1]) lobbySeat(controller, card, bySeat[index + 1], spot[0], spot[1]);
       else if (!playing) lobbyEmptySeat(controller, card, table, index + 1, spot[0], spot[1]);
     });
-    // 状态：差 1 人橙 / 差 N 人绿 / 空桌淡白 / 打牌中暗色（第三轮 R4）。标签离卡边 1cqw、高 2.2cqw、字 1.15cqw。
-    var empty = !playing && table.seats.length === 0, pillLeft = -width / 2 + 13, pillTop = height / 2 - 13;
+    // 状态：差 1 人橙 / 差 N 人绿 / 空桌淡白 / 打牌中暗色（第三轮 R4）。标签离卡边 1.2cqw、高 2.2cqw、字 1.15cqw。
+    var empty = !playing && table.seats.length === 0, pillLeft = -width / 2 + 16, pillTop = height / 2 - 16;
     var pill = lobbyPill(card, playing ? '打牌中' : empty ? '空桌' : '差 ' + missing + ' 人', pillLeft, pillTop, 15,
       playing ? cc.color(0, 0, 0, 89) : empty ? cc.color(255, 255, 255, 41) : hot ? [rgb('#ffb340'), rgb('#ff7a00')] : rgb('#2f9e62'),
       playing ? rgb('#c9d4e6') : empty ? rgb('#dfe8f7') : rgb('#ffffff'), 0, null, 29);
     if (hot) lobbyShadow(pill.getChildByName('label').getComponent(cc.Label));
     // 有人的桌子都显示离我多远（S2-AC3），只给档位不给米数；我没开定位时服务端不给。
-    if (table.nearby) lobbyPill(card, table.nearby.band, width / 2 - 13, height / 2 - 13, 15, cc.color(255, 255, 255, 242), rgb('#1f6fc4'), 1, pinIcon, 29);
+    if (table.nearby) lobbyPill(card, table.nearby.band, width / 2 - 16, height / 2 - 16, 15, cc.color(255, 255, 255, 242), rgb('#1f6fc4'), 1, pinIcon, 29);
     return card;
   }
   // 点头像弹的信息卡（S2-AC2）：昵称、性别、对外数字 ID；点别处关闭。
@@ -1583,7 +1588,7 @@
     var textX = avatarX + 42 + 12;
     var name = lobbyLabel(panel.node, shortName(player.nickname, 5), textX, 18, 19, rgb('#5a3200'), 0, true);
     var sex = SEX_TAGS[player.sex];
-    if (sex) lobbyPill(panel.node, sex[0], textX + labelWidth(name) + 6, 18 + 10.5, 13, rgb(sex[1]), rgb('#ffffff'), 0);
+    if (sex) lobbyPill(panel.node, sex[0], textX + labelWidth(name) + 8, 18 + 2 + 11, 14, rgb(sex[1]), rgb('#ffffff'), 0, null, 22);
     var id = new cc.Node('uid'), rich = id.addComponent(cc.RichText);
     id.anchorX = 0; rich.fontSize = 14; rich.lineHeight = 20; rich.horizontalAlign = cc.macro.TextAlignment.LEFT;
     rich.string = '<color=#8d7a62>ID </color><b><color=#5a3200>' + (player.uid || '—') + '</color></b>';
