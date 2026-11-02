@@ -133,7 +133,11 @@ function evaluateV2(hand: XinjinHand, context: XinjinWinContext, rules: Readonly
   const byRank = new Map<number, PhysicalCard[]>();
   for (const card of hand.concealed) byRank.set(ordinaryRank(card.code), [...(byRank.get(ordinaryRank(card.code)) ?? []), card]);
   const fourPairs = hand.melds.length === 0 && [...byRank.values()].every(cards => cards.length % 2 === 0);
-  if (!decompositions.length && !fourPairs) return fail('shape');
+  // 大吊车（金钩钓）：亮满三组碰、偷、杠、巴（吃的不算），手里单吊一张、胡同点数的那张（颜色不管，吊 7 胡 7 也算）；
+  // 胡凑 14 的那张只是普通胡（DEC-20261102-大吊车要吊同点）。
+  const daDiao = hand.melds.length === 3 && hand.melds.every(meld => meld.kind !== 'chi') && hand.concealed.length === 2 &&
+    hand.concealed.every(card => !special(card.code)) && ordinaryRank(hand.concealed[0]!.code) === ordinaryRank(hand.concealed[1]!.code);
+  if (!decompositions.length && !fourPairs && !daDiao) return fail('shape');
   const quanHong = ordinary.length > 0 && ordinary.every(card => red(card.code));
   const quanHei = ordinary.length > 0 && ordinary.every(card => !red(card.code));
   const tianHu = context.source === 'original-hand';
@@ -144,7 +148,7 @@ function evaluateV2(hand: XinjinHand, context: XinjinWinContext, rules: Readonly
   if (belowGate && !fourPairs) return fail('points');
   const alternatives: Extract<XinjinWin, { status: 'winning' }>[] = [];
   for (const structure of ['ordinary', 'four-pairs'] as const) {
-    if (structure === 'ordinary' ? !decompositions.length || belowGate : !fourPairs) continue;
+    if (structure === 'ordinary' ? !decompositions.length && !daDiao || belowGate : !fourPairs) continue;
     const items: XinjinWinItem[] = [];
     const add = (pattern: keyof typeof XINJIN_V2_FANS, count = 1) => {
       if (count) items.push({ pattern, count, fan: XINJIN_V2_FANS[pattern] * count });
@@ -160,15 +164,15 @@ function evaluateV2(hand: XinjinHand, context: XinjinWinContext, rules: Readonly
     if (quanHei) add('quanHei');
     if (redPoints === 50) add('hong50');
     if (blackPoints === 50) add('hei50');
-    // 金钩钓（大吊车）：亮满三组碰、偷、杠、巴（吃的不算），手里只剩两张凑 14。
-    if (hand.melds.length === 3 && hand.melds.every(meld => meld.kind !== 'chi')) add('jinGouDiao');
+    if (daDiao) add('jinGouDiao');
     if (structure === 'four-pairs') {
       add('anDui');
       add('longDui', [...byRank.values()].filter(cards => cards.length === 4).length);
     }
     const totalFan = items.reduce((sum, item) => sum + item.fan, 0);
     const cappedFan = totalFan;
-    const concealedGroups = structure === 'ordinary' ? decompositions[0]!.map(id => [...candidates.find(candidate => candidate.id === id)!.cardIds]) :
+    const concealedGroups = structure === 'ordinary' ? !decompositions.length ? [hand.concealed.map(card => card.id).sort()] :
+      decompositions[0]!.map(id => [...candidates.find(candidate => candidate.id === id)!.cardIds]) :
       [...byRank].sort(([a], [b]) => a - b).flatMap(([, cards]) => {
         const ids = cards.map(card => card.id).sort();
         return ids.length === 4 ? [ids.slice(0, 2), ids.slice(2)] : [ids];

@@ -65,6 +65,10 @@ test('views expose declaration state publicly but keep frozen waits private', ()
 test('declaration action is part of the frozen Xinjin action model', () => {
   const state = create({ baoJiao: 1 });
   const begin = xinjinLegalActions(state, 'a').find(action => action.type === 'begin')!;
-  const next = applyXinjinAction(state, 'a', begin).snapshot as XinjinRound;
+  let next = applyXinjinAction(state, 'a', begin).snapshot as XinjinRound;
+  // 这手庄家打掉一张就能报，开局先弹「报 / 过」（DEC-20261102-庄家起手报叫）。
+  assert.ok(xinjinLegalActions(next, 'a').every(action => next.phase === 'declaring' ? ['bao', 'buBao'].includes(action.type) : true));
+  while (next.phase === 'declaring') { const id = next.openingDeclare!.pending[0]!;
+    next = applyXinjinAction(next, id, xinjinLegalActions(next, id).find(action => action.type === 'buBao')!).snapshot as XinjinRound; }
   assert.ok(xinjinLegalActions(next, 'a').every(action => action.type === 'discard' || action.type === 'declare' || action.type === 'hu'));
 });

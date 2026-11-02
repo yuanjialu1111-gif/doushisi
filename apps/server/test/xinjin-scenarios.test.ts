@@ -125,6 +125,11 @@ test('番型：地胡', () => {
 test('番型：报叫', () => {
   const state = pass(step(start('baoJiao'), 'a', 'declare', [412]), ['a']);
   won(claim(state, 'a', 'hu'), 'a', ['baoJiao'], 3);
+  // 开局点「报」：轮到出牌只给留得住叫的牌，打黑Q 就算报叫（DEC-20261102-庄家起手报叫）。
+  const opened = noBao(step(open('baoJiao'), 'a', 'bao'));
+  assert.ok(options(opened, 'a', 'discard').length < 8 && !options(opened, 'a', 'declare').length);
+  const early = pass(step(opened, 'a', 'discard', [412]), ['a']);
+  won(claim(early, 'a', 'hu'), 'a', ['baoJiao'], 3);
 });
 test('报叫要手里红点先够 20：金二十那手打黑Q后红 19，只有红K能胡，不出「报」；暗四对的叫红点不够也能报', () => {
   assert.equal(options(start('qia20'), 'a', 'declare').length, 0);
@@ -210,6 +215,9 @@ test('操作：摸鬼补牌', () => {
 test('操作：报叫后锁牌', () => {
   let state = start('baoJiaoLock');
   assert.deepEqual([...new Set(options(state, 'a', 'declare').flatMap(option => option.faces))].sort(), [206, 412]);
+  // 开局点「报」也一样：只有黑Q、黑6能打。
+  const opened = noBao(step(open('baoJiaoLock'), 'a', 'bao'));
+  assert.deepEqual(options(opened, 'a', 'discard').flatMap(option => option.faces).sort(), [206, 412]);
   state = step(state, 'a', 'declare', [412]);
   for (let guard = 0; guard < 10 && !(state.phase === 'discard' && state.activeId === 'a'); guard++) state = pass(state);
   assert.equal(state.activeId, 'a');

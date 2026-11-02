@@ -140,11 +140,15 @@ test('v2 番表：报叫、金二十、暗四对、龙对、红黑五十、金�
   // 红正好 50 算红五十；全红红 56 能胡，只算全红。
   assert.deepEqual(pairs(fans(v2Hand([308, 206, 109, 305, 108, 306, 307, 107]))), [['hong50', 3]]);
   assert.deepEqual(pairs(fans(v2Hand([110, 304, 109, 305, 108, 306, 307, 107]))), [['quanHong', 3]]);
-  // 金钩钓（大吊车）：亮满三组碰、偷、杠，手里只剩两张；有吃的那组就不算。
+  // 大吊车（金钩钓）：亮满三组碰、偷、杠，手里单吊、胡同点数的（颜色不管，吊 7 胡 7 也算）；胡凑 14 的只是普通胡；有吃的那组就不算。
   const melds = [{ kind: 'tou' as const, codes: [102, 302, 202] }, { kind: 'peng' as const, codes: [103, 303, 403] }, { kind: 'peng' as const, codes: [104, 304, 404] }];
-  assert.deepEqual(pairs(fans(v2Hand([110, 204], melds))), [['peng', 3], ['jinGouDiao', 3]]);
-  const withChi = fans(v2Hand([110, 204], [...melds.slice(0, 2), { kind: 'chi' as const, codes: [109, 305] }]));
-  assert.ok(!withChi.items.some(item => item.pattern === 'jinGouDiao'));
+  assert.deepEqual(pairs(fans(v2Hand([110, 210], melds))), [['peng', 3], ['jinGouDiao', 3]]);
+  assert.deepEqual(pairs(fans(v2Hand([107, 207], melds))), [['peng', 3], ['jinGouDiao', 3]]);
+  assert.deepEqual(pairs(fans(v2Hand([110, 204], melds))), [['peng', 3]]);
+  const withChi = evaluateXinjinWin(v2Hand([110, 210], [...melds.slice(0, 2), { kind: 'chi' as const, codes: [109, 305] }]), flipAt(v2Hand([110])), v2Rules());
+  assert.equal(withChi.status, 'not-winning', '有吃的组，两张同点凑不成 14，不能胡');
+  // 红点不够照样不能胡大吊车（3 组 + 两张黑 10：红 18）。
+  assert.equal(evaluateXinjinWin(v2Hand([210, 410], melds), flipAt(v2Hand([210])), v2Rules()).status, 'not-winning');
 });
 
 test('v2 手里的三张没偷出来不算组；只有全黑、黑五十、暗四对不看门槛', () => {
@@ -283,8 +287,12 @@ test('开局庄家收到出牌选项，别家收到倒计时；之后没事件�
   const seat = (userId: string) => snapshot.players.find((player: any) => player.userId === userId).seat;
   assert.equal(clock(dealer, 'start'), seat(dealer));
   assert.equal(clock(other, 'start'), seat(dealer));
+  // 这副牌庄家打掉一张就能报叫，开局弹「报 / 过」（DEC-20261102-庄家起手报叫）：先点过。
+  assert.equal(snapshot.phase, 'declaring');
+  assert.deepEqual(snapshot.openingDeclare.pending, [dealer]);
+  snapshot = engine.apply(snapshot, dealer, engine.interactions!.legalActions(snapshot, dealer).find((item: any) => item.type === 'buBao')!).snapshot;
   // 庄家出牌后，第一个能响应的人点「过」：这一步没有事件，不能把开局的摸鬼、偷再发一遍。
-  snapshot = engine.apply(snapshot, dealer, engine.interactions!.legalActions(snapshot, dealer)[0]!).snapshot;
+  snapshot = engine.apply(snapshot, dealer, engine.interactions!.legalActions(snapshot, dealer).find((item: any) => item.type === 'discard')!).snapshot;
   const responder = ['a', 'b', 'c', 'd'].find(id => engine.interactions!.legalActions(snapshot, id).some((item: any) => item.type === 'respond'));
   assert.ok(responder);
   // 能吃碰的人钟在自己，其他人（含打出、翻出这张的人）钟在当前那家，不暴露谁能吃碰。
@@ -385,4 +393,49 @@ test('v2 起手报叫：几家一起弹，选完的不影响别人；闲家红�
   assert.ok(!xinjinLegalActions(response, 'b').some(item => item.type === 'respond' && item.choiceId !== null));
   const free = run(run(run(opened, 'b', 'buBao'), 'a', 'buBao'), 'a', 'discard', 103);
   assert.ok(xinjinLegalActions(free, 'b').some(item => item.type === 'respond' && item.choiceId !== null));
+});
+
+test('v2 庄家打掉一张就能报叫，开局和闲家一起弹；点了「报」只能打留得住叫的牌，打出去那张算报叫（DEC-20261102-庄家起手报叫）', () => {
+  // a 庄家打黑K或黑Q能报（暗四对）；b 7 张听黑K。
+  const hands = [[102, 202, 103, 203, 211, 411, 212, 413], [101, 110, 204, 309, 205, 306, 408]];
+  const opened = apply(make(hands), 'a', action(make(hands), 'a', 'begin'));
+  assert.deepEqual(opened.openingDeclare!.pending, ['a', 'b']);
+  const waiting = run(opened, 'a', 'bao');
+  assert.deepEqual(waiting.openingDeclare!.pending, ['b']);
+  assert.equal(waiting.players[0]!.declaredWaits, null, '庄家点了报还没出牌，不算报上');
+  const turn = run(waiting, 'b', 'buBao');
+  assert.equal(turn.phase, 'discard');
+  const choices = xinjinLegalActions(turn, 'a');
+  assert.deepEqual(choices.map(item => item.type), ['discard', 'discard']);
+  assert.deepEqual(choices.map(item => code(turn, (item as { cardId: string }).cardId)).sort(), [212, 413]);
+  // 超时托管也只在这两张里挑。
+  assert.ok([212, 413].includes(code(turn, (xinjinTimedAction(turn, 'a')!.action as { cardId: string }).cardId)));
+  const thrown = applyXinjinAction(turn, 'a', action(turn, 'a', 'discard', 413));
+  assert.ok(thrown.events.some(event => event.type === 'discard' && (event as { declared?: boolean }).declared === true));
+  const after = thrown.snapshot as XinjinRound;
+  assertXinjinRound(after);
+  assert.deepEqual(after.players[0]!.declaredWaits, [112, 312, 412]);
+  assert.equal(after.players[0]!.declarePending, undefined);
+  // b 胡这张：8 份，报叫的 a 点炮多 3 番 → 64 份 × 底分 100。
+  const hu = xinjinLegalActions(after, 'b').find(item => item.type === 'respond' && item.choiceId !== null &&
+    (after.claims!.offers.find(offer => offer.id === item.choiceId)!.action as { type: string }).type === 'hu')!;
+  const done = apply(after, 'b', hu);
+  assert.equal(done.outcome!.winners[0]!.win.scoreUnits, '8');
+  assert.deepEqual(Object.fromEntries(done.outcome!.payments.postings.map(posting => [posting.userId, Number(posting.amount)])), { a: -6400, b: 6400 });
+  // 不报照常：八张都能打，也能出牌时再报。
+  const free = run(run(opened, 'a', 'buBao'), 'b', 'buBao');
+  assert.equal(xinjinLegalActions(free, 'a').filter(item => item.type === 'discard').length, 8);
+  assert.ok(xinjinLegalActions(free, 'a').some(item => item.type === 'declare'));
+});
+
+test('v2 报叫了没胡、被别家胡了：只有报叫的这家按番数 + 3 付，别人照常（DEC-20261102-报叫被截胡）', () => {
+  const hands = [[101, 213, 102, 412, 103, 311, 304, 110], [105, 309, 106, 408, 203, 111, 401],
+    [202, 212, 204, 210, 205, 209, 107], [306, 307, 308, 206, 208, 302, 301]];
+  const opened = apply(make(hands), 'a', action(make(hands), 'a', 'begin'));
+  const turn = run(run(opened, 'b', 'bao'), 'a', 'buBao');
+  const done = run(turn, 'a', 'hu');
+  const paid = Object.fromEntries(done.outcome!.payments.postings.map(posting => [posting.userId, Number(posting.amount)]));
+  assert.ok(paid.c! < 0 && paid.c === paid.d);
+  assert.equal(paid.b, paid.c! * 8);
+  assert.equal(paid.a, -(paid.b! + paid.c! + paid.d!));
 });

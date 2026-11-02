@@ -134,6 +134,9 @@ tbody tr:hover { background: #fafcfb; }
 .segmented { display: flex; background: #edf2ee; padding: 4px; border-radius: 5px; gap: 4px; }
 .segmented button { flex: 1; min-height: 37px; border: 1px solid transparent; background: transparent; color: #7a887d; border-radius: 4px; font-size: 12px; }
 .segmented button.selected { background: white; border-color: #dbe4dd; color: #285c43; box-shadow: 0 1px 3px #183d2110; }
+.option-field { display: flex; flex-direction: column; gap: 9px; }
+.option-field > span { font-size: 13px; font-weight: 600; }
+.option-field p { line-height: 1.7; }
 .modal-actions { display: flex; align-items: center; justify-content: flex-end; gap: 10px; padding-top: 4px; }
 .ledger-toolbar { padding: 15px 24px; display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 12px; color: #7c897f; }
 .ledger-toolbar strong { color: #425d4b; font-weight: 600; margin-left: 8px; }

@@ -353,6 +353,10 @@ test('admin templates: Chinese validation messages, not-found code, role check, 
   assert.deepEqual(list.templates.map((entry: any) => [entry.openTables, entry.seatedPlayers]), [[2, 0]]);
   assert.deepEqual(list.variants.map((variant: any) => variant.key), ['4:0']);
   assert.equal(list.variants[0].needsBaseBeans, true);
+  // 后台表单只给人数、局数、王数三个中文单选，房费和 v2 固定玩法不给改（DEC-20261102-模板中文表单）。
+  assert.deepEqual(list.variants[0].choices.map((choice: any) => [choice.label, choice.values.map((item: any) => item.label)]), [
+    ['局数', ['4 局', '8 局', '12 局']], ['人数', ['2 人', '3 人', '4 人']], ['王数', ['3 个王', '5 个王', '6 个王', '9 个王']]]);
+  assert.match(list.variants[0].fixedRules, /不封顶.*公开桌房费 AA/);
   const updated = await ctx.app.inject({ method: 'PUT', url: `/api/admin/lobby-templates/${saved.id}`, headers: ctx.beansHeaders,
     payload: template({ options: { baseBeans: '2', playerNum: 2, gameNum: 4 } }) });
   assert.equal(updated.statusCode, 200, updated.body);

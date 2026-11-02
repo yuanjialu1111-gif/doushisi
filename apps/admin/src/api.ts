@@ -80,6 +80,9 @@ export interface AvatarItem {
 }
 export interface LobbyVariant {
   key: string; name: string; defaults: Record<string, unknown>; needsBaseBeans: boolean; needsPlayerNum: boolean;
+  /** 能改的单选项（中文名和选项），fixedRules 是不能改的玩法说明。 */
+  choices: { key: string; label: string; defaultValue: unknown; values: { value: unknown; label: string }[] }[];
+  fixedRules: string;
 }
 export interface LobbyTemplate {
   id: string; variantKey: string; variantName: string; options: Record<string, unknown>;

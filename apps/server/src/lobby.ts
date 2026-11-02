@@ -42,6 +42,11 @@ function distanceKm(a: { lat: number; lon: number }, b: { lat: number; lon: numb
 
 const variantName = (key: string) => getVariant(key)?.name ?? key;
 
+const CHOICE_UNITS: Record<string, string> = { playerNum: ' 人', gameNum: ' 局', wangNum: ' 个王' };
+/** 四川斗十四 v2 固定的玩法，后台模板只读显示（和牌桌「场次规则」一致）。 */
+const XINJIN_FIXED_RULES = '红点 20 起胡（3 人、2 人要 25）、跟斗翻、不封顶、点炮包赔、自己翻的牌自己也能吃、能报叫；' +
+  '天胡、地胡、报叫、金二十、暗四对、全红、全黑、红五十、黑五十、大吊车各 3 番，龙对每个再加 3 番；鬼每张 1 番，碰、偷每组 1 番，杠、巴每组 2 番；公开桌房费 AA。';
+
 export class LobbyService {
   private locations = new Map<string, { lat: number; lon: number; at: number }>();
   private timer: ReturnType<typeof setTimeout> | undefined;
@@ -61,8 +66,14 @@ export class LobbyService {
   private variants() {
     return catalogue.filter(variant => supportsNewRoom(variant.key) && isVisibleVariant(variant.key) && this.rooms.engines.has(variant.key)).map(variant => {
       const spec = getRoomSpec(variant.key);
+      // 后台只给能改的单选项（人数、局数、王数），用中文显示；房费公开桌一律 AA，v2 固定的玩法只列成一行说明（DEC-20261102-模板中文表单）。
+      const fixed: Record<string, unknown> = variant.key === '4:0' ? XINJIN_V2_OPTIONS : {};
+      const choices = spec.fields.filter(field => field.control === 'choice' && field.key !== 'useCardType' && !(field.key in fixed))
+        .map(field => ({ key: field.key, label: field.label.replace(/[:：]\s*$/, ''), defaultValue: field.defaultValue,
+          values: field.allowedValues.map(value => ({ value, label: `${value}${CHOICE_UNITS[field.key] ?? ''}` })) }));
       return { key: variant.key, name: variant.name, defaults: getDefaultOptions(variant.key),
-        needsBaseBeans: spec.unresolvedFields.includes('basicTimes'), needsPlayerNum: spec.unresolvedFields.includes('playerNum') };
+        needsBaseBeans: spec.unresolvedFields.includes('basicTimes'), needsPlayerNum: spec.unresolvedFields.includes('playerNum'),
+        choices, fixedRules: variant.key === '4:0' ? XINJIN_FIXED_RULES : '' };
     });
   }
 

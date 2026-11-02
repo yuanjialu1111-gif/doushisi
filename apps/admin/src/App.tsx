@@ -303,17 +303,7 @@ function AvatarReview({ revision, onChange, notify }: { revision: number; onChan
 
 // 大厅桌模板（R2）：只给豆子管理员。不提供删除，停用用 enabled=false。
 // options 与玩家开房同形；需要手填底分的玩法写 options.baseBeans（字符串），需要手选人数的写 options.playerNum。
-type OptionsResult = { options: Record<string, unknown>; error: '' } | { options: null; error: string };
-
-function parseOptions(text: string): OptionsResult {
-  try {
-    const value: unknown = JSON.parse(text);
-    if (!value || typeof value !== 'object' || Array.isArray(value)) return { options: null, error: 'options 必须是 JSON 对象（用 { } 包起来）。' };
-    return { options: value as Record<string, unknown>, error: '' };
-  } catch (err) { return { options: null, error: `options 不是合法的 JSON：${messageOf(err)}` }; }
-}
-
-const optionsText = (options: Record<string, unknown> = {}) => JSON.stringify(options, null, 2);
+// 后台不显示 JSON：能改的单选项（人数、局数、王数）按服务端给的中文选项点选，固定玩法只读一行（DEC-20261102-模板中文表单）。
 const isIntegerIn = (value: string, min: number, max: number) => /^-?\d+$/.test(value) && Number(value) >= min && Number(value) <= max;
 
 function NumberField({ label, value, onChange, min, max, unit, disabled }: {
@@ -327,7 +317,7 @@ function TemplateEditor({ template, variants, nextSortOrder, onClose, onSaved }:
   template: LobbyTemplate | null; variants: LobbyVariant[]; nextSortOrder: number; onClose: () => void; onSaved: () => void;
 }) {
   const [variantKey, setVariantKey] = useState(template?.variantKey ?? variants[0]?.key ?? '');
-  const [text, setText] = useState(() => optionsText(template?.options ?? variants.find(v => v.key === variantKey)?.defaults));
+  const [options, setOptions] = useState<Record<string, unknown>>(() => ({ ...(template?.options ?? variants.find(v => v.key === variantKey)?.defaults) }));
   const [standingEmpty, setStandingEmpty] = useState(String(template?.standingEmpty ?? 3));
   const [thresholdMultiplier, setThresholdMultiplier] = useState(String(template?.thresholdMultiplier ?? 10));
   const [idleClearMinutes, setIdleClearMinutes] = useState(String(template?.idleClearMinutes ?? 10));
@@ -337,39 +327,41 @@ function TemplateEditor({ template, variants, nextSortOrder, onClose, onSaved }:
   const [error, setError] = useState('');
   const mutate = (action: () => void) => { action(); setError(''); };
   const variant = variants.find(v => v.key === variantKey);
-  const parsed = parseOptions(text);
-  const options = parsed.options;
-  // 底分、人数两个输入框直接改 JSON 里的字段，管理员看到的就是要提交的 options。
-  const setOption = (key: string, value: unknown) => { if (options) mutate(() => setText(optionsText({ ...options, [key]: value }))); };
-  const baseBeans = typeof options?.baseBeans === 'string' ? options.baseBeans : options?.baseBeans === undefined ? '' : String(options.baseBeans);
+  const setOption = (key: string, value: unknown) => mutate(() => setOptions(current => ({ ...current, [key]: value })));
+  const baseBeans = typeof options.baseBeans === 'string' ? options.baseBeans : options.baseBeans === undefined ? '' : String(options.baseBeans);
+  const choiceOf = (choice: LobbyVariant['choices'][number]) => choice.values.some(item => item.value === options[choice.key]) ? options[choice.key] : choice.defaultValue;
   const problem = !variantKey ? '请选择玩法。'
-    : !options ? ''
     : variant?.needsBaseBeans && !(typeof options.baseBeans === 'string' && /^(?:0|[1-9]\d{0,79})(?:\.\d{1,12})?$/.test(options.baseBeans) && /[1-9]/.test(options.baseBeans)) ? '底分要填大于 0 的数，最多 12 位小数。'
-    : variant && !variant.needsBaseBeans && options.baseBeans !== undefined ? '这个玩法用原版底分，请从 options 里去掉 baseBeans。'
+    : variant && !variant.needsBaseBeans && options.baseBeans !== undefined ? '这个玩法用原版底分，不用填底分。'
     : variant?.needsPlayerNum && ![2, 3, 4].includes(options.playerNum as number) ? '请选择人数。'
     : !isIntegerIn(standingEmpty, 0, 20) ? '常驻空桌要填 0–20 的整数。'
     : !isIntegerIn(thresholdMultiplier, 1, 1000) ? '门槛倍数要填 1–1000 的整数。'
     : !isIntegerIn(idleClearMinutes, 1, 120) ? '清座时限要填 1–120 的整数。'
     : !isIntegerIn(sortOrder, -999999, 999999) ? '排序要填整数。' : '';
   async function submit(event: FormEvent) {
-    event.preventDefault(); if (!options || problem) return;
+    event.preventDefault(); if (problem) return;
     setBusy(true); setError('');
     try {
-      const body = { variantKey, options, standingEmpty: Number(standingEmpty), thresholdMultiplier: Number(thresholdMultiplier), idleClearMinutes: Number(idleClearMinutes), enabled, sortOrder: Number(sortOrder) };
+      const chosen = Object.fromEntries((variant?.choices ?? []).map(choice => [choice.key, choiceOf(choice)]));
+      const body = { variantKey, options: { ...options, ...chosen }, standingEmpty: Number(standingEmpty), thresholdMultiplier: Number(thresholdMultiplier), idleClearMinutes: Number(idleClearMinutes), enabled, sortOrder: Number(sortOrder) };
       await api(template ? `/lobby-templates/${encodeURIComponent(template.id)}` : '/lobby-templates', { method: template ? 'PUT' : 'POST', body: JSON.stringify(body) });
       onSaved();
     } catch (err) { setError(isMissingEndpoint(err) ? MISSING_ENDPOINT : messageOf(err)); } finally { setBusy(false); }
   }
   return <Modal title={template ? '编辑大厅桌模板' : '新建大厅桌模板'} subtitle={template ? `${template.variantName || template.variantKey} · ${template.id}` : '按模板常驻空桌，玩家点桌入座'} onClose={onClose} busy={busy}>
     <form className="modal-form" onSubmit={submit}>
-      <label>玩法<select aria-label="玩法" value={variantKey} disabled={busy} onChange={e => { const key = e.target.value; mutate(() => { setVariantKey(key); setText(optionsText(variants.find(v => v.key === key)?.defaults)); }); }}>
+      <label>玩法<select aria-label="玩法" value={variantKey} disabled={busy} onChange={e => { const key = e.target.value; mutate(() => { setVariantKey(key); setOptions({ ...variants.find(v => v.key === key)?.defaults }); }); }}>
         {!variantKey && <option value="">请选择玩法</option>}
         {variants.map(item => <option key={item.key} value={item.key}>{item.name}</option>)}
         {template && !variants.some(item => item.key === template.variantKey) && <option value={template.variantKey}>{template.variantName || template.variantKey}</option>}
       </select></label>
-      {variant?.needsBaseBeans && <label>底分<input inputMode="decimal" required value={baseBeans} disabled={busy || !options} placeholder="例如 1" onChange={e => setOption('baseBeans', e.target.value.trim())} /></label>}
-      {variant?.needsPlayerNum && <div className="segmented" role="group" aria-label="人数">{[2, 3, 4].map(count => <button type="button" key={count} aria-pressed={options?.playerNum === count} className={options?.playerNum === count ? 'selected' : ''} disabled={busy || !options} onClick={() => setOption('playerNum', count)}><Users size={17} />{count} 人</button>)}</div>}
-      <label>玩法选项（options JSON）<textarea className="mono" rows={8} spellCheck={false} aria-invalid={!!parsed.error} value={text} disabled={busy} onChange={e => mutate(() => setText(e.target.value))} />{parsed.error && <span className="secondary negative">{parsed.error}</span>}</label>
+      {variant?.needsBaseBeans && <label>底分<input inputMode="decimal" required value={baseBeans} disabled={busy} placeholder="例如 1" onChange={e => setOption('baseBeans', e.target.value.trim())} /></label>}
+      {variant?.needsPlayerNum && <div className="segmented" role="group" aria-label="人数">{[2, 3, 4].map(count => <button type="button" key={count} aria-pressed={options.playerNum === count} className={options.playerNum === count ? 'selected' : ''} disabled={busy} onClick={() => setOption('playerNum', count)}><Users size={17} />{count} 人</button>)}</div>}
+      {variant?.choices.map(choice => <div key={choice.key} className="option-field"><span>{choice.label}</span><div className="segmented" role="group" aria-label={choice.label}>{choice.values.map(item => {
+        const selected = choiceOf(choice) === item.value;
+        return <button type="button" key={String(item.value)} aria-pressed={selected} className={selected ? 'selected' : ''} disabled={busy} onClick={() => setOption(choice.key, item.value)}>{item.label}</button>;
+      })}</div></div>)}
+      {variant?.fixedRules && <div className="option-field"><span>固定玩法</span><p className="secondary">{variant.fixedRules}</p></div>}
       <NumberField label="常驻空桌（0–20）" value={standingEmpty} min={0} max={20} unit="张" disabled={busy} onChange={value => mutate(() => setStandingEmpty(value))} />
       <NumberField label="入座门槛倍数（1–1000）" value={thresholdMultiplier} min={1} max={1000} unit="倍" disabled={busy} onChange={value => mutate(() => setThresholdMultiplier(value))} />
       <NumberField label="清座时限（1–120）" value={idleClearMinutes} min={1} max={120} unit="分钟" disabled={busy} onChange={value => mutate(() => setIdleClearMinutes(value))} />
@@ -377,7 +369,7 @@ function TemplateEditor({ template, variants, nextSortOrder, onClose, onSaved }:
       <label className="switch-row"><span>启用模板</span><input type="checkbox" role="switch" checked={enabled} disabled={busy} onChange={e => mutate(() => setEnabled(e.target.checked))} /><span className="switch-track" aria-hidden="true" /></label>
       {problem && <div className="secondary negative">{problem}</div>}
       {error && <ErrorBanner message={error} />}
-      <div className="modal-actions"><button type="button" className="secondary-button" disabled={busy} onClick={onClose}>取消</button><button className="primary-button" disabled={busy || !options || !!problem}>{busy ? <LoaderCircle size={17} className="spin" /> : <Check size={17} />}保存模板</button></div>
+      <div className="modal-actions"><button type="button" className="secondary-button" disabled={busy} onClick={onClose}>取消</button><button className="primary-button" disabled={busy || !!problem}>{busy ? <LoaderCircle size={17} className="spin" /> : <Check size={17} />}保存模板</button></div>
     </form>
   </Modal>;
 }
