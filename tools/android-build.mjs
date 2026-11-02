@@ -195,6 +195,19 @@ export function checkAbis(names) {
   return problems;
 }
 
+// Highest versionCode among earlier builds' reports in the output folder (null when none): phones refuse a lower one.
+export function highestBuiltVersion(out) {
+  if (!existsSync(out)) return null;
+  let highest = null;
+  for (const name of readdirSync(out)) {
+    if (!name.endsWith('.json')) continue;
+    let code;
+    try { code = JSON.parse(readFileSync(join(out, name), 'utf8'))?.apk?.versionCode; } catch { continue; }
+    if (Number.isInteger(code) && (highest === null || code > highest)) highest = code;
+  }
+  return highest;
+}
+
 // ---------- manifest / apktool.yml ----------
 
 const attribute = (tag, name) => {
@@ -336,6 +349,10 @@ export async function build(options) {
     writeFileSync(decodedManifestPath, applied.xml);
     const check = readVersion(applied.yml, applied.xml);
     if (check.code !== versionCode) warnings.push(`versionCode 没写进 apktool.yml/清单（apktool.yml 格式不认识），仍是 ${check.code}`);
+  }
+  const built = highestBuiltVersion(out);
+  if (versionCode !== undefined && built !== null && versionCode <= built) {
+    fail(`versionCode ${versionCode} 不比打过的第 ${built} 版高，手机上覆盖安装会失败；请加 --version-code ${built + 1}`);
   }
   const finalVersion = readVersion(readFileSync(ymlPath, 'utf8'), readFileSync(decodedManifestPath, 'utf8'));
 

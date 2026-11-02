@@ -3,7 +3,8 @@
 - **决策**：DEC-20261102-安装包去x86。
 - **改了**：`tools/android-build.mjs` 解包后先查 `lib/arm64-v8a`、`lib/armeabi-v7a` 都有 `libcocos2djs.so`，再删 `lib/x86`、`lib/x86_64`；签名后用新的 `checkAbis` 查一遍（缺 arm 引擎或还带 x86 就报错停下）。`android-selftest.mjs` 加 3 条 `checkAbis`。图片、`standalone.js` 都没动。
 - **测试**：`node tools/android-selftest.mjs` 344 项全过。另在临时目录把底包解开、删 x86、不签名回包，实测 97,750,106 字节（93.2MiB），只剩两套 arm 的 4 个库；临时文件已删。
-- **没做**：第 7 版包没打（签名要用户输密码，用户自己打）、没在真机上装。打包时要写 `--version-code 7`：不写的话脚本拿底包第 4 版加 1 出第 5 版，比手机上的第 6 版低装不上（`docs/部署到新服务器.md` 那条打包命令也没写，这次没改，等用户拍板）。
+- **版本号检查**（用户「加上」）：新增 `highestBuiltVersion`，读输出目录里打过的包报告取最高 versionCode，新包不比它高就停下，提示 `--version-code` 该写几；本机输出目录读出来是 6。自检加 2 条，346 项全过。`docs/部署到新服务器.md` 打包命令补上 `--version-code 7 --version-name 4.0` 和说明。
+- **没做**：第 7 版包没打（签名要用户输密码，用户自己打，要带 `--version-code 7`）、没在真机上装。
 
 # 当前任务（2026-11-02 开局亮鬼：用户测试台「天胡＋鬼」截图「鬼呢」→「改，补发偷」）
 
