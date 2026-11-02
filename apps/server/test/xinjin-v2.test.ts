@@ -279,8 +279,12 @@ test('开局庄家收到出牌选项，别家收到倒计时；之后没事件�
   assert.ok(snapshot.startEvents.length > 0);
   const dealer = snapshot.dealerId as string, other = ['a', 'b', 'c', 'd'].find(id => id !== dealer)!;
   const start = (userId: string) => engine.original!.notifications(snapshot, [], userId, 'start').map(packet => packet.command);
-  assert.deepEqual(start(dealer), [MSGEvent.HWNotifyGameStart, MSGEvent.HWNotifySeatOperationChoice, MSGEvent.HWNotifyNextOperation]);
-  assert.deepEqual(start(other), [MSGEvent.HWNotifyGameStart, MSGEvent.HWNotifyNextOperation]);
+  // 开局有鬼的每家补一条「偷」亮鬼，四家都看得到（DEC-20261102-开局亮鬼）。
+  const tou = snapshot.players.filter((player: any) => snapshot.cards.zones.find((zone: any) => zone.id === `bonus:${player.userId}`).cards.length)
+    .map(() => MSGEvent.HWNotifyActionFlow);
+  assert.ok(tou.length > 0);
+  assert.deepEqual(start(dealer), [MSGEvent.HWNotifyGameStart, ...tou, MSGEvent.HWNotifySeatOperationChoice, MSGEvent.HWNotifyNextOperation]);
+  assert.deepEqual(start(other), [MSGEvent.HWNotifyGameStart, ...tou, MSGEvent.HWNotifyNextOperation]);
   // 钟都在庄家：庄家自己也收到（以前不发给自己，自己的钟停在上一家）。
   const clock = (userId: string, phase: 'start' | 'action', state = snapshot) => (engine.original!.notifications(state, [], userId, phase)
     .find(packet => packet.command === MSGEvent.HWNotifyNextOperation)?.body as any)?.seatIndex;

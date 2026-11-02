@@ -12,6 +12,23 @@ const COL = {
   gangAn: 1, gangMing: 2, gangBa: 3, gangKou: 4, gangWan: 5, tou: 6, peng: 7, chi: 8,
 } as const;
 
+/** 原版客户端理手牌的顺序（dss cmatch_card）：王在前，凑得成 14 或成对的按点排，剩下的单张放最后。 */
+function clientOrder(codes: number[]): number[] {
+  const value = (code: number) => code === 1001 ? 14 : code === 1002 ? 15 : code === 1003 ? 16 : code % 100;
+  const byValue = new Map<number, number[]>();
+  for (const code of codes) byValue.set(value(code), [...byValue.get(value(code)) ?? [], code]);
+  const paired: number[] = [], single: number[] = [], kings: number[] = [];
+  for (let rank = 0; rank < 14; rank++) {
+    const group = byValue.get(rank); if (!group) continue;
+    if (group.length > 1 || byValue.has(14 - rank)) {
+      paired.push(...group);
+      if (byValue.has(14 - rank) && rank !== 7) { paired.push(...byValue.get(14 - rank)!); byValue.delete(14 - rank); }
+    } else single.push(...group);
+  }
+  for (let rank = 14; rank < 17; rank++) kings.push(...byValue.get(rank) ?? []);
+  return [...kings, ...paired, ...single];
+}
+
 interface RoundPlayer { userId: string; seat: number; melds: { kind: string; cardIds: string[] }[]; piao?: number | null; declaredWaits?: number[] | null }
 interface RoundState {
   version: string; number: number; serial: number; phase: string; activeId: string; dealerId: string;
@@ -256,9 +273,22 @@ export function createRoundOriginalAdapter(options: RoundAdapterOptions): Engine
       const s = state(snapshot);
       if (phase === 'start') {
         // 开局庄家先出牌：只发开局不发选项，庄家看不到出牌提示和倒计时，15 秒后被托管打掉一张（10-31 本机试玩）。
-        // 开局摸鬼补牌已经体现在开局手牌和鬼牌区里，这里不再重播。
-        const packets: EngineOriginalPacket[] = [{ command: MSGEvent.HWNotifyGameStart,
-          body: (enterBody(snapshot, userId).body as { gameStart: Record<string, unknown> }).gameStart }];
+        // 开局摸鬼补牌已经体现在开局手牌和鬼牌区里，这里不再重播补牌。
+        const gameStart = (enterBody(snapshot, userId).body as { gameStart: { seats: { tilesOnHand: number[]; protectCards: number[] }[] } }).gameStart;
+        // 原版发牌动画收尾时，手牌顺序和它理好的顺序不一样才重画（重画才把鬼摆在左边）；
+        // 补完牌正好是理好的顺序就不重画，自己看不到鬼（11-02 测试台天胡＋鬼），这时倒过来发。
+        for (const seat of gameStart.seats) if (seat.protectCards.length && seat.tilesOnHand.length > 1 &&
+          isDeepStrictEqual(clientOrder(seat.tilesOnHand), seat.tilesOnHand)) seat.tilesOnHand = [...seat.tilesOnHand].reverse();
+        const packets: EngineOriginalPacket[] = [{ command: MSGEvent.HWNotifyGameStart, body: gameStart }];
+        // 起手亮王：原版开局只画手牌，鬼牌区要收到「偷」才画，别家才看得到（DEC-20261102-开局亮鬼）。
+        for (const player of s.players) {
+          const ghosts = ids(s, `bonus:${player.userId}`).map(id => codeFor(s, id));
+          if (ghosts.length) packets.push({ command: MSGEvent.HWNotifyActionFlow, body: { action: {
+            seatIndex: player.seat, actType: ACT.tou, destCard: ghosts[0], destCardIsOwn: userId === player.userId,
+            protectCard: ghosts, useCard: [], colInfo: [], leftCardNum: ids(s, 'deck').length,
+            // 原版收到动作就拿 redPoint、tilesOnHandNum 改底部「红」和手牌数，不带的话红变 0、还冒出「准备」（11-02 测试台）。
+            tilesOnHandNum: ids(s, `hand:${player.userId}`).length, ...pointsFor(s, player.userId, userId) } } });
+        }
         packets.push(...turnPackets(s, userId));
         return packets;
       }

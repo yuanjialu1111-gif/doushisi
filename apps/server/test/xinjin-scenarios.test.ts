@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { MSGEvent } from '@dss/protocol';
 import { freezeXinjinOptions, getDefaultOptions, XINJIN_V2_OPTIONS } from '@dss/rules';
 import type { RoundInput } from '../src/engines.js';
 import { createXinjinEngine } from '../src/game/xinjin-engine.js';
@@ -252,6 +253,28 @@ test('操作：四家托管打到流局', () => {
   assert.equal(state.outcome?.reason, 'draw');
   assert.equal(state.outcome?.nextRoundContext.nextDealerId, 'a');
 });
+test('开局亮鬼：开局包后给起手有鬼的人补一条「偷」，四家都看得到；自己的手牌不按原版理好的顺序发，发牌动画收尾会重画把鬼摆出来（DEC-20261102-开局亮鬼）', () => {
+  const state = start('tianGui', true);
+  for (const id of users) {
+    const packets = engine.original!.notifications(state, [], id, 'start');
+    assert.equal(packets[0]!.command, MSGEvent.HWNotifyGameStart);
+    const tou = packets.filter(packet => packet.command === MSGEvent.HWNotifyActionFlow).map(packet => (packet.body as any).action);
+    assert.deepEqual(tou.map(action => [action.seatIndex, action.actType, action.protectCard, action.useCard]), [[1, 7, [1001, 1002, 1003], []]], id);
+    assert.equal(tou[0].destCardIsOwn, id === 'a');
+    // 带上手牌数和红点：原版拿它改底部「红」，不带就变 0、还冒出「准备」。
+    assert.equal(tou[0].tilesOnHandNum, 8);
+    if (id === 'a') assert.equal(tou[0].redPoint, 21);
+    const seats = (packets[0]!.body as any).seats;
+    assert.deepEqual(seats[0].protectCards, [1001, 1002, 1003]);
+    if (id === 'a') {
+      // 补完正好是原版理好的顺序（A K 2 Q 3 J 4 10），倒过来发；牌还是那 8 张。
+      assert.deepEqual(seats[0].tilesOnHand, [110, 304, 311, 103, 412, 102, 213, 101]);
+    }
+  }
+  // 起手没鬼的场景不补「偷」。
+  assert.ok(!engine.original!.notifications(start('tianHu', true), [], 'b', 'start').some(packet => packet.command === MSGEvent.HWNotifyActionFlow));
+});
+
 test('场景的牌都排得出来，四家手里一开始都没有鬼（鬼、碰、杠和天胡＋鬼那两局除外）', () => {
   for (const scenario of XINJIN_SCENARIOS) {
     const state = start(scenario.key);
