@@ -1,11 +1,13 @@
 import fs from 'node:fs/promises';
+import { realpathSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawn } from 'node:child_process';
 import { fingerprintSources, fingerprintBinaries } from './build-fingerprint.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const manager = process.env.npm_execpath;
+// A global pnpm install reports its bin symlink (e.g. runtime/bin/pnpm); follow it to the real pnpm.mjs.
+const manager = (() => { const execpath = process.env.npm_execpath; try { return execpath && realpathSync(execpath); } catch { return execpath; } })();
 if (!manager || !/\.(?:c?js|mjs)$/.test(manager)) throw new Error('Run this build using pnpm build.');
 const before = await fingerprintSources(root);
 const status = await new Promise((resolve, reject) => {

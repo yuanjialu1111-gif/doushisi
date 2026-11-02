@@ -3,7 +3,7 @@
 - **连接**：用户自己生成钥匙 `~/.ssh/doushisi_45_ed25519` 并 `ssh-copy-id` 装到 root（root 密码用户自己输，没改，没记任何地方）。连法：`ssh -i /Users/mac/.ssh/doushisi_45_ed25519 root@45.8.186.63`。
 - **机器**：Debian 12，1 核，内存 977MB + 交换 3GB，硬盘 10GB 用一半。照 `docs/部署到新服务器.md` 已部署好（nginx → 网关 3003 → 游戏服务 3000，`doushisi-game`、`doushisi-public`，代码在 `/opt/doushisi/app`，从 GitHub 拉的），证书 11-09 到期、有自动续期。下载目录的安装包是 159,968,723 字节（去 x86 之前的）。
 - **更新**：69d77eb → 332ffb8。没推 GitHub：本机 `git bundle create … 69d77eb..main` 传上去，`git pull --ff-only` 那个包；构建后停服、备份 `/var/lib/doushisi/backups/before-update-20261102T192637Z.tgz`、启动，第 8 步自检 6 项全 ok，开局亮鬼代码在跑，开着大厅的那位自己连回来了。服务器上 `/root/update-332ffb8.bundle` 已删。
-- **坑**：服务器上直接 `pnpm build` 报「Run this build using pnpm build.」：`tools/build.mjs` 要 `npm_execpath` 以 .js/.cjs/.mjs 结尾，服务器上 pnpm 是软链接 `runtime/bin/pnpm`，pnpm 11 给的就是这个路径。这次用 `node /opt/doushisi/runtime/lib/node_modules/pnpm/bin/pnpm.mjs build` 绕过；`tools/build.mjs` 和教程都没改，等用户拍板。
+- **坑**：服务器上直接 `pnpm build` 报「Run this build using pnpm build.」：`tools/build.mjs` 要 `npm_execpath` 以 .js/.cjs/.mjs 结尾，服务器上 pnpm 是软链接 `runtime/bin/pnpm`，pnpm 11 给的就是这个路径。这次用 `node /opt/doushisi/runtime/lib/node_modules/pnpm/bin/pnpm.mjs build` 绕过。用户回「改」：`tools/build.mjs` 先顺着软链接找到真实路径再查后缀，教程照旧写 `pnpm build`；本机 `pnpm build` 过，乱给路径或不给仍拦下；更新到服务器后直接 `pnpm build` 过（构建产物和上次一样，没重启服务）。
 - **没做**：45 这台的安装包没换（第 7 版还没打；要给这台用得 `--api-base https://45.8.186.63`）。
 
 # 当前任务（2026-11-02 安装包压到 100MB 以内：用户「把apk包压到 100MB 以内」→「只去 x86，图不动」）
