@@ -93,7 +93,7 @@ test('番型：金二十、暗四对、龙对、全红、全黑、红五十、�
   won(longDuiWon, 'c', ['anDui', 'longDui'], 5);
   // 胡牌特效按番型编号播：暗四对 14（对子胡）、龙对 110（热更新脚本借大胡动画换字），DEC-20261101-胡牌特效补齐。
   assert.deepEqual(xinjinSettlementBrand(longDuiWon, 'c').cardType, [14, 110]);
-  assert.equal(flipWin('quanHong', 207, ['quanHong'], 3).redPoints, 12);
+  assert.equal(flipWin('quanHong', 207, ['quanHong'], 3).redPoints, 22);
   flipWin('quanHei', 107, ['quanHei'], 3);
   assert.equal(flipWin('hong50', 212, ['hong50'], 3).redPoints, 52);
   assert.equal(flipWin('hei50', 112, ['hei50'], 3).redPoints, 4);

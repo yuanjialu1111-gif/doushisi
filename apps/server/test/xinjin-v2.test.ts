@@ -136,20 +136,28 @@ test('v2 番表：报叫、金二十、暗四对、龙对、红黑五十、金�
   assert.ok(!withChi.items.some(item => item.pattern === 'jinGouDiao'));
 });
 
-test('v2 手里的三张没偷出来不算组，全红全黑天走不看门槛', () => {
+test('v2 手里的三张没偷出来不算组；只有全黑、黑五十、暗四对不看门槛', () => {
   // 三张 10 加一张 4 在手里不能拆成两两凑 14。
   const concealedTriple = v2Hand([110, 210, 310, 104, 101, 413, 206, 408]);
   assert.equal(evaluateXinjinWin(concealedTriple, flipAt(concealedTriple), v2Rules(4)).status, 'not-winning');
+  // 全红也要够门槛：红 23，4 人桌（20）能胡，3 人桌（25）不能。
   const allRed = v2Hand([101, 113, 102, 112, 103, 111, 104, 110]);
-  const red = evaluateXinjinWin(allRed, flipAt(allRed), v2Rules(3));
+  const red = evaluateXinjinWin(allRed, flipAt(allRed), v2Rules(4));
   assert.ok(red.status === 'winning' && red.items.some(item => item.pattern === 'quanHong') && red.scoreUnits === '8');
+  assert.equal(evaluateXinjinWin(allRed, flipAt(allRed), v2Rules(3)).status, 'not-winning');
   const allBlack = v2Hand([201, 213, 202, 212, 203, 211, 204, 210]);
   const black = evaluateXinjinWin(allBlack, flipAt(allBlack), v2Rules(4));
   assert.ok(black.status === 'winning' && black.items.some(item => item.pattern === 'quanHei') && black.redPoints === 0);
+  // 天胡也要够门槛：红 3 不能胡，红 28 能胡。
+  const tianAt = { winnerSeat: 1, dealerSeat: 1, source: 'original-hand' as const, sourceSeat: null, incomingCardId: null, discardCount: 0 };
   const mixed = v2Hand([201, 213, 202, 212, 103, 211, 204, 210]);
-  const tian = evaluateXinjinWin(mixed, { winnerSeat: 1, dealerSeat: 1, source: 'original-hand', sourceSeat: null, incomingCardId: null, discardCount: 0 }, v2Rules(4));
-  assert.ok(tian.status === 'winning' && tian.items.some(item => item.pattern === 'tianHu'));
-  assert.equal(evaluateXinjinWin(mixed, flipAt(mixed), v2Rules(4)).status, 'not-winning');
+  assert.equal(evaluateXinjinWin(mixed, tianAt, v2Rules(4)).status, 'not-winning');
+  const tian = evaluateXinjinWin(v2Hand([110, 304, 109, 305, 201, 213, 202, 412]), tianAt, v2Rules(4));
+  assert.ok(tian.status === 'winning' && tian.items.some(item => item.pattern === 'tianHu') && tian.redPoints === 28);
+  // 暗四对红 5 也能胡，只算暗四对这种牌型（同一手拆成四组凑 14 的那种不让胡）。
+  const pairs4 = v2Hand([102, 202, 103, 203, 211, 411, 212, 412]);
+  const anDui = evaluateXinjinWin(pairs4, flipAt(pairs4), v2Rules(4));
+  assert.ok(anDui.status === 'winning' && anDui.structure === 'four-pairs' && anDui.redPoints === 5);
 });
 
 test('v2 一张牌只让下家胡，点炮放牌人包三家，托管先打不成对的黑牌', () => {

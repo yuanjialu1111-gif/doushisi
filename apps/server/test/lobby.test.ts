@@ -434,7 +434,7 @@ test('本机测试台：指定牌局只在打开时有；按场景发牌、请�
   assert.equal(snapshot.dealerId, players[0]!.actor.id);
   const faces = (zone: string) => snapshot.cards.zones.find((item: any) => item.id === zone).cards
     .map((id: string) => snapshot.cards.pack.find((card: any) => card.id === id).code).sort();
-  assert.deepEqual(faces(`hand:${players[0]!.actor.id}`), [101, 103, 110, 202, 211, 213, 404, 412]);
+  assert.deepEqual(faces(`hand:${players[0]!.actor.id}`), [101, 102, 103, 110, 213, 304, 311, 412]);
   assert.equal(ctx.rooms.testDeals.size, 0);
   assert.equal((await deal(players[0]!.headers, 'tianHu')).json().error.code, 'INVALID_ROOM_STATE');
 });

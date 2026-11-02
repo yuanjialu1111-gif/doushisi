@@ -10,10 +10,10 @@ import type { PhysicalCard } from './cards.js';
 export interface XinjinScenario { key: string; group: '番型' | '操作'; title: string; tip: string; hands: number[][]; draws: number[] }
 
 export const XINJIN_SCENARIOS: readonly XinjinScenario[] = [
-  { key: 'tianHu', group: '番型', title: '天胡', tip: '1号起手就有「胡」，点胡：天胡 3 番。',
-    hands: [[101, 213, 202, 412, 103, 211, 404, 110]], draws: [] },
-  { key: 'diHu', group: '番型', title: '地胡', tip: '1号打红K，2号点胡：地胡 3 番。',
-    hands: [[113], [105, 209, 106, 408, 203, 311, 401]], draws: [] },
+  { key: 'tianHu', group: '番型', title: '天胡', tip: '1号起手就有「胡」，点胡：天胡 3 番（红点 21，天胡也要够 20）。',
+    hands: [[101, 213, 102, 412, 103, 311, 304, 110]], draws: [] },
+  { key: 'diHu', group: '番型', title: '地胡', tip: '1号打红K，2号点胡：地胡 3 番（红点 22，地胡也要够 20）。',
+    hands: [[113], [105, 309, 106, 408, 203, 311, 401]], draws: [] },
   { key: 'baoJiao', group: '番型', title: '报叫', tip: '1号点「报」再打黑Q；2号翻出红8，1号点胡：报叫 3 番。',
     hands: [[110, 304, 109, 305, 201, 213, 206, 412]], draws: [108] },
   { key: 'qia20', group: '番型', title: '金二十', tip: '1号打黑Q；2号翻出红K，1号点胡：红点正好 20，金二十 3 番（「恰二十」图）。',
@@ -23,8 +23,8 @@ export const XINJIN_SCENARIOS: readonly XinjinScenario[] = [
   // 龙对放 3号：3号胡之前轮不到自己，不会冒「偷、杠」（以前放 1号，开局点了杠，补牌把黑2摸走，后面全乱，11-01 测试台）。
   { key: 'longDui', group: '番型', title: '龙对', tip: '1号打黑K（别人有吃、碰都点过）；2号翻出黑2，3号点胡：暗四对 3 + 龙对 3，封顶 5 番。',
     hands: [[413], [], [105, 205, 305, 405, 110, 310, 202]], draws: [402] },
-  { key: 'quanHong', group: '番型', title: '全红', tip: '1号打黑7；2号翻出红Q，1号点胡：全红 3 番（红点 12 不到 20 也能胡）。',
-    hands: [[101, 113, 102, 112, 103, 111, 302, 207]], draws: [312] },
+  { key: 'quanHong', group: '番型', title: '全红', tip: '1号打黑7；2号翻出红Q，1号点胡：全红 3 番（红点 22，全红也要够 20）。',
+    hands: [[101, 113, 102, 112, 104, 310, 302, 207]], draws: [312] },
   { key: 'quanHei', group: '番型', title: '全黑', tip: '1号打红7；2号翻出黑Q，1号点胡：全黑 3 番。',
     hands: [[201, 213, 202, 212, 203, 211, 402, 107]], draws: [412] },
   { key: 'hong50', group: '番型', title: '红五十', tip: '1号打黑Q；2号翻出红7，1号点胡：红五十 3 番（显示「红52」）。',

@@ -121,7 +121,7 @@ export function evaluateXinjinWin(hand: XinjinHand, context: XinjinWinContext, r
 }
 
 /**
- * v2：门槛 4 人红 20、3 人和 2 人红 25；全红、全黑、红五十、黑五十、天走、接地不看门槛；跟头翻 5 番封顶。
+ * v2：门槛 4 人红 20、3 人和 2 人红 25；只有全黑、黑五十、暗四对不看门槛（全红、天走、接地也要够，DEC-20261102-胡牌门槛）；跟头翻 5 番封顶。
  * 牌型两种：四组（暗手只按两张凑 14 拆）；暗四对（一组没亮，8 张是四个同点对子，四张同点算一个龙）。两种都成立取番大的。
  */
 function evaluateV2(hand: XinjinHand, context: XinjinWinContext, rules: Readonly<Record<string, unknown>>, ordinary: PhysicalCard[],
@@ -137,10 +137,12 @@ function evaluateV2(hand: XinjinHand, context: XinjinWinContext, rules: Readonly
   const quanHei = ordinary.length > 0 && ordinary.every(card => !red(card.code));
   const tianHu = context.source === 'original-hand';
   const diHu = context.source === 'discard' && context.discardCount === 1;
-  if (redPoints < xinjinRedGate(rules.playerNum) && !quanHong && !quanHei && blackPoints < 50 && !tianHu && !diHu) return fail('points');
+  // 红点不够时只剩暗四对这种牌型能胡（全黑、黑五十两种都行）。
+  const belowGate = redPoints < xinjinRedGate(rules.playerNum) && !quanHei && blackPoints < 50;
+  if (belowGate && !fourPairs) return fail('points');
   const alternatives: Extract<XinjinWin, { status: 'winning' }>[] = [];
   for (const structure of ['ordinary', 'four-pairs'] as const) {
-    if (structure === 'ordinary' ? !decompositions.length : !fourPairs) continue;
+    if (structure === 'ordinary' ? !decompositions.length || belowGate : !fourPairs) continue;
     const items: XinjinWinItem[] = [];
     const add = (pattern: keyof typeof XINJIN_V2_FANS, count = 1) => {
       if (count) items.push({ pattern, count, fan: XINJIN_V2_FANS[pattern] * count });
