@@ -388,6 +388,9 @@ test('v2 起手报叫：几家一起弹，选完的不影响别人；闲家红�
   assert.equal(turn.phase, 'discard');
   assert.equal(turn.openingDeclare, null);
   assert.ok(xinjinLegalActions(turn, 'a').some(item => item.type === 'hu'));
+  // 重连进桌：报过叫的 b 带 baoTing，原版据此摆「报」字；没报的不带。
+  const seats = (createXinjinEngine('v2-rejoin', () => 0).original!.enter({ ...turn, deal: {} }, 'c').body as any).gameStart.seats;
+  assert.deepEqual(seats.map((seat: any) => seat.baoTing), [false, true, false, false]);
   // 庄家打红3：b 手里有红J 本来能吃，报了锁牌不弹吃。
   const response = run(turn, 'a', 'discard', 103);
   assert.ok(!xinjinLegalActions(response, 'b').some(item => item.type === 'respond' && item.choiceId !== null));

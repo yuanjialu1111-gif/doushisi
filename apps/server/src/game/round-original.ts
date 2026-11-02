@@ -12,7 +12,7 @@ const COL = {
   gangAn: 1, gangMing: 2, gangBa: 3, gangKou: 4, gangWan: 5, tou: 6, peng: 7, chi: 8,
 } as const;
 
-interface RoundPlayer { userId: string; seat: number; melds: { kind: string; cardIds: string[] }[]; piao?: number | null }
+interface RoundPlayer { userId: string; seat: number; melds: { kind: string; cardIds: string[] }[]; piao?: number | null; declaredWaits?: number[] | null }
 interface RoundState {
   version: string; number: number; serial: number; phase: string; activeId: string; dealerId: string;
   players: RoundPlayer[];
@@ -203,6 +203,8 @@ export function createRoundOriginalAdapter(options: RoundAdapterOptions): Engine
           })),
           protectCards: ids(s, `bonus:${player.userId}`).map(id => codeFor(s, id)),
           ...pointsFor(s, player.userId, userId), auto: false, isPiao: player.piao === 1,
+          // 重连进桌原版按 baoTing 摆「报」字（报叫过的人，起手报叫也算）。
+          baoTing: (player.declaredWaits ?? null) !== null,
         })),
         cardInfo: [],
       } } };

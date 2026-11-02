@@ -23,6 +23,25 @@ interface ReplayCapture { snapshot: unknown; confirmed: ConfirmedScoreBatch[]; i
 const originalPath = (roomId: string, roundId: string) => `/api/records/${roomId}/replay/${roundId}/original`;
 const jsonCopy = <T>(value: T): T => JSON.parse(JSON.stringify(value));
 
+/** 回放结算窗照现场：这局输赢是实际过账的豆子，总分是这桌累计到这局，昵称、uid 换成原版的。 */
+function paidGameOver(packet: EngineOriginalPacket, paid: ReadonlyMap<string, string>, members: Record<string, any>[], prior: ReadonlyMap<string, string>): EngineOriginalPacket {
+  const body = structuredClone(packet.body ?? {}) as Record<string, any>;
+  const decimalFields = (packet.decimalFields ?? []).map(field => ({ ...field, path: [...field.path] }));
+  for (const [index, info] of (body.userScoreInfo ?? []).entries()) {
+    const member = members.find(item => item.user_id === info.uid);
+    if (!member) continue;
+    const amount = paid.get(member.user_id);
+    for (const field of decimalFields) {
+      const key = field.path.join('.');
+      if (amount !== undefined && key === `hwNotifyGameOver.userScoreInfo.${index}.changeScore`) field.value = info.changeScore = amount;
+      if (amount !== undefined && key === `hwNotifyGameOver.userScoreInfo.${index}.score`) field.value = info.score = addMoney(prior.get(member.user_id)!, amount);
+    }
+    info.nick = member.nickname;
+    info.uid = Number(member.wireId);
+  }
+  return { ...packet, body, decimalFields };
+}
+
 export class ReplayService {
   private originalCache = new Map<string, { at: number; bytes: number; manifest: OriginalReplayManifest; frames: OriginalReplayFrame[] }>();
   private originalPending = new Map<string, Promise<{ manifest: OriginalReplayManifest; frames: OriginalReplayFrame[] }>>();
@@ -213,7 +232,7 @@ export class ReplayService {
   private async buildOriginal(actor: Actor, roomId: string, roundId: string) {
     const rawBytes = (await this.db.query("SELECT COALESCE(SUM(pg_column_size(payload)),0)::text AS bytes FROM game_events WHERE room_id=$1 AND payload->>'roundId'=$2", [roomId, roundId])).rows[0]!.bytes;
     requireCondition(Number(rawBytes) <= 64 * 1024 * 1024, 'REPLAY_TOO_LARGE', 'The original replay archive exceeds its verification budget.', 409);
-    const info = (await this.db.query('SELECT r.*,q.number,q.end_reason FROM rounds q JOIN rooms r ON r.id=q.room_id WHERE q.id=$1 AND q.room_id=$2', [roundId, roomId])).rows[0]!;
+    const info = (await this.db.query('SELECT r.*,q.number,q.end_reason,q.results AS round_results FROM rounds q JOIN rooms r ON r.id=q.room_id WHERE q.id=$1 AND q.room_id=$2', [roundId, roomId])).rows[0]!;
     const adapter = this.engines.get(info.variant_key, info.rule_version).original!;
     const members = (await this.db.query('SELECT m.user_id,m.seat,a.nickname,a.avatar_hash AS "avatarHash",a.avatar_status AS "avatarStatus",a.sex FROM room_members m JOIN accounts a ON a.id=m.user_id WHERE m.room_id=$1 ORDER BY m.seat', [roomId])).rows;
     for (const member of members) {
@@ -223,6 +242,8 @@ export class ReplayService {
     const priorScores = new Map<string, string>(members.map(member => [member.user_id, '0']));
     const prior = await this.db.query("SELECT results FROM rounds WHERE room_id=$1 AND number<$2 AND state='settled' ORDER BY number", [roomId, info.number]);
     for (const row of prior.rows) for (const posting of row.results ?? []) priorScores.set(posting.userId, addMoney(priorScores.get(posting.userId)!, posting.amount));
+    // 这局实际过账的豆子（输家最多输光身上的，赢家相应少拿）；结算那一帧照现场显示这个，不显示按牌算的。
+    const paid = new Map<string, string>((info.round_results ?? []).map((posting: { userId: string; amount: string }) => [posting.userId, posting.amount]));
     const gameId = Number(info.variant_key.split(':')[0]);
     const table = { ...info.rules, roomId: Number(info.code), roomType: 100, areaType: gameId === 101 ? 6 : gameId,
       creatorUid: members.find(member => member.user_id === info.owner_id)!.wireId, playerNum: info.player_count, gameNum: info.rounds,
@@ -232,7 +253,9 @@ export class ReplayService {
     const rebuilt = await this.rebuild(actor, roomId, roundId, capture => {
       const game = adapter.enter(structuredClone(capture.snapshot), actor.id);
       const fields = [...(game.decimalFields ?? [])];
-      const earned = new Map(totalConfirmedScores(capture.confirmed, members.map(member => member.user_id)).map(posting => [posting.userId, posting.amount]));
+      const settled = (capture.event?.payload.originalNotifications?.[actor.id] ?? []).some((packet: EngineOriginalPacket) => packet.command === MSGEvent.HWNotifyGameOver);
+      const earned = settled && paid.size ? paid
+        : new Map(totalConfirmedScores(capture.confirmed, members.map(member => member.user_id)).map(posting => [posting.userId, posting.amount]));
       const users = members.map((member, index) => {
         fields.push({ path: ['hwResponseEnterTableFinish', 'userInfo', index, 'score'], value: addMoney(priorScores.get(member.user_id)!, earned.get(member.user_id)!) });
         fields.push({ path: ['hwResponseEnterTableFinish', 'userInfo', index, 'changeScore'], value: earned.get(member.user_id)! });
@@ -256,7 +279,7 @@ export class ReplayService {
         'INVALID_ORIGINAL_PROJECTION', 'Replay actions may contain only original notifications.', 409);
       const frame: OriginalReplayFrame = { index: frames.length, sequence: capture.sequence, stateVersion: capture.stateVersion,
         at: new Date(capture.at as string).toISOString(), autoPlay: capture.interactionState?.autoPlayUserIds.includes(actor.id) ?? false,
-        snapshot, packets: packets.map(packet => this.originalPacket(packet)) };
+        snapshot, packets: packets.map(packet => this.originalPacket(packet.command === MSGEvent.HWNotifyGameOver ? paidGameOver(packet, paid, members, priorScores) : packet)) };
       const bytes = Buffer.byteLength(JSON.stringify(frame)); totalBytes += bytes;
       requireCondition(bytes <= 262144 && totalBytes <= 24 * 1024 * 1024 && frames.length < 10001, 'REPLAY_TOO_LARGE', 'The projected replay exceeds its frame or byte limit.', 409);
       frames.push(frame);

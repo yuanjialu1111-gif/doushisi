@@ -536,9 +536,14 @@ export class RoomService extends EventEmitter {
     const paid = normalizeScores(capLosses(normalizeScores(postings, ids, 'INVALID_SETTLEMENT'), before), ids, 'INVALID_SETTLEMENT');
     let lowUserIds: string[] = [];
     let threshold: Decimal | null = null;
+    const after = (posting: Posting) => new Decimal(unitsMoney(before.get(posting.userId)! + beanUnits(posting.amount)));
     if (endReason === 'completed' && room.visibility === 'public') {
       threshold = await this.thresholdFor(tx, room);
-      lowUserIds = paid.filter(posting => new Decimal(unitsMoney(before.get(posting.userId)! + beanUnits(posting.amount))).lessThan(threshold!)).map(posting => posting.userId);
+      lowUserIds = paid.filter(posting => after(posting).lessThan(threshold!)).map(posting => posting.userId);
+    } else if (endReason === 'completed' && room.current_round < room.rounds) {
+      // 私人房不看门槛，有人输光（0 豆）下一局开不了，也直接散（DEC-20261102-私人房输光散房）。
+      threshold = new Decimal(0);
+      lowUserIds = paid.filter(posting => !after(posting).greaterThan(0)).map(posting => posting.userId);
     }
     const closed = endReason === 'dissolved' || room.current_round >= room.rounds || lowUserIds.length > 0;
     return { paid, lowUserIds, threshold, closed };
@@ -567,7 +572,8 @@ export class RoomService extends EventEmitter {
     if (plan.lowUserIds.length) {
       const names = (await tx.query('SELECT m.user_id,a.nickname FROM room_members m JOIN accounts a ON a.id=m.user_id WHERE m.room_id=$1 ORDER BY m.seat', [room.id])).rows
         .filter(row => plan.lowUserIds.includes(row.user_id)).map(row => `「${row.nickname}」`);
-      const message = `${names.join('、')}豆子不到这桌的 ${money(plan.threshold!)} 豆，房间自动解散，大家回大厅重新找桌。`;
+      const message = room.visibility === 'public' ? `${names.join('、')}豆子不到这桌的 ${money(plan.threshold!)} 豆，房间自动解散，大家回大厅重新找桌。`
+        : `${names.join('、')}豆子输光了，下一局开不了，房间自动解散，看完结算回大厅。`;
       await this.event(tx, room.id, SYSTEM_ACCOUNT_ID, `room-low-balance:${roundId}`, { type: 'room_closed_low_balance', userIds: plan.lowUserIds, threshold: money(plan.threshold!), message });
     } else if (closed && endReason === 'completed' && room.lobby_template_id) await this.nextMatch(tx, room);
     return balanceChanges(operation, operationSpec);

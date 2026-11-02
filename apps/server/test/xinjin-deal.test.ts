@@ -76,6 +76,21 @@ test('评分只算目标座位手里那几张：组数、红点、鬼牌', () =>
   assert.equal(xinjinDealEvaluation(faces(withBonus) as never, 4, 1, 1)[2], 2);
 });
 
+test('三张、四张同点算一组，几种拆法取组数最多的；四个同点对子（暗四对）按凑满算（DEC-20261102-发牌评分认三张和暗四对）', () => {
+  const groups = (hand: number[]) => xinjinDealEvaluation(faces(orderedWithHand(hand, 4, 1, 1)) as never, 4, 1, 1)[0];
+  // 三个 5 没有 9 配：偷出来算一组，加 A/K、2/Q，一共 3 组（以前只算 2 组）。
+  assert.equal(groups([105, 205, 305, 101, 113, 102, 112, 107]), 3);
+  // 四个 5：杠出来算一组，加 A/K、2/Q、7/7。
+  assert.equal(groups([105, 205, 305, 405, 101, 113, 102, 112]), 3);
+  assert.equal(groups([105, 205, 305, 405, 101, 113, 107, 207]), 3);
+  // 三个 3 带两个 J：拆成 3/J 两组比偷三张多（2 组对 1 组），取 2 组；剩下 A/K 再加 1 组。
+  assert.equal(groups([103, 203, 303, 111, 211, 101, 113, 108]), 3);
+  // 四个同点对子，一组都凑不上 14：按暗四对算满 4 组。
+  assert.equal(groups([102, 202, 103, 203, 104, 204, 105, 205]), 4);
+  // 四张同点算两对：四个 2 加两对 3。
+  assert.equal(groups([102, 202, 302, 402, 103, 203, 104, 204]), 4);
+});
+
 test('同一副牌不同洗法评分不一样（防止再退化成恒定分数）', () => {
   const physical = pack(4);
   let seed = 20261102;

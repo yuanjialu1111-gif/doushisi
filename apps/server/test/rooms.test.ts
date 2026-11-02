@@ -171,19 +171,17 @@ test('room fees, authoritative settlement and recovery invariants against PGlite
       assert.equal(events.rows[0]!.count, 1);
     });
 
-    await t.test('automatic settlement stops at zero (the winner gets only what was there), manual deductions cannot go below it, and next round waits for top-up', async () => {
+    await t.test('automatic settlement stops at zero (the winner gets only what was there), manual deductions cannot go below it, and the private room closes (DEC-20261102-私人房输光散房)', async () => {
       const { players, room } = await pair(['2', '2']);
       const started = await start(players, room.id);
       await rooms.action(players[0]!, room.id, 'negative-settlement', { type: 'settle', delta: '-3.25' }, 0, started.roundId!);
       assert.equal(await ledger.balance(players[0]!.id), '0');
       assert.equal(await ledger.balance(players[1]!.id), '2');
       await assert.rejects(ledger.adjust(beans, players[0]!.id, '-0.1', 'cannot deepen debt', 'negative-manual-deduct'), code('INSUFFICIENT_BALANCE'));
-      await assert.rejects(start(players, room.id), code('INSUFFICIENT_BALANCE'));
-      await assert.rejects(rooms.ready(players[1]!, room.id, true), code('INSUFFICIENT_BALANCE'));
+      // 输光了下一局开不了，房间直接散；补了豆子也不能接着开。
+      assert.equal((await rooms.view(room.id, players[0]!.id)).state, 'closed');
       await ledger.adjust(beans, players[0]!.id, '0.001', 'positive next round', 'positive-next-balance');
-      const playing = await rooms.ready(players[1]!, room.id, true);
-      assert.equal(playing.currentRound, 2);
-      assert.equal(await ledger.balance(players[0]!.id), '0.001');
+      await assert.rejects(rooms.ready(players[1]!, room.id, true), code('INVALID_ROOM_STATE'));
       assert.equal(await operationCount(room.id, 'room_fee'), 1);
     });
 

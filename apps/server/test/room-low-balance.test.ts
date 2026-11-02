@@ -95,7 +95,7 @@ test('公开桌打完一局有人豆子低于入座门槛：这局只扣到 0，
   assert.equal(replay.statusCode, 200, replay.body);
 });
 
-test('豆子都够门槛就接着打下一局；私人房没有入座门槛不散桌，但一样最多输光', async t => {
+test('豆子都够门槛就接着打下一局；私人房没有入座门槛，还有豆子就接着打，有人输光（0 豆）直接散（DEC-20261102-私人房输光散房）', async t => {
   const ctx = await setup(); t.after(ctx.close);
   await ctx.lobby.createTemplate(ctx.beans, { variantKey: '4:0', options: { baseBeans: '1', playerNum: 2, gameNum: 4 }, standingEmpty: 1, thresholdMultiplier: 10,
     idleClearMinutes: 10, enabled: true, sortOrder: 1 });
@@ -115,8 +115,22 @@ test('豆子都够门槛就接着打下一局；私人房没有入座门槛不�
   await ctx.rooms.join(guest.actor, own.code);
   await ctx.rooms.ready(host.actor, own.id, true);
   started = await ctx.rooms.ready(guest.actor, own.id, true);
-  // 房主付房费，guest 只有 10 豆：输 10 到 0，房主只赢 10；房间照常等下一局。
+  // 房主付房费，guest 只有 10 豆：输 10 到 0，房主只赢 10；输光了下一局开不了，房间直接散。
   await ctx.rooms.action(host.actor, own.id, 'low-own-settle-1', { type: 'settle' }, started.stateVersion!, started.roundId!);
   assert.deepEqual(await settlementOf(ctx, started.roundId!), { [host.actor.id]: '10', [guest.actor.id]: '-10' });
-  assert.equal((await ctx.db.query('SELECT state FROM rooms WHERE id=$1', [own.id])).rows[0]!.state, 'between_rounds');
+  assert.deepEqual({ ...(await ctx.db.query('SELECT state,current_round FROM rooms WHERE id=$1', [own.id])).rows[0] }, { state: 'closed', current_round: 1 });
+  const notice = (await ctx.db.query("SELECT payload FROM game_events WHERE room_id=$1 AND payload->>'type'='room_closed_low_balance'", [own.id])).rows[0]!.payload;
+  assert.deepEqual(notice.userIds, [guest.actor.id]);
+  assert.equal(notice.message, '「_guest」豆子输光了，下一局开不了，房间自动解散，看完结算回大厅。');
+  assert.equal(await ctx.rooms.current(guest.actor.id), null);
+
+  // 私人房输了还剩豆子：照常等下一局。
+  const [host2, guest2] = [await ctx.player('low_host2', '100'), await ctx.player('low_guest2', '31')];
+  const own2 = await ctx.rooms.create(host2.actor, '4:0', { baseBeans: '1', playerNum: 2, gameNum: 4, useCardType: 1 });
+  await ctx.rooms.join(guest2.actor, own2.code);
+  await ctx.rooms.ready(host2.actor, own2.id, true);
+  started = await ctx.rooms.ready(guest2.actor, own2.id, true);
+  await ctx.rooms.action(host2.actor, own2.id, 'low-own2-settle-1', { type: 'settle' }, started.stateVersion!, started.roundId!);
+  assert.equal(await ctx.ledger.balance(guest2.actor.id), '1');
+  assert.equal((await ctx.db.query('SELECT state FROM rooms WHERE id=$1', [own2.id])).rows[0]!.state, 'between_rounds');
 });
