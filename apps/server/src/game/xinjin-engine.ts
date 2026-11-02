@@ -5,6 +5,7 @@ import { requireCondition } from '../errors.js';
 import { selectDeal, type FrozenPolicy } from '../policies.js';
 import { createRoundOriginalAdapter } from './round-original.js';
 import { createXinjinCardState } from './xinjin-pack.js';
+import { xinjinDealEvaluation } from './xinjin-deal.js';
 import { xinjinTestDeck } from './xinjin-scenarios.js';
 import { isXinjinV2 } from './xinjin-win.js';
 import { applyXinjinAction, assertXinjinOptionsSupported, createXinjinRound, viewXinjinRound, xinjinLegalActions, xinjinJiaoTishi, xinjinTurnSeconds, xinjinPoints, xinjinSettlementBrand,
@@ -24,21 +25,29 @@ function dealerId(input: RoundInput): string {
   'ROUND_CONTEXT_REQUIRED', 'A later round cannot choose a dealer without the prior context.', 409);
   return prior.nextDealerId;
 }
-function dealEvaluation(candidate: readonly { code: number }[]) {
-  const ordinary = candidate.filter(card => ![1001, 1002, 1003].includes(card.code));
-  const red = ordinary.filter(card => [1, 3].includes(Math.floor(card.code / 100)));
-  const sevens = ordinary.filter(card => card.code % 100 === 7).length;
-  return [ordinary.length, red.reduce((sum, card) => sum + Math.min(card.code % 100, 10), 0), sevens];
+/** 目标座位：开了策略的人；没人开就是庄家自己。政策里的用户必须坐在这一桌。 */
+function selectedSeat(input: RoundInput, policy: FrozenPolicy, dealer: string): number {
+  const userId = policy.selectedUserId ?? dealer;
+  const player = input.players.find(item => item.userId === userId);
+  requireCondition(player, 'INVALID_DEAL_POLICY', 'The selected deal policy belongs to another room.', 500);
+  return player.seat;
 }
 function createSnapshot(input: RoundInput, random: (max: number) => number): XinjinEngineSnapshot {
   assertXinjinOptionsSupported(input.rules);
   const dealer = dealerId(input);
-  const pack = createXinjinCardState('4:0', input.rules, 'deck', [{ id: 'deck', visibility: 'hidden' }]).pack;
-  const selected = selectDeal(pack, input.policy, dealEvaluation, random);
   // v2 第一局随机定庄，以后上局赢家当庄（流局不换）。本机测试台指定牌局时由它定庄。
   const test = input.testDeal;
   const first = test ? test.dealerUserId
     : input.number === 1 && isXinjinV2(input.rules) ? input.players[random(input.players.length)]!.userId : dealer;
+  // 先定庄再挑牌：评分要按目标座位这一局实际拿到的那几张算，不能拿整副牌算。
+  const dealerPlayer = input.players.find(item => item.userId === first);
+  requireCondition(dealerPlayer, 'INVALID_ROUND_INPUT', 'The dealer must be seated.', 500);
+  const dealerSeat = dealerPlayer.seat;
+  const targetSeat = selectedSeat(input, input.policy, first);
+  const playerNum = input.rules.playerNum as number;
+  const pack = createXinjinCardState('4:0', input.rules, 'deck', [{ id: 'deck', visibility: 'hidden' }]).pack;
+  const selected = selectDeal(pack, input.policy,
+    candidate => xinjinDealEvaluation(candidate, playerNum, dealerSeat, targetSeat), random);
   const round = createXinjinRound(input, test ? xinjinTestDeck(pack, test.hands, test.draws, input.players.length)
     : selected.deck.map(card => card.id), first);
   const deal = { version: 'xinjin-deal-v1' as const, policy: structuredClone(input.policy),

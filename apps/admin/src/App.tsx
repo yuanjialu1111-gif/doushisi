@@ -429,7 +429,8 @@ function PolicyEditor({ policy, onClose, onSaved, onConflict }: { policy: DealPo
       <input className="probability-slider" aria-label="优化触发概率" type="range" min={0} max={100} step={1} value={validProbability ? probability : 0} disabled={busy || conflict} onChange={e => mutate(() => setProbability(e.target.value))} />
       <div className="range-labels"><span>0%</span><span>50%</span><span>100%</span></div>
       <label>修改原因<textarea required rows={3} maxLength={500} value={reason} disabled={busy || conflict} onChange={e => mutate(() => setReason(e.target.value))} /></label>
-      <div className="secondary">版本 {policy.version} · {dateText(policy.updatedAt)}</div>
+      <div className="secondary">版本 {policy.version} · {dateText(policy.updatedAt)} · 保存后从下一局开始生效</div>
+      {enabled && validProbability && Number(probability) === 0 && <div className="secondary">概率 0% 时这一条不会参与发牌优化，只是保持启用状态。</div>}
       {error && <ErrorBanner message={error} />}
       <div className="modal-actions"><button className="secondary-button" type="button" disabled={busy} onClick={onClose}>取消</button><button className="primary-button" disabled={busy || conflict || !validProbability || !reason.trim()}>{busy ? <LoaderCircle className="spin" size={17} /> : <Check size={17} />}保存策略</button></div>
     </form>

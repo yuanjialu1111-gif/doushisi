@@ -1,8 +1,8 @@
 {
   "version": 1,
-  "builtAt": "2026-10-31T18:41:27.212Z",
+  "builtAt": "2026-11-02T11:07:08.055Z",
   "sources": {
-    "sha256": "7b4c74bb888c0b340704df126fe91104483cb59253de4e6fe15009f8b26cda71",
+    "sha256": "c046cf1933089fcf66332c32d42295ff6aba893dc6696eeb86c0a8bf523fd6ae",
     "files": [
       {
         "path": "apps/admin/index.html",
@@ -14,7 +14,7 @@
       },
       {
         "path": "apps/admin/src/App.tsx",
-        "sha256": "aa2811aaae494617412c56352c6f69daac5dccbee82458300e17ee398fac2eb3"
+        "sha256": "6c7a455d5a6fca08c7eb65c25983f2c45823a1145a142414d5e4a362db409e17"
       },
       {
         "path": "apps/admin/src/api.ts",
@@ -98,7 +98,7 @@
       },
       {
         "path": "apps/server/src/app.ts",
-        "sha256": "2adf3e7fbf5ee92787d54816f9556c8364d4acf7969cf3754c7e661919b7bf76"
+        "sha256": "0f9b744181ee0ffb2bb5e20fd81e0c035dfafddcbcd04552cf5db441a4ff158b"
       },
       {
         "path": "apps/server/src/auth.ts",
@@ -126,7 +126,7 @@
       },
       {
         "path": "apps/server/src/engines.ts",
-        "sha256": "d2ef848d96a9101eb416b452741f2d231d08c2193460feedd74eadc225283325"
+        "sha256": "697e8551f3752f393e6b6d484a97b9af75929c1eea0db8e484b3fa260c86c0b2"
       },
       {
         "path": "apps/server/src/errors.ts",
@@ -170,7 +170,7 @@
       },
       {
         "path": "apps/server/src/game/claims.ts",
-        "sha256": "3a08222c0b45239fbbc4a24e46f67d4e245354aac67369db8faee61f1c5df280"
+        "sha256": "a4b96fd85e8b8c6efb689417b5a01f986f9feac407cb15222b84d5319fabd8ca"
       },
       {
         "path": "apps/server/src/game/combinations.ts",
@@ -183,6 +183,10 @@
       {
         "path": "apps/server/src/game/ordinary-melds.ts",
         "sha256": "5360b609ab5c6d0c53a2bf0af75090c3431f56658c84caccc9a4171508f1bdaa"
+      },
+      {
+        "path": "apps/server/src/game/original-choices.ts",
+        "sha256": "29a1e88f73271e39299b7071de5e197019f0afca65797392225674b25feff56a"
       },
       {
         "path": "apps/server/src/game/pujiang-engine.ts",
@@ -210,7 +214,7 @@
       },
       {
         "path": "apps/server/src/game/qionglai-original.ts",
-        "sha256": "e3406b2a9c2a097c1842c0d784a45b70123b02c32616ae33d297dfb0bd64a669"
+        "sha256": "18ba44db8001b235dc51dd36d24b403a14e300ff662f580debbae3ccd2f929c7"
       },
       {
         "path": "apps/server/src/game/qionglai-pack.ts",
@@ -238,7 +242,7 @@
       },
       {
         "path": "apps/server/src/game/round-original.ts",
-        "sha256": "b47840e64bc89cb0ca925321392b5d03abb873c8860aa6d2331e424aac83a887"
+        "sha256": "77b0a27ac3ac94a506ea8b26bf704305161d9a529a1a52cda3702c45dda90b67"
       },
       {
         "path": "apps/server/src/game/score-region-engine.ts",
@@ -257,8 +261,12 @@
         "sha256": "800125de824ab0c1c86902ece1ec522727831d7d6b5dd69c6f4b7fb5d96dcef7"
       },
       {
+        "path": "apps/server/src/game/xinjin-deal.ts",
+        "sha256": "b19651a35c3affd0355abd678acfac1a17aadf8f12d45d34112b28f0d153a56f"
+      },
+      {
         "path": "apps/server/src/game/xinjin-engine.ts",
-        "sha256": "442d3168a8b350c90afab24cc14df9041c20953ba2b8227e22feca816c168dc4"
+        "sha256": "a40b58931a5adf0aef11c7b5e299230352c3d427d685739cfd6ce9fb2f7f4f1d"
       },
       {
         "path": "apps/server/src/game/xinjin-pack.ts",
@@ -266,11 +274,15 @@
       },
       {
         "path": "apps/server/src/game/xinjin-round.ts",
-        "sha256": "e68e1f40cbe2974150d9d94fe1742bc92e3ff9110bdc159fb14ce016c3fd431c"
+        "sha256": "b760cb637089a06cbbec01d2f84e495f63896bf0b39651c48f64fc6a7ba49834"
+      },
+      {
+        "path": "apps/server/src/game/xinjin-scenarios.ts",
+        "sha256": "779d59b40ac9dda794ed47fb9fa4b4ca86695b0f3514cf02718e52d0f6385948"
       },
       {
         "path": "apps/server/src/game/xinjin-win.ts",
-        "sha256": "62bdbde8b1cd6f7fe9cc139ce1e9929077fea77c11dff56eef9a8dbc42c9ea8c"
+        "sha256": "4a25e5edcff7999ac4ff5741b94777be57564bbfb4a4b7f5a6b02c23607c9c89"
       },
       {
         "path": "apps/server/src/game/yaan-engine.ts",
@@ -294,7 +306,7 @@
       },
       {
         "path": "apps/server/src/lobby.ts",
-        "sha256": "def6e981584cba54e6b9949cad685bed1bc944b1972254e4bb106ad737c885ea"
+        "sha256": "f886e4228b1ecea9d3fe67188a9b2d73241d146afcd63b837a5f7eb6e0f19bd0"
       },
       {
         "path": "apps/server/src/local-backups.ts",
@@ -314,7 +326,7 @@
       },
       {
         "path": "apps/server/src/main.ts",
-        "sha256": "9e14da52ccbd266ff172e8ae2b05b0b218dbb690a2461293d7488e148aed5f20"
+        "sha256": "e0272195b841745ee791e571c4ab88c34a8a9eadbf8d9db19b474e34a8f8eb62"
       },
       {
         "path": "apps/server/src/migrate.ts",
@@ -326,7 +338,7 @@
       },
       {
         "path": "apps/server/src/original-wire.ts",
-        "sha256": "5aab94c7ff116da09aed67940b99d76c20e3d6b23b9072bfd7d238cbcb9f3128"
+        "sha256": "375d7f50c0202b0e51aeb9a54a0ebd123895909a21103a39f5e749e0b643c281"
       },
       {
         "path": "apps/server/src/policies.ts",
@@ -358,7 +370,7 @@
       },
       {
         "path": "apps/server/src/rooms.ts",
-        "sha256": "6b127322afa409d722a1881e40c9b9ee0b7ac82373a3fa87505d1f50b0a470ac"
+        "sha256": "b1d6ed1919174d21573856f7675796a47145a02cd65e04d8d7d1651ab56b99e8"
       },
       {
         "path": "apps/server/src/round-context.ts",
@@ -430,11 +442,11 @@
       },
       {
         "path": "packages/rules/src/edition.ts",
-        "sha256": "44cfeeb957bdb447a58145d7f91b253c639546da11084a1bf1bed55edb7352ce"
+        "sha256": "17ac30c36d7bf005002bd4e12cd8404212cd80cb4e9a11c1e29620d00e4fbc37"
       },
       {
         "path": "packages/rules/src/index.ts",
-        "sha256": "7036f50cbc56ee5d283c14f879b7168e6f5039c92bfb1811b53085a47b0e43e6"
+        "sha256": "94dac2bdd1c054f97a9595608a646f4cf3f31eadd2525694e42d7e63996a1727"
       },
       {
         "path": "packages/rules/src/original-catalogue.ts",
@@ -479,23 +491,23 @@
     ]
   },
   "binaries": {
-    "sha256": "2e8c66eabc23f68e08b2d5acde932b7291f2d6d636e72935047a0b1b85437a21",
+    "sha256": "77b34c0a2fad96ceba612484f491b3d9992c3bee402cdbed02e553c4138bceab",
     "files": [
       {
         "path": "apps/admin/dist/assets/index-DHg5FXwW.css",
         "sha256": "2a8086016890b52d2c9e03a9a29e1a1605512f6d7b1a932bbba92941755fbee1"
       },
       {
-        "path": "apps/admin/dist/assets/index-DT1KK-eF.js",
-        "sha256": "59cf22c9d1592fc0b9c6633cc0aa25736862e6109f52c7d5f1023ed895c1299c"
+        "path": "apps/admin/dist/assets/index-V_O-M1oX.js",
+        "sha256": "c6c36debbd7f8e099c1be195b9cd27c6aafa735eb98eb038019bbd2c5d81f91c"
       },
       {
         "path": "apps/admin/dist/index.html",
-        "sha256": "09c0e275c27ddaa8a2de9352dc924e2831ba80c6f038962016047836bf94f4fb"
+        "sha256": "aeb7925b119b3b9115936606a2a7160ec5d8ec9af8139533a423528a8169330d"
       },
       {
         "path": "apps/server/dist/app.js",
-        "sha256": "5d0152c276454de802c4ecdc1bb6192726ec47140f85a2b7583d1c64008ff2d5"
+        "sha256": "13810fb1fa53dee2087b437dbd67f0e93f477dc7b3c5f7b2ee7ab19f90dedbc2"
       },
       {
         "path": "apps/server/dist/auth.js",
@@ -567,7 +579,7 @@
       },
       {
         "path": "apps/server/dist/game/claims.js",
-        "sha256": "f05b4df7ed3cb5ed832d69999621917c0282e32601387247c29a651c17283c5b"
+        "sha256": "c644e15aa0ada62157d4add7e7e1911ac4438c8410d797a0aee1e5b9a4e1cb99"
       },
       {
         "path": "apps/server/dist/game/combinations.js",
@@ -580,6 +592,10 @@
       {
         "path": "apps/server/dist/game/ordinary-melds.js",
         "sha256": "396e17cfcb174ca7a305b2972b3b6b023719d5c48b8a4a9dbb11db740c66ef6a"
+      },
+      {
+        "path": "apps/server/dist/game/original-choices.js",
+        "sha256": "14f2560e8e5d1f5ec9cb36868e036376e84eab0852805fa0699f211845b61996"
       },
       {
         "path": "apps/server/dist/game/pujiang-engine.js",
@@ -607,7 +623,7 @@
       },
       {
         "path": "apps/server/dist/game/qionglai-original.js",
-        "sha256": "29120b30335abc1b1c776b84760b0d7b2ad8369b957b79b4f57982eedf49b790"
+        "sha256": "f60d10dc5e39cd819a2f10060e061d0f3d56c766253f4a5a40e258d37a9cb8b4"
       },
       {
         "path": "apps/server/dist/game/qionglai-pack.js",
@@ -635,7 +651,7 @@
       },
       {
         "path": "apps/server/dist/game/round-original.js",
-        "sha256": "947200615e581ebbfc25e8979e812a72ba2969c19fe451dc9135bfc1d2502810"
+        "sha256": "2c0f5f3fb6899a5dfc8adb3f55227ca99af3ecd331c1db4470a0b9efae81dc8f"
       },
       {
         "path": "apps/server/dist/game/score-region-engine.js",
@@ -654,8 +670,12 @@
         "sha256": "e5528c939c119c53b1943e7ab51419af376fbd41405310d78fba221df499f4f9"
       },
       {
+        "path": "apps/server/dist/game/xinjin-deal.js",
+        "sha256": "74087523dc0a36cabac141a970e019bcc7aa2c4545cb739ab9ccfc3a454d77dd"
+      },
+      {
         "path": "apps/server/dist/game/xinjin-engine.js",
-        "sha256": "4e206c9837d536641839185b710cc251518c448dc8a2a920fa36a66780613e66"
+        "sha256": "088d9229e8263a6cc537d8e7c8abf3c396c6754243cdb8496889b8db2a1e3f58"
       },
       {
         "path": "apps/server/dist/game/xinjin-pack.js",
@@ -663,11 +683,15 @@
       },
       {
         "path": "apps/server/dist/game/xinjin-round.js",
-        "sha256": "fc90386427ca36e7a3ccad6ac9673643cc112575262d0fd6c44afcc6055c7c72"
+        "sha256": "3e19dbeb85595007b3c697881778de0db4898a4c072168f3d2ee531e1755e077"
+      },
+      {
+        "path": "apps/server/dist/game/xinjin-scenarios.js",
+        "sha256": "070718929b383130414e0923ab7c00c4773afed9d647a03ccf514870cae27aa6"
       },
       {
         "path": "apps/server/dist/game/xinjin-win.js",
-        "sha256": "effd48ca014dc67d32eab605ef580b260f6572c7032b9fbf0f25fa3a7cebd1d4"
+        "sha256": "c2886f76fa00a89d9b575590968794837635bc32f49081e50805b6cb902d12af"
       },
       {
         "path": "apps/server/dist/game/yaan-engine.js",
@@ -691,7 +715,7 @@
       },
       {
         "path": "apps/server/dist/lobby.js",
-        "sha256": "642cfba11412e278b286f7d4b0b174cd1fc2ebf4c7d6d26e537010ec677202fe"
+        "sha256": "a53cb5e76d747bc9182482258ec2035a9b6f495d3dbdfac7008564562df0bb9f"
       },
       {
         "path": "apps/server/dist/local-backups.js",
@@ -711,7 +735,7 @@
       },
       {
         "path": "apps/server/dist/main.js",
-        "sha256": "d76515c38fe3d4851bd8ae4d6bd584f5a23915833d1110dab598033211dce9c1"
+        "sha256": "b917ab424ed9ff35671511d6a8d5a4065ca32a1c61001d883b254ee6f8732c6b"
       },
       {
         "path": "apps/server/dist/migrate.js",
@@ -723,7 +747,7 @@
       },
       {
         "path": "apps/server/dist/original-wire.js",
-        "sha256": "5ba02bef94b7bbbb55dcd9f4d535dd585be74f07d9d6e5debbcd3631cbc31c37"
+        "sha256": "6a47a08efa7591b5d61a87dd4bc5f32a318d4ced4eb65f917e1900c1ee76bcac"
       },
       {
         "path": "apps/server/dist/policies.js",
@@ -755,7 +779,7 @@
       },
       {
         "path": "apps/server/dist/rooms.js",
-        "sha256": "602c95b60ef36196b3994e1d22b83fa08297b9c7fae4201fd4b45a263d313621"
+        "sha256": "b9edd89971c172d39da113ecec45823fb3463738635f92c2318d9d98a7ac0367"
       },
       {
         "path": "apps/server/dist/round-context.js",
@@ -827,11 +851,11 @@
       },
       {
         "path": "packages/rules/dist/edition.d.ts",
-        "sha256": "9364a5204a02d96af8b4ef66a616b5b0baf1844fa6569ce2c93fefa720e5cb3b"
+        "sha256": "57374cb07d020cc987b5ed876a4ead656760c3fd8f14c544736d33b05c6975cb"
       },
       {
         "path": "packages/rules/dist/edition.js",
-        "sha256": "d2d8e43769b9f4ae1834cfe84174ffe0f93a80a3c780caec0ad9331043b9c986"
+        "sha256": "68b0b1566c60e0beb03087fb88054021ee7a1d0bf8cc0af5e112ecf679cd7db6"
       },
       {
         "path": "packages/rules/dist/index.d.ts",
@@ -839,7 +863,7 @@
       },
       {
         "path": "packages/rules/dist/index.js",
-        "sha256": "b88c26584bf260e7bfb1fcaa06b329385b7174febdd8229609185d80cc536ca3"
+        "sha256": "a1489ead5777927964bcbf8a0b74d1add7fd14131013f7ef5f89aef3b9df5738"
       },
       {
         "path": "packages/rules/dist/original-catalogue.d.ts",
