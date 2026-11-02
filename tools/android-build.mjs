@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // One-command Android build on macOS:
-//   decode base APK -> manifest template -> client-native-patch -> apktool build -> zipalign
+//   decode base APK -> drop x86/x86_64 libs -> manifest template -> client-native-patch -> apktool build -> zipalign
 //   -> apksigner sign (key in ~/.doushisi-signing) -> apksigner verify -> alignment/content checks
 //
 //   node tools/android-build.mjs --api-base https://game.example.com
@@ -28,6 +28,9 @@ export const TOOL_HOME = resolve(process.env.DOUSHISI_ANDROID_HOME || join(homed
 export const SIGNING_HOME = resolve(process.env.DOUSHISI_SIGNING_HOME || join(homedir(), '.doushisi-signing'));
 export const DEFAULT_KEYSTORE = join(SIGNING_HOME, 'doushisi-release.jks');
 export const CERT_DIGEST_FILE = join(SIGNING_HOME, 'doushisi-release.cert-sha256');
+// Real phones load arm64-v8a or armeabi-v7a; x86/x86_64 are emulator-only and cost ~59MB (DEC-20261102-安装包去x86).
+export const KEPT_ABIS = ['arm64-v8a', 'armeabi-v7a'];
+export const DROPPED_ABIS = ['x86', 'x86_64'];
 
 class BuildError extends Error {}
 const fail = message => { throw new BuildError(message); };
@@ -185,6 +188,13 @@ export function checkAlignment(entries) {
   return { errors, warnings };
 }
 
+// Native-library folders in an APK's entry names: problems, empty when only the kept ABIs are there.
+export function checkAbis(names) {
+  const problems = KEPT_ABIS.filter(abi => !names.includes(`lib/${abi}/libcocos2djs.so`)).map(abi => `缺少 lib/${abi}/libcocos2djs.so`);
+  for (const name of names) if (DROPPED_ABIS.some(abi => name.startsWith(`lib/${abi}/`))) problems.push(`不应带 ${name}`);
+  return problems;
+}
+
 // ---------- manifest / apktool.yml ----------
 
 const attribute = (tag, name) => {
@@ -304,6 +314,8 @@ export async function build(options) {
   const ymlPath = join(decoded, 'apktool.yml');
   const yml = readFileSync(ymlPath, 'utf8');
   const baseVersion = readVersion(yml, decodedManifest);
+  for (const abi of KEPT_ABIS) if (!existsSync(join(decoded, 'lib', abi, 'libcocos2djs.so'))) fail(`基础 APK 缺少 lib/${abi}/libcocos2djs.so`);
+  for (const abi of DROPPED_ABIS) rmSync(join(decoded, 'lib', abi), { recursive: true, force: true });
 
   // 3. Manifest template (root AndroidManifest.xml), then 4. the shared patcher.
   const template = readFileSync(join(PROJECT_ROOT, 'AndroidManifest.xml'), 'utf8');
@@ -367,6 +379,8 @@ export async function build(options) {
   warnings.push(...alignment.warnings);
   if (alignment.errors.length) fail(`APK 对齐检查失败：\n  ${alignment.errors.join('\n  ')}`);
   const entry = name => entries.find(item => item.name === name) || fail(`APK 里缺少 ${name}`);
+  const abiProblems = checkAbis(entries.map(item => item.name));
+  if (abiProblems.length) fail(`APK 引擎库不对：\n  ${abiProblems.slice(0, 5).join('\n  ')}`);
   const mainJs = readZipEntry(apk, entry('assets/main.js')).toString('utf8');
   const nativeJs = readZipEntry(apk, entry('assets/standalone-native.js'));
   const nativeSha = createHash('sha256').update(nativeJs).digest('hex');

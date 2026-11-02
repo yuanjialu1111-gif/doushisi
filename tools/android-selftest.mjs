@@ -24,7 +24,7 @@ import { deflateRawSync } from 'node:zlib';
 
 import { buildConfig, MEDIA_AUTHORITY, NATIVE_API, patchDecodedApk, renderBootScript } from './client-native-patch.mjs';
 import { buildNativeAdapter, hardcodedAddresses, NATIVE_ADAPTER_PATH, nativeAdapterFrom, validateManifest, verifyNativeAdapter, writeNativeAdapter } from './android-native-adapter.mjs';
-import { applyVersion, checkAlignment, manifestFromTemplate, parseArguments, readVersion, readZipEntries, readZipEntry } from './android-build.mjs';
+import { applyVersion, checkAbis, checkAlignment, manifestFromTemplate, parseArguments, readVersion, readZipEntries, readZipEntry } from './android-build.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const BASE_APK = join(ROOT, '线上部署包/doushisi.apk');
@@ -1107,6 +1107,9 @@ await section('6. Zip alignment checks', () => {
   const missing = checkAlignment(readZipEntries(makeZip([{ name: 'classes.dex', data: payload, method: 8 }])));
   check('missing resources.arsc is an error', missing.errors.some(message => message.includes('缺少')));
   const soWarning = checkAlignment(readZipEntries(makeZip([{ name: 'resources.arsc', data: payload, method: 0, align: 4 }, { name: 'lib/x86/liby.so', data: payload, method: 0, align: 4, avoid: 4096 }])));
+  check('checkAbis: arm64-v8a + armeabi-v7a only is clean', checkAbis(['lib/arm64-v8a/libcocos2djs.so', 'lib/armeabi-v7a/libcocos2djs.so', 'lib/arm64-v8a/liblocSDK8b.so']).length === 0);
+  check('checkAbis: x86/x86_64 left in is a problem', checkAbis(['lib/arm64-v8a/libcocos2djs.so', 'lib/armeabi-v7a/libcocos2djs.so', 'lib/x86/libcocos2djs.so', 'lib/x86_64/liblocSDK8b.so']).length === 2);
+  check('checkAbis: missing armeabi-v7a engine is a problem', checkAbis(['lib/arm64-v8a/libcocos2djs.so']).some(message => message.includes('armeabi-v7a')));
   check('stored .so off a 4096 boundary is a warning only', soWarning.errors.length === 0 && soWarning.warnings.length === 1, JSON.stringify(soWarning));
   const apk = loadBaseApk();
   if (!apk) { note('base APK missing: real alignment check skipped'); return; }
