@@ -82,7 +82,7 @@ test('组合：天胡＋金二十、天胡＋暗四对、地胡＋全红、不�
   const di = step(start('diQuanHong'), 'a', 'discard', [312]);
   const diWon = claim(di, 'b', 'hu');
   assert.equal(won(diWon, 'b', ['diHu', 'quanHong'], 6).redPoints, 22);
-  assert.equal(units(won(step(start('cap'), 'a', 'hu'), 'a', ['tianHu', 'quanHong', 'hong50'], 9)), '512');
+  assert.equal(units(won(step(start('cap'), 'a', 'hu'), 'a', ['tianHu', 'anDui', 'longDui'], 9)), '512');
 });
 test('番型：地胡', () => {
   const state = step(start('diHu'), 'a', 'discard', [113]);
@@ -91,6 +91,12 @@ test('番型：地胡', () => {
 test('番型：报叫', () => {
   const state = pass(step(start('baoJiao'), 'a', 'declare', [412]), ['a']);
   won(claim(state, 'a', 'hu'), 'a', ['baoJiao'], 3);
+});
+test('报叫要手里红点先够 20：金二十那手打黑Q后红 19，只有红K能胡，不出「报」；暗四对的叫红点不够也能报', () => {
+  assert.equal(options(start('qia20'), 'a', 'declare').length, 0);
+  assert.ok(options(start('qia20'), 'a', 'discard').some(option => option.faces.includes(412)));
+  // 暗四对场景：打黑K后手里红 30，本来就够；换成全靠暗四对的叫看 xinjin-v2 那条。
+  assert.ok(options(start('anDui'), 'a', 'declare').some(option => option.faces.includes(413)));
 });
 test('番型：金二十、暗四对、龙对、全红、全黑、红五十、黑五十', () => {
   assert.equal(flipWin('qia20', 412, ['qia20'], 3).redPoints, 20);
@@ -104,8 +110,8 @@ test('番型：金二十、暗四对、龙对、全红、全黑、红五十、�
   assert.deepEqual(xinjinSettlementBrand(longDuiWon, 'c').cardType, [14, 110]);
   assert.equal(flipWin('quanHong', 207, ['quanHong'], 3).redPoints, 22);
   flipWin('quanHei', 107, ['quanHei'], 3);
-  assert.equal(flipWin('hong50', 212, ['hong50'], 3).redPoints, 52);
-  assert.equal(flipWin('hei50', 112, ['hei50'], 3).redPoints, 4);
+  assert.equal(flipWin('hong50', 212, ['hong50'], 3).redPoints, 50);
+  assert.equal(flipWin('hei50', 112, ['hei50'], 3).redPoints, 6);
 });
 test('番型：金钩钓（大吊车）', () => {
   let state = step(start('jinGouDiao'), 'a', 'tou', [105, 205, 305]);

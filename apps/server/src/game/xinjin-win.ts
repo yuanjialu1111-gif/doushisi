@@ -138,7 +138,8 @@ function evaluateV2(hand: XinjinHand, context: XinjinWinContext, rules: Readonly
   const tianHu = context.source === 'original-hand';
   const diHu = context.source === 'discard' && context.discardCount === 1;
   // 红点不够时只剩暗四对这种牌型能胡（全黑、黑五十两种都行）。
-  const belowGate = redPoints < xinjinRedGate(rules.playerNum) && !quanHei && blackPoints < 50;
+  // 红五十、黑五十要正好 50，过了照常胡、不算五十（DEC-20261102-五十要正好）；黑 52 不算黑五十，要看门槛。
+  const belowGate = redPoints < xinjinRedGate(rules.playerNum) && !quanHei && blackPoints !== 50;
   if (belowGate && !fourPairs) return fail('points');
   const alternatives: Extract<XinjinWin, { status: 'winning' }>[] = [];
   for (const structure of ['ordinary', 'four-pairs'] as const) {
@@ -156,8 +157,8 @@ function evaluateV2(hand: XinjinHand, context: XinjinWinContext, rules: Readonly
     if (redPoints === 20) add('qia20');
     if (quanHong) add('quanHong');
     if (quanHei) add('quanHei');
-    if (redPoints >= 50) add('hong50');
-    if (blackPoints >= 50) add('hei50');
+    if (redPoints === 50) add('hong50');
+    if (blackPoints === 50) add('hei50');
     // 金钩钓（大吊车）：亮满三组碰、偷、杠、巴（吃的不算），手里只剩两张凑 14。
     if (hand.melds.length === 3 && hand.melds.every(meld => meld.kind !== 'chi')) add('jinGouDiao');
     if (structure === 'four-pairs') {

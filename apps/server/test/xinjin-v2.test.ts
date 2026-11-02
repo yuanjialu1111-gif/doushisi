@@ -125,10 +125,15 @@ test('v2 番表：报叫、金二十、暗四对、龙对、红黑五十、金�
   const opened = evaluateXinjinWin(v2Hand([105, 305, 110, 310, 202, 402], [{ kind: 'tou', codes: [111, 211, 311] }]),
     { ...flipAt(v2Hand([105])), incomingCardId: 'v2-1' }, v2Rules(4));
   assert.equal(opened.status, 'not-winning');
-  // 黑五十（全黑也算）：黑 56，不看红点门槛。
-  assert.deepEqual(pairs(fans(v2Hand([210, 404, 209, 405, 208, 406, 207, 407]))), [['quanHei', 3], ['hei50', 3]]);
-  // 红五十（全红也算）：红 56。
-  assert.deepEqual(pairs(fans(v2Hand([110, 304, 109, 305, 108, 306, 307, 107]))), [['quanHong', 3], ['hong50', 3]]);
+  // 黑五十、红五十要正好 50（DEC-20261102-五十要正好）：黑 50 红 6 能胡，不看门槛；全黑黑 56 只算全黑。
+  assert.deepEqual(pairs(fans(v2Hand([408, 106, 209, 405, 208, 406, 207, 407]))), [['hei50', 3]]);
+  assert.deepEqual(pairs(fans(v2Hand([210, 404, 209, 405, 208, 406, 207, 407]))), [['quanHei', 3]]);
+  // 黑 52、红 4、不是全黑：不算黑五十，红点不够，不能胡。
+  const black52 = v2Hand([210, 304, 209, 405, 208, 406, 207, 407]);
+  assert.equal(evaluateXinjinWin(black52, flipAt(black52), v2Rules(4)).status, 'not-winning');
+  // 红正好 50 算红五十；全红红 56 能胡，只算全红。
+  assert.deepEqual(pairs(fans(v2Hand([308, 206, 109, 305, 108, 306, 307, 107]))), [['hong50', 3]]);
+  assert.deepEqual(pairs(fans(v2Hand([110, 304, 109, 305, 108, 306, 307, 107]))), [['quanHong', 3]]);
   // 金钩钓（大吊车）：亮满三组碰、偷、杠，手里只剩两张；有吃的那组就不算。
   const melds = [{ kind: 'tou' as const, codes: [102, 302, 202] }, { kind: 'peng' as const, codes: [103, 303, 403] }, { kind: 'peng' as const, codes: [104, 304, 404] }];
   assert.deepEqual(pairs(fans(v2Hand([110, 204], melds))), [['peng', 3], ['jinGouDiao', 3]]);
@@ -336,4 +341,18 @@ test('新津 v2 桌只用原版客户端会发的请求能打完，每手合规�
   }
   if (process.env.XINJIN_GAMES) console.log('出现过的原版动作', [...seen].sort((a, b) => a - b).join(','));
   for (const actType of [3, 4, 9]) assert.ok(seen.has(actType), `没打到动作 ${actType}`);
+});
+
+test('v2 报叫要手里红点先够门槛；不够时全黑、黑五十、暗四对的叫照样能报（DEC-20261102-报叫要够红点）', () => {
+  const declares = (state: XinjinRound) => xinjinLegalActions(state, 'a').filter(item => item.type === 'declare')
+    .map(item => code(state, (item as { cardId: string }).cardId));
+  // 打黑Q后红 19（10+9），叫黑K/红K，只有红K够 20：不能报。
+  const short = run(make([[110, 204, 109, 205, 201, 213, 401, 412], [301, 302, 303, 304, 305, 306, 307]]), 'a', 'begin');
+  assert.ok(!declares(short).includes(412));
+  // 打黑K后红 5，只叫暗四对（黑Q）：能报。
+  const pairs = run(make([[102, 202, 103, 203, 211, 411, 212, 413], [301, 302, 303, 304, 305, 306, 307]]), 'a', 'begin');
+  assert.ok(declares(pairs).includes(413));
+  // 打黑Q后红 28：能报。
+  const enough = run(make([[110, 304, 109, 305, 201, 213, 206, 412], [301, 302, 303, 306, 307, 308, 309]]), 'a', 'begin');
+  assert.ok(declares(enough).includes(412));
 });

@@ -1,5 +1,5 @@
 import { isDeepStrictEqual } from 'node:util';
-import { XINJIN_INDEPENDENT_VERSION } from '@dss/rules';
+import { XINJIN_INDEPENDENT_VERSION, xinjinRedGate } from '@dss/rules';
 import { requireCondition } from '../errors.js';
 import type { EnginePlayer, EngineResult, RoundContext, RoundInput } from '../engines.js';
 import { amount } from '../money.js';
@@ -87,7 +87,7 @@ function waitDetails(state: XinjinRound, id: string, discardId: string | null, b
   current.bonus = bonusIds.map(cardId => physical(state, cardId));
   const known = [...current.concealed, ...current.melds.flatMap(meld => meld.cards), ...current.bonus];
   const nextId = cycle(state, id)[0]!;
-  const waits: { code: number; fan: number; left: number }[] = [];
+  const waits: { code: number; fan: number; left: number; exempt: boolean }[] = [];
   for (const entry of xinjinPackSpecification(state.rules.wangNum as number)) {
     const held = known.filter(card => card.code === entry.code).length;
     if (isSpecial(entry.code) || held >= entry.count || waits.some(wait => wait.code === entry.code)) continue;
@@ -98,12 +98,28 @@ function waitDetails(state: XinjinRound, id: string, discardId: string | null, b
         sourceSeat: player(state, nextId).seat, incomingCardId: cardId, discardCount: Number(state.rules.__discards ?? 0),
         baoJiao: (player(state, id).declaredWaits ?? null) !== null },
       { ...state.rules, __baoJiao: false });
-    if (result.status === 'winning') waits.push({ code: entry.code, fan: result.cappedFan, left: entry.count - held });
+    // exempt：全黑、黑五十、暗四对，不看红点门槛的胡。
+    if (result.status === 'winning') waits.push({ code: entry.code, fan: result.cappedFan, left: entry.count - held,
+      exempt: result.structure === 'four-pairs' || result.items.some(item => item.pattern === 'quanHei' || item.pattern === 'hei50') });
   }
   return waits.length ? waits : null;
 }
 function declarationFaces(state: XinjinRound, id: string, discardId: string, bonusIds: readonly string[] = ids(state, bonusZone(id))): number[] | null {
   return waitDetails(state, id, discardId, bonusIds)?.map(wait => wait.code) ?? null;
+}
+/**
+ * 能不能报叫：v2 打掉这张后手里加摆出的红点要先够门槛（4 人 20，3 人、2 人 25），
+ * 不够时只有全黑、黑五十、暗四对的叫能报（DEC-20261102-报叫要够红点）。
+ */
+function canDeclare(state: XinjinRound, id: string, discardId: string, bonusIds: readonly string[]): boolean {
+  const waits = waitDetails(state, id, discardId, bonusIds);
+  if (!waits) return false;
+  if (!isXinjinV2(state.rules) || waits.some(wait => wait.exempt)) return true;
+  const kept = [...cards(state, handZone(id)).filter(card => card.id !== discardId),
+    ...player(state, id).melds.flatMap(meld => meld.cardIds.map(cardId => physical(state, cardId)))];
+  const red = kept.filter(card => !isSpecial(card.code) && [1, 3].includes(Math.floor(card.code / 100)))
+    .reduce((sum, card) => sum + (ordinaryRank(card.code) >= 11 ? 1 : ordinaryRank(card.code)), 0);
+  return red >= xinjinRedGate(state.rules.playerNum);
 }
 function stage(state: XinjinRound, phase: XinjinRound['phase'], activeId: string, source: Source | null = null) {
   state.phase = phase; state.activeId = activeId; state.source = source; state.claims = null; state.serial++;
@@ -286,7 +302,8 @@ export function xinjinLegalActions(state: XinjinRound, id: string): XinjinAction
       const waits = declarationFaces(state, id, cardId, current.declaredBonusIds ?? ids(state, bonusZone(id)));
       const declared = current.declaredWaits ?? null;
       if (declared === null || sameDeclaredWaits(declared, waits)) choices.push({ type: 'discard', cardId });
-      if (state.rules.baoJiao === 1 && declared === null && waits) choices.push({ type: 'declare', cardId });
+      if (state.rules.baoJiao === 1 && declared === null && waits && canDeclare(state, id, cardId, ids(state, bonusZone(id))))
+        choices.push({ type: 'declare', cardId });
     }
   }
   return choices.map(action => ({ ...action, decisionId: decision(state) }));
@@ -341,7 +358,8 @@ export function applyXinjinAction(previous: XinjinRound, id: string, action: unk
   } else if (typed.type === 'declare') {
     const current = player(state, id), bonusIds = [...ids(state, bonusZone(id))];
     const waits = declarationFaces(state, id, typed.cardId, bonusIds);
-    requireCondition(state.rules.baoJiao === 1 && (current.declaredWaits ?? null) === null && waits, 'INVALID_ACTION', 'This discard cannot declare a legal wait.', 409);
+    requireCondition(state.rules.baoJiao === 1 && (current.declaredWaits ?? null) === null && waits &&
+      canDeclare(state, id, typed.cardId, bonusIds), 'INVALID_ACTION', 'This discard cannot declare a legal wait.', 409);
     current.declaredWaits = waits; current.declaredBonusIds = bonusIds;
     move(state, handZone(id), 'table', [typed.cardId]);
     state.rules.__discards = Number(state.rules.__discards ?? 0) + 1;
