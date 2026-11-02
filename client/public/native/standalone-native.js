@@ -2014,8 +2014,9 @@
     cc.mm.notification.on(notice + cc.mm.msgEvent.HWNotifySeatOperationChoice, function (body) {
       if (cc.mm.gameserver.isReplay() || !body || !body.choices || !body.choices.length) return;
       declaring = false;
-      declareChoice = body.choices.filter(function (choice) { return choice.actType === ACTION_BAO_TING; })[0] || null;
       var canPlay = body.choices.some(function (choice) { return choice.actType === ACTION_CHUPAI || choice.actType === ACTION_KOU; });
+      // 起手报叫（发完牌一起弹「报」「过」）不带出牌：点「报」照原版直接发报叫，不锁牌。
+      declareChoice = canPlay ? body.choices.filter(function (choice) { return choice.actType === ACTION_BAO_TING; })[0] || null : null;
       if (canPlay) handPlayedCard = null;
       else cc.mm.notification.emit('NOTICE_STATE_PLAY');
     });

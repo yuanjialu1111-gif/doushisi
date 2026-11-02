@@ -50,7 +50,13 @@ function apply(state: XinjinRound, id: string, selected: XinjinAction): XinjinRo
   return result.snapshot as XinjinRound;
 }
 function run(state: XinjinRound, id: string, type: XinjinAction['type'], face?: number) {
-  return apply(state, id, action(state, id, type, face));
+  const next = apply(state, id, action(state, id, type, face));
+  return type === 'begin' ? noBao(next) : next;
+}
+/** 起手报叫窗口里还没选的人都点「不报」。 */
+function noBao(state: XinjinRound) {
+  while (state.phase === 'declaring') state = apply(state, state.openingDeclare!.pending[0]!, action(state, state.openingDeclare!.pending[0]!, 'buBao'));
+  return state;
 }
 function passAll(state: XinjinRound) {
   while (state.phase === 'response') {
@@ -355,4 +361,28 @@ test('v2 报叫要手里红点先够门槛；不够时全黑、黑五十、暗�
   // 打黑Q后红 28：能报。
   const enough = run(make([[110, 304, 109, 305, 201, 213, 206, 412], [301, 302, 303, 306, 307, 308, 309]]), 'a', 'begin');
   assert.ok(declares(enough).includes(412));
+});
+
+test('v2 起手报叫：几家一起弹，选完的不影响别人；闲家红点不够不弹；报了锁牌不能吃碰（DEC-20261102-起手报叫）', () => {
+  // b 听K（红 21），c 听7 但红点只有 7：只有 b 和能天胡的庄家弹。
+  const hands = [[101, 213, 102, 412, 103, 311, 304, 110], [105, 309, 106, 408, 203, 111, 401],
+    [202, 212, 204, 210, 205, 209, 107], [306, 307, 308, 206, 208, 302, 301]];
+  const opened = apply(make(hands), 'a', action(make(hands), 'a', 'begin'));
+  assert.equal(opened.phase, 'declaring');
+  assert.deepEqual(opened.openingDeclare!.pending, ['a', 'b']);
+  assert.deepEqual(xinjinLegalActions(opened, 'c'), []);
+  const afterB = run(opened, 'b', 'bao');
+  assert.equal(afterB.phase, 'declaring');
+  assert.deepEqual(afterB.openingDeclare!.pending, ['a']);
+  assert.deepEqual(xinjinLegalActions(afterB, 'a').map(item => item.type), ['bao', 'buBao']);
+  assert.ok((afterB.players[1]!.declaredWaits ?? []).includes(113));
+  const turn = run(afterB, 'a', 'buBao');
+  assert.equal(turn.phase, 'discard');
+  assert.equal(turn.openingDeclare, null);
+  assert.ok(xinjinLegalActions(turn, 'a').some(item => item.type === 'hu'));
+  // 庄家打红3：b 手里有红J 本来能吃，报了锁牌不弹吃。
+  const response = run(turn, 'a', 'discard', 103);
+  assert.ok(!xinjinLegalActions(response, 'b').some(item => item.type === 'respond' && item.choiceId !== null));
+  const free = run(run(run(opened, 'b', 'buBao'), 'a', 'buBao'), 'a', 'discard', 103);
+  assert.ok(xinjinLegalActions(free, 'b').some(item => item.type === 'respond' && item.choiceId !== null));
 });

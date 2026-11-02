@@ -45,7 +45,8 @@ function validate(hand: XinjinHand, context: XinjinWinContext, rules: Readonly<R
     ['original-hand', 'discard', 'flip', 'replacement'].includes(context.source) && Number.isSafeInteger(context.discardCount),
   'INVALID_RULE_FACTS', 'The server must supply valid Xinjin turn facts.', 500);
   if (context.source === 'original-hand') requireCondition(context.incomingCardId === null && context.sourceSeat === null &&
-    context.winnerSeat === context.dealerSeat && context.discardCount === 0 && hand.bonus.length === 0,
+    // v2 天胡带王：开局亮王补牌后庄家胡照样算天胡，鬼牌区可以有牌（DEC-20261102-起手报叫）。
+    context.winnerSeat === context.dealerSeat && context.discardCount === 0 && (hand.bonus.length === 0 || isXinjinV2(rules)),
   'INVALID_RULE_FACTS', 'An original-hand win must precede every action.', 500);
   else requireCondition(seat(context.sourceSeat) && typeof context.incomingCardId === 'string' &&
     hand.concealed.some(card => card.id === context.incomingCardId), 'INVALID_RULE_FACTS',

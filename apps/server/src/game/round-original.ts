@@ -93,6 +93,9 @@ export function createRoundOriginalAdapter(options: RoundAdapterOptions): Engine
     if (action.type === 'hu') return { type: 'original', actType: ACT.hu, colType: 0, destCard: 0, cards: [], decisionId };
     if (action.type === 'piao') return { type: 'original', actType: action.value === 1 ? ACT.piao : ACT.piaoPass,
       colType: 0, destCard: 0, cards: [], decisionId };
+    // 起手报叫：「报」不带牌，「不报」用「过」。
+    if (action.type === 'bao' || action.type === 'buBao') return { type: 'original', actType: action.type === 'bao' ? ACT.declare : ACT.pass,
+      colType: 0, destCard: 0, cards: [], decisionId };
     if (action.type === 'begin' || action.type === 'draw') return null;
     const col = column(s, userId, action);
     return col ? { type: 'original', actType: col.actType, colType: col.colType,
@@ -122,6 +125,10 @@ export function createRoundOriginalAdapter(options: RoundAdapterOptions): Engine
         continue;
       }
       if (action.type === 'hu') { items.push({ kind: 'other', choice: { seatIndex, actType: ACT.hu, destCard: 0 } }); continue; }
+      if (action.type === 'bao' || action.type === 'buBao') {
+        items.push({ kind: 'other', choice: { seatIndex, actType: action.type === 'bao' ? ACT.declare : ACT.pass, destCard: 0 } });
+        continue;
+      }
       const col = column(s, userId, action);
       if (!col) continue;
       if (action.type === 'discard' || action.type === 'declare') items.push({ kind: action.type, code: col.cards[0]! });
@@ -280,6 +287,12 @@ export function createRoundOriginalAdapter(options: RoundAdapterOptions): Engine
               ...(userId === winner.userId ? { redPoint: brand.pointNum, blackPoint: brand.blackPoint } : { redPoint: 0, blackPoint: 0 }) } } });
           }
           packets.push({ command: MSGEvent.HWNotifyGameOver, ...gameOver(s) }); continue;
+        }
+        // 起手报叫：播原版报叫（语音、火焰、「报」字），不出牌。
+        if (raw.type === 'declared') {
+          packets.push({ command: MSGEvent.HWNotifyActionFlow, body: { action: {
+            seatIndex: seatOf(s, String(raw.userId)), actType: ACT.declare, destCard: 0, destCardIsOwn: userId === raw.userId } } });
+          continue;
         }
         if (raw.type === 'discard') {
           const card = raw.card as { code: number };

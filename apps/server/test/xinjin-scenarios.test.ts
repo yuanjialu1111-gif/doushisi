@@ -11,7 +11,16 @@ const engine = createXinjinEngine('scenario-test');
 const users = ['a', 'b', 'c', 'd'];
 type State = XinjinRound & { deal: unknown };
 
-function start(key: string): State {
+/** 起手报叫窗口里还没选的人都点「过」（不报）。 */
+function noBao(state: State) {
+  while (state.phase === 'declaring') state = engine.apply(state, state.openingDeclare!.pending[0]!,
+    legal(state, state.openingDeclare!.pending[0]!).find(action => action.type === 'buBao')).snapshot as State;
+  return state;
+}
+function start(key: string, window = false): State {
+  return window ? open(key) : noBao(open(key));
+}
+function open(key: string): State {
   const scenario = XINJIN_SCENARIOS.find(item => item.key === key)!;
   const rules = { ...getDefaultOptions('4:0'), playerNum: 4, wangNum: 3, baseBeans: '1', ...XINJIN_V2_OPTIONS };
   const input: RoundInput = { players: users.map((userId, index) => ({ userId, seat: index + 1 })), ownerUserId: 'a', number: 1,
@@ -83,6 +92,31 @@ test('组合：天胡＋金二十、天胡＋暗四对、地胡＋全红、不�
   const diWon = claim(di, 'b', 'hu');
   assert.equal(won(diWon, 'b', ['diHu', 'quanHong'], 6).redPoints, 22);
   assert.equal(units(won(step(start('cap'), 'a', 'hu'), 'a', ['tianHu', 'anDui', 'longDui'], 9)), '512');
+});
+test('起手报叫：报叫＋天胡、报叫＋地胡、天胡＋鬼（报 9 番、不报 6 番），15 秒不点算不报（DEC-20261102-起手报叫）', () => {
+  const units = (win: { scoreUnits: string }) => win.scoreUnits;
+  // 庄家起手能胡：先弹「报」「过」，没有出牌、胡；报了只剩胡。
+  let state = start('baoTianHu', true);
+  assert.deepEqual(state.openingDeclare!.pending, ['a']);
+  assert.deepEqual(legal(state, 'a').map(action => action.type), ['bao', 'buBao']);
+  state = step(state, 'a', 'bao');
+  assert.deepEqual(legal(state, 'a').map(action => action.type), ['hu']);
+  assert.equal(units(won(step(state, 'a', 'hu'), 'a', ['baoJiao', 'tianHu'], 6)), '64');
+  // 闲家起手听牌报叫，接庄家第一张：报叫＋地胡。
+  state = step(step(start('baoDiHu', true), 'b', 'bao'), 'a', 'discard', [113]);
+  won(claim(state, 'b', 'hu'), 'b', ['baoJiao', 'diHu'], 6);
+  // 起手三个鬼：亮出补牌后胡照样算天胡，鬼每张 1 番。
+  state = start('tianGui', true);
+  assert.equal(zone(state, 'bonus:a').length, 3);
+  assert.equal(units(won(step(step(state, 'a', 'bao'), 'a', 'hu'), 'a', ['baoJiao', 'tianHu', 'gui'], 9)), '512');
+  won(step(step(start('tianGui', true), 'a', 'buBao'), 'a', 'hu'), 'a', ['tianHu', 'gui'], 6);
+  // 15 秒不点算不报：窗口关了轮到庄家，没人报叫。
+  const timed = engine.interactions!.autoPlay!(start('tianHu', true), 'a')!;
+  assert.equal(timed.delayMs, 15000);
+  assert.equal(timed.action.type, 'buBao');
+  state = engine.apply(start('tianHu', true), 'a', timed.action).snapshot as State;
+  assert.equal(state.phase, 'discard');
+  assert.ok(state.players.every(item => item.declaredWaits === null));
 });
 test('番型：地胡', () => {
   const state = step(start('diHu'), 'a', 'discard', [113]);
@@ -210,9 +244,9 @@ test('操作：四家托管打到流局', () => {
   assert.equal(state.outcome?.reason, 'draw');
   assert.equal(state.outcome?.nextRoundContext.nextDealerId, 'a');
 });
-test('场景的牌都排得出来，四家手里一开始都没有鬼（鬼、碰、杠那局除外）', () => {
+test('场景的牌都排得出来，四家手里一开始都没有鬼（鬼、碰、杠和天胡＋鬼那两局除外）', () => {
   for (const scenario of XINJIN_SCENARIOS) {
     const state = start(scenario.key);
-    for (const id of users) if (scenario.key !== 'guiPengGang') assert.equal(zone(state, 'bonus:' + id).length, 0, scenario.key);
+    for (const id of users) if (!['guiPengGang', 'tianGui'].includes(scenario.key)) assert.equal(zone(state, 'bonus:' + id).length, 0, scenario.key);
   }
 });

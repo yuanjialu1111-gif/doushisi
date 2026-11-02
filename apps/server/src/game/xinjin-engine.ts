@@ -9,7 +9,7 @@ import { xinjinDealEvaluation } from './xinjin-deal.js';
 import { xinjinTestDeck } from './xinjin-scenarios.js';
 import { isXinjinV2 } from './xinjin-win.js';
 import { applyXinjinAction, assertXinjinOptionsSupported, createXinjinRound, viewXinjinRound, xinjinLegalActions, xinjinJiaoTishi, xinjinTurnSeconds, xinjinPoints, xinjinSettlementBrand,
-  xinjinTimedAction, type XinjinAction, type XinjinEvent, type XinjinRound } from './xinjin-round.js';
+  xinjinOpeningWindow, xinjinTimedAction, type XinjinAction, type XinjinEvent, type XinjinRound } from './xinjin-round.js';
 
 export const XINJIN_ENGINE_VERSION = XINJIN_INDEPENDENT_VERSION;
 export interface XinjinEngineSnapshot extends XinjinRound {
@@ -65,7 +65,8 @@ function core(snapshot: unknown): XinjinEngineSnapshot {
 function systemAction(state: XinjinRound): { userId: string; action: XinjinAction } | null {
   if (state.phase === 'opening') {
     const actions = xinjinLegalActions(state, state.dealerId);
-    if (actions.some(action => action.type === 'hu')) return null;
+    // v2 先亮王补牌再看天胡（补完牌胡照样算天胡），所以开局一律先补牌。
+    if (!isXinjinV2(state.rules) && actions.some(action => action.type === 'hu')) return null;
     const begin = actions.find(action => action.type === 'begin');
     return begin ? { userId: state.dealerId, action: begin } : null;
   }
@@ -98,6 +99,8 @@ export function createXinjinEngine(referenceDigest: string, random: (max: number
   const interactions: EngineInteractions = {
     responseWindow(snapshot, userId) {
       const state = core(snapshot);
+      const opening = xinjinOpeningWindow(state, userId);
+      if (opening) return opening;
       if (!state.claims || state.claims.replies.some(reply => reply.userId === userId)) return null;
       return state.claims.offers.some(offer => offer.userId === userId) ? state.claims.id : null;
     },

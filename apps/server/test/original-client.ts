@@ -7,6 +7,7 @@ import type { RuleEngine } from '../src/engines.js';
  * 把一手的选项变成它真会发的 HWRequestDoAction：
  * - 同一种操作只认第一条选项（_ntfOperate）；
  * - 出牌只发牌面 destCard，deathCard 里的牌锁着打不出；报叫是点「报」后再出一张，按 actType 12 发；
+ *   起手报叫（这手没有出牌）照原版点「报」直接发，destCard 是选项里的 0；
  * - 吃、碰、偷、杠发所选那组的 colType、destCard、cards（isColAllCard 时不从手里另挑）；
  * - 胡、过只发 actType 和选项的 destCard。
  * 请求按原版的 protobuf 编一遍再解开，没设的字段（colType、cards）就和线上一样缺着。
@@ -19,7 +20,8 @@ export function clientRequests(choices: readonly Record<string, any>[], handCode
   const requests: Record<string, unknown>[] = [];
   for (const [actType, choice] of operatorList) {
     const seatIndex = choice.seatIndex;
-    if (actType === DISCARD || actType === DECLARE) {
+    if (actType === DECLARE && !operatorList.has(DISCARD)) requests.push({ seatIndex, actType, destCard: choice.destCard ?? 0 });
+    else if (actType === DISCARD || actType === DECLARE) {
       for (const code of new Set(handCodes)) if (!(choice.deathCard ?? []).includes(code)) requests.push({ seatIndex, actType, destCard: code });
     } else if (choice.colInfo?.length) {
       if (actType !== CHI) assert.ok(choice.isColAllCard, `操作 ${actType} 没带 isColAllCard，阿坝、分数区会让人从手里另挑`);

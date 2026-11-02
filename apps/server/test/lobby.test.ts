@@ -417,7 +417,7 @@ test('本机测试台：指定牌局只在打开时有；按场景发牌、请�
   const players = [];
   for (const name of ['a', 'b', 'c', 'd']) players.push(await ctx.player(`lobby_dev_${name}`, '50'));
   const listed = (await ctx.app.inject({ method: 'GET', url: '/api/dev/scenarios', headers: players[0]!.headers })).json();
-  assert.equal(listed.length, 30);
+  assert.equal(listed.length, 33);
   const code = (await tablesOf(ctx, players[0]!.headers)).tables[0].code;
   let room;
   for (const player of players) room = await ctx.rooms.join(player.actor, code);
