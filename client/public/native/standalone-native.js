@@ -1831,8 +1831,15 @@
       cc.mm.notification.on(type, head._noticeUserDataChange, head);
     });
   }
-  // 新津现在的桌报叫 3 番（DEC-20261101-新津番表），原版房间规则还写「报叫1番」「报叫一番」（11-01 测试台）。
+  // 四川斗十四的房间规则写全（DEC-20261101-房间规则写全）：原版按开房选项拼，现在的番型（金二十、暗四对、全红…）大多不是开房选项，
+  // 列不出来，报叫还写成 1 番（11-01 测试台）。这里换成固定的完整规则，付费方式（AA/房主）和底分照原版拼出来的取。
   var AREA_XINJIN = 4;
+  var XINJIN_FAN_TEXT = '天胡、地胡、报叫、金二十、暗四对、全红、全黑、红五十、黑五十、金钩钓各3番，龙对每个再加3番；鬼每张1番，碰、偷每组1番，杠、巴每组2番';
+  function xinjinRule(text, room) {
+    var pay = /^场次规则: (房主、|AA、)/.exec(text), base = /、([^、]+分)$/.exec(text);
+    return '场次规则: ' + (pay ? pay[1] : '') + (Number(room.wangNum) || 3) + '个王、红' + (Number(room.playerNum) === 4 ? 20 : 25) +
+      '起胡、跟斗翻、封顶5番、点炮包赔、自摸自吃' + (base ? '、' + base[1] : '') + '；' + XINJIN_FAN_TEXT;
+  }
   function xinjinRuleText() {
     ['CommonPlayUIController', 'dss_gameController'].forEach(function (name) {
       var Controller = cc.js.getClassByName(name);
@@ -1841,9 +1848,26 @@
       var getRule = Controller.prototype.getRule;
       Controller.prototype.getRule = function () {
         var text = getRule.apply(this, arguments), room = cc.mm.hallserver && cc.mm.hallserver.mLastRoomParam;
-        return room && Number(room.areaType) === AREA_XINJIN && typeof text === 'string' ? text.replace(/报叫[1一]番/, '报叫3番') : text;
+        return room && Number(room.areaType) === AREA_XINJIN && typeof text === 'string' ? xinjinRule(text, room) : text;
       };
     });
+    // 房间信息弹框原来只够两行（22 号字、居中在人数下面），写全要四行：字改 16 号，从人数下面往下排，到弹框底不出框。
+    var PlayUI = cc.js.getClassByName('CommonPlayUIController');
+    if (!PlayUI || PlayUI.prototype._standaloneXinjinRuleLayout || typeof PlayUI.prototype.showPlay !== 'function') return;
+    PlayUI.prototype._standaloneXinjinRuleLayout = true;
+    var showPlay = PlayUI.prototype.showPlay;
+    PlayUI.prototype.showPlay = function () {
+      var result = showPlay.apply(this, arguments), room = cc.mm.hallserver && cc.mm.hallserver.mLastRoomParam;
+      var node = this.views && this.views['view/ruleLabel'], label = node && node.getComponent(cc.Label);
+      if (label && room && Number(room.areaType) === AREA_XINJIN) {
+        if (!node._standaloneRuleLayout) node._standaloneRuleLayout = { y: node.y, anchorY: node.anchorY, fontSize: label.fontSize, lineHeight: label.lineHeight };
+        label.fontSize = 16; label.lineHeight = 20; node.anchorY = 1; node.y = -55;
+      } else if (node && node._standaloneRuleLayout) {
+        var old = node._standaloneRuleLayout;
+        label.fontSize = old.fontSize; label.lineHeight = old.lineHeight; node.anchorY = old.anchorY; node.y = old.y;
+      }
+      return result;
+    };
   }
   // 只留一个玩法，叫「四川斗十四」（DEC-20261101-四川斗十四）。原版桌上房间信息、大结算、小结算、分享文字按地区拼名字（新津、彭山、眉山…），这里统一换掉。
   var EDITION_NAME = '四川斗十四';
