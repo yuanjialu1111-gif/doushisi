@@ -123,7 +123,7 @@ test('confirmed scores survive restart, dissolve atomically and remain independe
       assert.equal(await count(room.id, 'round_settlement'), 1);
     });
 
-    await t.test('rejection cancels the vote while earned scores remain and dissolved losses may create debt', async () => {
+    await t.test('rejection cancels the vote while earned scores remain and dissolved losses stop at zero', async () => {
       const { players, room, roundId } = await pair(2, '2');
       await rooms.action(players[0]!, room.id, 'score-negative-earned', { eventId: 'earned:loss', delta: '-3.25' }, 0, roundId);
       await rooms.dissolve(players[0]!, room.id, true);
@@ -132,8 +132,9 @@ test('confirmed scores survive restart, dissolve atomically and remain independe
       assert.deepEqual((await rooms.view(room.id, players[0]!.id)).confirmedScores, totals(players, '-3.25'));
       await rooms.dissolve(players[0]!, room.id, true);
       await rooms.dissolve(players[1]!, room.id, true);
-      assert.equal(await ledger.balance(players[0]!.id), '-2.25');
-      assert.equal(await ledger.balance(players[1]!.id), '4.25');
+      // 只有 1 豆（交过房费）就只输 1 豆，对家也只赢 1 豆。
+      assert.equal(await ledger.balance(players[0]!.id), '0');
+      assert.equal(await ledger.balance(players[1]!.id), '2');
       await assert.rejects(ledger.adjust(beans, players[0]!.id, '-0.01', 'forbidden debt increase', 'score-debt-deduction'), { code: 'INSUFFICIENT_BALANCE' });
     });
 

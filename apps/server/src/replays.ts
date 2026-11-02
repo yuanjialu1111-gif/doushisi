@@ -6,9 +6,9 @@ import { projectOriginalNotifications } from './engines.js';
 import type { Database } from './database.js';
 import type { ConfirmedScoreBatch, EngineRegistry, EngineOriginalPacket } from './engines.js';
 import { AppError, requireCondition } from './errors.js';
-import { applyConfirmedScores, normalizeScores, totalConfirmedScores } from './confirmed-scores.js';
+import { applyConfirmedScores, capLosses, normalizeScores, totalConfirmedScores } from './confirmed-scores.js';
 import { finishInteractions, planInteractions, requireLegalAction, validateObservedDecision, type InteractionState } from './engine-interactions.js';
-import { money, internalMoney, addMoney } from './money.js';
+import { money, internalMoney, addMoney, beanUnits } from './money.js';
 import { validateNextRoundContext } from './round-context.js';
 import type { OriginalExtension } from './original-wire.js';
 import { avatarUrl, wireSex } from './avatars.js';
@@ -151,8 +151,12 @@ export class ReplayService {
     if (round.scoring_version === 1) {
       const scores = await this.db.query('SELECT s.event_id AS "eventId",s.postings,s.transfers,s.command_id AS "commandId" FROM round_score_events s JOIN game_events e ON e.room_id=s.room_id AND e.command_id=s.command_id WHERE s.round_id=$1 ORDER BY e.sequence,s.ordinal', [roundId]);
       requireCondition(isDeepStrictEqual(expectedScores, scores.rows.map(({ transfers, ...batch }) => ({ ...batch, ...(transfers === null ? {} : { transfers }) }))), 'REPLAY_DIVERGED', 'Stored score events differ from the archived actions.', 409);
-      requireCondition(finalSettlement === (round.end_reason === 'completed')
-        && isDeepStrictEqual(totalConfirmedScores(confirmed, playerIds), normalizeScores(round.results, playerIds)),
+      // 过账的是封顶后的豆子（最多输光身上的），按结算那一刻各人的余额重算一遍也得对上。
+      const totals = totalConfirmedScores(confirmed, playerIds);
+      const posted = normalizeScores(round.results, playerIds);
+      const before = (await this.db.query("SELECT e.user_id,e.balance_before::text FROM ledger_operations o JOIN ledger_entries e ON e.operation_id=o.id WHERE o.request_key=$1", [`settlement:${roundId}`])).rows;
+      const paid = before.length ? normalizeScores(capLosses(totals, new Map(before.map(row => [row.user_id as string, beanUnits(row.balance_before)]))), playerIds) : totals;
+      requireCondition(finalSettlement === (round.end_reason === 'completed') && (isDeepStrictEqual(totals, posted) || isDeepStrictEqual(paid, posted)),
       'REPLAY_DIVERGED', 'Confirmed scores do not reproduce the posted round results.', 409);
     }
     return { roomId, roundId, number: round.number, variantKey: round.variant_key, ruleVersion: round.rule_version,

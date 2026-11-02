@@ -6,9 +6,9 @@ import type { Database, Sql } from './database.js';
 import { requireRole, type Actor } from './auth.js';
 import { requireCondition } from './errors.js';
 import { EngineRegistry, projectOriginalNotifications, type ConfirmedScoreBatch, type OriginalActionContext, type EngineOriginalBody, type RuleEngine, type TestDeal } from './engines.js';
-import { applyConfirmedScores, normalizeScores, totalConfirmedScores } from './confirmed-scores.js';
+import { applyConfirmedScores, capLosses, normalizeScores, totalConfirmedScores } from './confirmed-scores.js';
 import { appendOperation, balanceChanges, requestHash, type BalanceChange, type Posting } from './ledger.js';
-import { Decimal, amount, money } from './money.js';
+import { Decimal, amount, beanUnits, money, unitsMoney } from './money.js';
 import { isXinjinV2 } from './game/xinjin-win.js';
 import { PolicyService } from './policies.js';
 import { TRANSFER_ROUNDING_VERSION } from './transfers.js';
@@ -426,6 +426,7 @@ export class RoomService extends EventEmitter {
     const interactionState = !previous ? null : result.settlement !== undefined ? finishInteractions(previous, atMs)
       : planInteractions({ engine, snapshot: result.snapshot, playerIds: memberIds, roundId: round.id, atMs,
         autoPlayUserIds: members.filter(member => member.auto_play).map(member => member.user_id), previous, consumedTimerId: scheduled?.id, stateVersion: round.state_version + 1 });
+    const closing = result.settlement === undefined ? false : (await this.settlementPlan(tx, room, memberIds, result.settlement, 'completed')).closed;
     await tx.query('UPDATE rounds SET snapshot=$2,state_version=state_version+1,interaction_state=$3,next_action_at=$4,next_round_context=$5 WHERE id=$1',
       [round.id, JSON.stringify(result.snapshot), interactionState ? JSON.stringify(interactionState) : null, this.scheduledTimestamp(interactionState),
         nextRoundContext === null ? null : JSON.stringify(nextRoundContext)]);
@@ -434,7 +435,7 @@ export class RoomService extends EventEmitter {
       ...(decision ? { decision } : {}),
       ...(original ? { original, originalDecoded: action, originalResponse } : {}),
       ...(engine.original ? { originalNotifications: this.originalNotifications(engine, result.snapshot, result.events, memberIds, 'action'),
-        originalRoomState: result.settlement ? { roomId: room.current_round >= room.rounds ? null : room.id, roundId: null, stateVersion: null }
+        originalRoomState: result.settlement ? { roomId: closing ? null : room.id, roundId: null, stateVersion: null }
           : { roomId: room.id, roundId: round.id, stateVersion: round.state_version + 1 } } : {}),
       ...(scheduled ? { scheduledTimerId: scheduled.id } : {}), ...(interactionState ? { interactionState } : {}),
       ...(result.settlement === undefined ? {} : { nextRoundContext }),
@@ -525,10 +526,30 @@ export class RoomService extends EventEmitter {
     return result.rows.map(({ transfers, ...batch }) => ({ ...batch, ...(transfers === null ? {} : { transfers }) })) as ConfirmedScoreBatch[];
   }
 
+  /**
+   * 这局实际过账的豆子和打完要不要收桌：输家最多输光身上的豆子（capLosses）；
+   * 公开桌打完一局有人豆子低于入座门槛（底分 × 倍数），这桌直接散，不留座、不开下一场，大家回大厅。
+   */
+  private async settlementPlan(tx: Sql, room: Record<string, any>, ids: string[], postings: Posting[], endReason: 'completed' | 'dissolved') {
+    const before = new Map<string, bigint>();
+    for (const id of ids) before.set(id, beanUnits((await tx.query('SELECT balance::text FROM wallets WHERE user_id=$1 FOR UPDATE', [id])).rows[0]!.balance));
+    const paid = normalizeScores(capLosses(normalizeScores(postings, ids, 'INVALID_SETTLEMENT'), before), ids, 'INVALID_SETTLEMENT');
+    let lowUserIds: string[] = [];
+    let threshold: Decimal | null = null;
+    if (endReason === 'completed' && room.visibility === 'public') {
+      threshold = await this.thresholdFor(tx, room);
+      lowUserIds = paid.filter(posting => new Decimal(unitsMoney(before.get(posting.userId)! + beanUnits(posting.amount))).lessThan(threshold!)).map(posting => posting.userId);
+    }
+    const closed = endReason === 'dissolved' || room.current_round >= room.rounds || lowUserIds.length > 0;
+    return { paid, lowUserIds, threshold, closed };
+  }
+
   private async settle(tx: Sql, room: Record<string, any>, roundId: string, postings: Posting[], endReason: 'completed' | 'dissolved' = 'completed'): Promise<BalanceChange[]> {
     const members = await tx.query('SELECT user_id FROM room_members WHERE room_id=$1 ORDER BY user_id', [room.id]);
     const ids = members.rows.map(m => m.user_id);
-    postings = normalizeScores(postings, ids, 'INVALID_SETTLEMENT');
+    if ((await tx.query('SELECT 1 FROM ledger_operations WHERE request_key=$1', [`settlement:${roundId}`])).rows.length) return [];
+    const plan = await this.settlementPlan(tx, room, ids, postings, endReason);
+    postings = plan.paid;
     const operationSpec = { key: `settlement:${roundId}`, kind: 'round_settlement' as const, roomId: room.id, roundId,
       reason: endReason === 'dissolved' ? 'Confirmed scores at unanimous dissolution' : 'Automatic round settlement', postings };
     const operation = await appendOperation(tx, operationSpec);
@@ -541,9 +562,14 @@ export class RoomService extends EventEmitter {
       if (previous) await tx.query('UPDATE rounds SET interaction_state=$2 WHERE id=$1', [roundId, JSON.stringify(finishInteractions(previous, this.now()))]);
     }
     await tx.query("UPDATE rounds SET state='settled',results=$2,settled_at=now(),end_reason=$3,next_action_at=NULL WHERE id=$1", [roundId, JSON.stringify(postings), endReason]);
-    const closed = endReason === 'dissolved' || room.current_round >= room.rounds;
+    const closed = plan.closed;
     await tx.query('UPDATE rooms SET state=$2,closed_at=CASE WHEN $3 THEN now() ELSE NULL END WHERE id=$1', [room.id, closed ? 'closed' : 'between_rounds', closed]);
-    if (closed && endReason === 'completed' && room.lobby_template_id) await this.nextMatch(tx, room);
+    if (plan.lowUserIds.length) {
+      const names = (await tx.query('SELECT m.user_id,a.nickname FROM room_members m JOIN accounts a ON a.id=m.user_id WHERE m.room_id=$1 ORDER BY m.seat', [room.id])).rows
+        .filter(row => plan.lowUserIds.includes(row.user_id)).map(row => `「${row.nickname}」`);
+      const message = `${names.join('、')}豆子不到这桌的 ${money(plan.threshold!)} 豆，房间自动解散，大家回大厅重新找桌。`;
+      await this.event(tx, room.id, SYSTEM_ACCOUNT_ID, `room-low-balance:${roundId}`, { type: 'room_closed_low_balance', userIds: plan.lowUserIds, threshold: money(plan.threshold!), message });
+    } else if (closed && endReason === 'completed' && room.lobby_template_id) await this.nextMatch(tx, room);
     return balanceChanges(operation, operationSpec);
   }
 

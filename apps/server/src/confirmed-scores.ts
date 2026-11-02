@@ -55,3 +55,24 @@ export function applyConfirmedScores(previous: ConfirmedScoreBatch[], result: En
     'Final settlement must equal the accumulated confirmed scores.', 500);
   return { all, appended, totals, settlement };
 }
+
+/**
+ * 一局最多输光身上的豆子：输家扣到 0 为止（本来就没豆子的不扣），扣不到的那部分由赢家按赢的比例少拿，
+ * 除不尽的零头从赢得多的人开始一份一份少拿。balances 是结算前的余额（豆子最小单位）。
+ */
+export function capLosses(postings: Posting[], balances: ReadonlyMap<string, bigint>): Posting[] {
+  const units = postings.map(posting => ({ userId: posting.userId, value: beanUnits(posting.amount) }));
+  let deficit = 0n;
+  for (const item of units) {
+    const limit = (balances.get(item.userId) ?? 0n) > 0n ? balances.get(item.userId)! : 0n;
+    if (-item.value > limit) { deficit += -item.value - limit; item.value = -limit; }
+  }
+  if (deficit === 0n) return postings;
+  const winners = units.filter(item => item.value > 0n)
+    .sort((a, b) => a.value === b.value ? a.userId.localeCompare(b.userId) : a.value > b.value ? -1 : 1);
+  const gains = winners.reduce((sum, item) => sum + item.value, 0n);
+  let left = deficit;
+  for (const item of winners) { const share = deficit * item.value / gains; item.value -= share; left -= share; }
+  for (let index = 0; left > 0n; index = (index + 1) % winners.length) { winners[index]!.value -= 1n; left -= 1n; }
+  return units.map(item => ({ userId: item.userId, amount: unitsMoney(item.value) }));
+}

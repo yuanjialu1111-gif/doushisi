@@ -298,9 +298,9 @@ export async function registerOriginalProtocol(app: FastifyInstance, services: O
     for (const peer of peers) if (!peer.closed) peer.send(MSGEvent.HWNotifyUserDataChange, body, fields);
   }
 
-  interface RoomProjection { code: number; state: string; members: Record<string, any>[]; dissolve: DissolveState | null; cursor: NonNullable<OriginalExtension['roomState']>; sequence: number; completed: boolean }
+  interface RoomProjection { code: number; state: string; members: Record<string, any>[]; dissolve: DissolveState | null; cursor: NonNullable<OriginalExtension['roomState']>; sequence: number; completed: boolean; lowBalance: string | null }
   async function roomProjection(roomId: string): Promise<RoomProjection | null> {
-    const room = (await db.query("SELECT r.code,r.state,r.current_round,r.rounds,q.id AS round_id,q.state_version,(SELECT COALESCE(MAX(e.sequence),0)::int FROM game_events e WHERE e.room_id=r.id) AS sequence,(SELECT l.end_reason FROM rounds l WHERE l.room_id=r.id ORDER BY l.number DESC LIMIT 1) AS last_end FROM rooms r LEFT JOIN rounds q ON q.room_id=r.id AND q.state='playing' WHERE r.id=$1", [roomId])).rows[0];
+    const room = (await db.query("SELECT r.code,r.state,r.current_round,r.rounds,q.id AS round_id,q.state_version,(SELECT COALESCE(MAX(e.sequence),0)::int FROM game_events e WHERE e.room_id=r.id) AS sequence,(SELECT l.end_reason FROM rounds l WHERE l.room_id=r.id ORDER BY l.number DESC LIMIT 1) AS last_end,(SELECT e.payload->>'message' FROM game_events e WHERE e.room_id=r.id AND e.payload->>'type'='room_closed_low_balance' LIMIT 1) AS low_balance FROM rooms r LEFT JOIN rounds q ON q.room_id=r.id AND q.state='playing' WHERE r.id=$1", [roomId])).rows[0];
     if (!room) return null;
     const members = (await db.query(`SELECT m.user_id AS "userId",m.seat,m.ready,m.auto_play AS "autoPlay",
       COALESCE(t.room_bean_delta,0)::text AS score,w.balance::text AS "beanBalance",a.nickname,a.avatar_hash AS "avatarHash",a.avatar_status AS "avatarStatus",a.sex
@@ -311,9 +311,9 @@ export async function registerOriginalProtocol(app: FastifyInstance, services: O
       WHERE m.room_id=$1 ORDER BY m.seat`, [roomId])).rows;
     let dissolve = await rooms.dissolveState(roomId);
     if (dissolve && dissolve.expiresAt <= Date.now()) { await rooms.expireDissolve(roomId); dissolve = null; }
-    // 打满局数正常收桌：牌桌留着小结算和「查看总结算」，不直接回大厅（第三轮 R5）。
-    const completed = room.state === 'closed' && room.current_round >= room.rounds && room.last_end === 'completed';
-    return { code: Number(room.code), state: room.state, members, dissolve, sequence: room.sequence, completed,
+    // 打满局数正常收桌：牌桌留着小结算和「查看总结算」，不直接回大厅（第三轮 R5）。有人豆子不够门槛自动散桌也一样，看完结算回大厅。
+    const completed = room.state === 'closed' && room.last_end === 'completed' && (room.current_round >= room.rounds || room.low_balance !== null);
+    return { code: Number(room.code), state: room.state, members, dissolve, sequence: room.sequence, completed, lowBalance: room.low_balance as string | null,
       cursor: room.state === 'closed' ? emptyRoomState() : { roomId, roundId: room.round_id ?? null, stateVersion: room.state_version ?? null } };
   }
   async function dissolveInfo(room: RoomProjection): Promise<Record<string, unknown> | undefined> {
@@ -333,10 +333,15 @@ export async function registerOriginalProtocol(app: FastifyInstance, services: O
     }
   }
   /** 引擎只知道账号 id；结算窗要昵称、原版数字 uid，总结算的 score 是这桌累计（changeScore 仍是这局输赢）。 */
-  async function gameOverForWire(packet: Record<string, any>, room: RoomProjection): Promise<Record<string, any>> {
+  async function gameOverForWire(packet: Record<string, any>, room: RoomProjection, roundId?: string): Promise<Record<string, any>> {
     const body = structuredClone(packet.body ?? {});
     const decimalFields: DecimalField[] = (packet.decimalFields ?? []).map((field: DecimalField) => ({ ...field, path: [...field.path] }));
+    // 这局输赢显示实际过账的豆子：输家最多输光身上的，赢家相应少拿。
+    const paid: Record<string, any>[] = roundId ? (await db.query("SELECT results FROM rounds WHERE id=$1 AND state='settled'", [roundId])).rows[0]?.results ?? [] : [];
     for (const [index, info] of (body.userScoreInfo ?? []).entries()) {
+      const actual = paid.find(posting => posting.userId === info.uid);
+      const change = decimalFields.find(field => field.path.join('.') === `hwNotifyGameOver.userScoreInfo.${index}.changeScore`);
+      if (actual && change) { change.value = actual.amount; info.changeScore = actual.amount; }
       const member = room.members.find(item => item.userId === info.uid);
       info.nick = member?.nickname ?? '';
       info.uid = Number(await numericUid(info.uid));
@@ -362,7 +367,7 @@ export async function registerOriginalProtocol(app: FastifyInstance, services: O
           requireCondition(Object.entries(MSGEvent).some(([name, command]) => command === packet.command && (name.startsWith('HWNotify') || name.startsWith('HWNottify'))),
             'INVALID_ORIGINAL_PROJECTION', 'An engine notification must use an original server notification command.', 500);
           peer.roomState = payload.originalRoomState;
-          const shown = packet.command === MSGEvent.HWNotifyGameOver ? await gameOverForWire(packet, current) : packet;
+          const shown = packet.command === MSGEvent.HWNotifyGameOver ? await gameOverForWire(packet, current, payload.roundId) : packet;
           peer.send(shown.command, shown.body, shown.decimalFields, undefined, undefined, undefined, shown.decisionId);
         }
         peer.sequence = sequence;
@@ -371,6 +376,7 @@ export async function registerOriginalProtocol(app: FastifyInstance, services: O
     projections.set(roomId, current); armVoteTimer(roomId, current.dissolve);
     for (const peer of watchers) peer.roomState = current.members.some(member => member.userId === peer.actor?.id) ? current.cursor : emptyRoomState();
     if (current.state === 'closed') {
+      if (current.lowBalance) for (const peer of watchers) peer.send(MSGEvent.HWNotifyNotice, { noticeInfo: { msg: current.lowBalance, intervalSecond: 0, endTime: '' } }, [], { code: 'LOW_BALANCE_CLOSED', message: current.lowBalance });
       for (const peer of watchers) { peer.send(MSGEvent.HWNotifyDissolvedTable, { roomId: current.code, result: true, dating: !current.completed }); peer.roomId = undefined; }
       projections.delete(roomId); return;
     }

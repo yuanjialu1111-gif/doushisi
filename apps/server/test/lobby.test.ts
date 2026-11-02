@@ -176,31 +176,39 @@ test('第三轮 R5：一场打完同桌号开下一场，留座 15 秒，点继�
   assert.deepEqual(await feesOf(next.id), ['-1', '-1']);
 });
 
-test('第三轮 R5 AC2/AC3：豆子不够门槛不能接着打；留座的人主动离开、全走光桌子变回空桌', async t => {
+test('第三轮 R5 AC2/AC3：打完一局有人豆子不够门槛整桌散、不留座，回大厅也坐不下；留座的人主动离开、全走光桌子变回空桌', async t => {
   const ctx = await setup(); t.after(ctx.close);
   await ctx.lobby.createTemplate(ctx.beans, template({ standingEmpty: 1 }));
   await ctx.lobby.maintain();
   const [a, b] = [await ctx.player('lobby_poor_a', '11'), await ctx.player('lobby_poor_b', '50')];
-  const code = (await tablesOf(ctx, a.headers)).tables[0].code;
-  // b 坐 1 号（夹具里 1 号每局赢 1 豆），a 交 1 豆房费再输 4 局，剩 6 豆不够 10 豆门槛。
+  let code = (await tablesOf(ctx, a.headers)).tables[0].code;
+  // b 坐 1 号（夹具里 1 号每局赢 1 豆），a 交 1 豆房费再输 1 局剩 9 豆，不够 10 豆门槛：4 局才打 1 局就散。
   await ctx.rooms.join(b.actor, code);
   const room = await ctx.rooms.join(a.actor, code);
-  for (let round = 1; round <= 4; round++) {
-    await ctx.rooms.ready(a.actor, room.id, true);
-    const started = await ctx.rooms.ready(b.actor, room.id, true);
-    await ctx.rooms.action(a.actor, room.id, `lobby-poor-settle-${round}`, { type: 'settle' }, started.stateVersion!, started.roundId!);
-  }
-  const balance = Number(await ctx.ledger.balance(a.actor.id));
-  assert.ok(balance < 10, String(balance));
-  const hold = (await ctx.app.inject({ method: 'GET', url: '/api/lobby/hold', headers: a.headers })).json().hold;
-  assert.equal(hold.enough, false); assert.equal(hold.threshold, '10');
-  await assert.rejects(ctx.rooms.join(a.actor, code), (error: any) => error.code === 'BELOW_THRESHOLD');
-
-  const released = await ctx.app.inject({ method: 'POST', url: '/api/lobby/hold/release', headers: a.headers });
-  assert.deepEqual(released.json(), { released: 1 });
-  assert.deepEqual((await ctx.app.inject({ method: 'POST', url: '/api/lobby/hold/release', headers: b.headers })).json(), { released: 1 });
+  await ctx.rooms.ready(a.actor, room.id, true);
+  const first = await ctx.rooms.ready(b.actor, room.id, true);
+  await ctx.rooms.action(a.actor, room.id, 'lobby-poor-settle-1', { type: 'settle' }, first.stateVersion!, first.roundId!);
+  assert.equal(await ctx.ledger.balance(a.actor.id), '9');
+  assert.deepEqual(Object.values((await ctx.db.query('SELECT state,current_round FROM rooms WHERE id=$1', [room.id])).rows[0]!), ['closed', 1]);
+  for (const someone of [a, b]) assert.equal((await ctx.app.inject({ method: 'GET', url: '/api/lobby/hold', headers: someone.headers })).json().hold, null);
   await ctx.lobby.maintain();
-  const listing = await tablesOf(ctx, b.headers);
+  await assert.rejects(ctx.rooms.join(a.actor, (await tablesOf(ctx, a.headers)).tables[0].code), (error: any) => error.code === 'BELOW_THRESHOLD');
+
+  // 豆子都够的两人打满 4 局，下一场留座；两人都点离开，桌子变回空桌。
+  const [c, d] = [await ctx.player('lobby_full_c', '50'), await ctx.player('lobby_full_d', '50')];
+  code = (await tablesOf(ctx, c.headers)).tables[0].code;
+  const full = await ctx.rooms.join(c.actor, code);
+  await ctx.rooms.join(d.actor, code);
+  for (let round = 1; round <= 4; round++) {
+    await ctx.rooms.ready(c.actor, full.id, true);
+    const started = await ctx.rooms.ready(d.actor, full.id, true);
+    await ctx.rooms.action(c.actor, full.id, `lobby-full-settle-${round}`, { type: 'settle' }, started.stateVersion!, started.roundId!);
+  }
+  const released = await ctx.app.inject({ method: 'POST', url: '/api/lobby/hold/release', headers: c.headers });
+  assert.deepEqual(released.json(), { released: 1 });
+  assert.deepEqual((await ctx.app.inject({ method: 'POST', url: '/api/lobby/hold/release', headers: d.headers })).json(), { released: 1 });
+  await ctx.lobby.maintain();
+  const listing = await tablesOf(ctx, d.headers);
   assert.equal(listing.tables.length, 1);
   assert.deepEqual([listing.tables[0].code, listing.tables[0].seats.length, listing.tables[0].matchSeq], [code, 0, 2]);
 });
