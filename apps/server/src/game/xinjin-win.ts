@@ -1,4 +1,4 @@
-import { XINJIN_INDEPENDENT_FANS, XINJIN_INDEPENDENT_VERSION, XINJIN_SCORING_V2, XINJIN_V2_FANS, XINJIN_V2_MAX_FAN, xinjinRedGate } from '@dss/rules';
+import { XINJIN_INDEPENDENT_FANS, XINJIN_INDEPENDENT_VERSION, XINJIN_SCORING_V2, XINJIN_V2_FANS, xinjinRedGate } from '@dss/rules';
 import { requireCondition } from '../errors.js';
 import type { PhysicalCard } from './cards.js';
 import { decomposeCards } from './combinations.js';
@@ -121,7 +121,7 @@ export function evaluateXinjinWin(hand: XinjinHand, context: XinjinWinContext, r
 }
 
 /**
- * v2：门槛 4 人红 20、3 人和 2 人红 25；只有全黑、黑五十、暗四对不看门槛（全红、天走、接地也要够，DEC-20261102-胡牌门槛）；跟头翻 5 番封顶。
+ * v2：门槛 4 人红 20、3 人和 2 人红 25；只有全黑、黑五十、暗四对不看门槛（全红、天走、接地也要够，DEC-20261102-胡牌门槛）；跟头翻不封顶（DEC-20261102-不封顶）。
  * 牌型两种：四组（暗手只按两张凑 14 拆）；暗四对（一组没亮，8 张是四个同点对子，四张同点算一个龙）。两种都成立取番大的。
  */
 function evaluateV2(hand: XinjinHand, context: XinjinWinContext, rules: Readonly<Record<string, unknown>>, ordinary: PhysicalCard[],
@@ -165,7 +165,7 @@ function evaluateV2(hand: XinjinHand, context: XinjinWinContext, rules: Readonly
       add('longDui', [...byRank.values()].filter(cards => cards.length === 4).length);
     }
     const totalFan = items.reduce((sum, item) => sum + item.fan, 0);
-    const cappedFan = Math.min(XINJIN_V2_MAX_FAN, totalFan);
+    const cappedFan = totalFan;
     const concealedGroups = structure === 'ordinary' ? decompositions[0]!.map(id => [...candidates.find(candidate => candidate.id === id)!.cardIds]) :
       [...byRank].sort(([a], [b]) => a - b).flatMap(([, cards]) => {
         const ids = cards.map(card => card.id).sort();

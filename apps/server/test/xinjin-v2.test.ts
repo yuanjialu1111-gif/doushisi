@@ -88,7 +88,7 @@ test('v2 门槛按人数：4 人红 20 能胡，3 人要 25', () => {
   assert.equal(evaluateXinjinWin(state, flipAt(state), v2Rules(2)).status, 'not-winning');
 });
 
-test('v2 番：鬼每张 1、偷出三张算碰 1、杠 2，跟头翻 5 番封顶', () => {
+test('v2 番：鬼每张 1、偷出三张算碰 1、杠 2，跟头翻不封顶', () => {
   const melds = [{ kind: 'tou' as const, codes: [112, 212, 412] }, { kind: 'gang' as const, codes: [113, 213, 313, 413] }];
   const state = v2Hand([110, 204, 309, 205], melds, [1001, 1002]);
   const result = evaluateXinjinWin(state, flipAt(state), v2Rules(4));
@@ -99,7 +99,7 @@ test('v2 番：鬼每张 1、偷出三张算碰 1、杠 2，跟头翻 5 番封�
   assert.equal(result.scoreUnits, '32');
   const more = v2Hand([110, 204, 309, 205], melds, [1001, 1002, 1003]);
   const capped = evaluateXinjinWin(more, flipAt(more), v2Rules(4));
-  assert.ok(capped.status === 'winning' && capped.totalFan === 6 && capped.cappedFan === 5 && capped.scoreUnits === '32');
+  assert.ok(capped.status === 'winning' && capped.totalFan === 6 && capped.cappedFan === 6 && capped.scoreUnits === '64');
 });
 
 test('v2 番表：报叫、金二十、暗四对、龙对、红黑五十、金钩钓各 3 番', () => {
@@ -117,10 +117,10 @@ test('v2 番表：报叫、金二十、暗四对、龙对、红黑五十、金�
   const dui = fans(v2Hand([105, 305, 110, 310, 202, 402, 211, 411]));
   assert.equal(dui.structure, 'four-pairs');
   assert.deepEqual(pairs(dui), [['anDui', 3]]);
-  // 龙对：暗四对里四张同点，再加 3（6 番封顶 5）。
+  // 龙对：暗四对里四张同点，再加 3，共 6 番（不封顶）。
   const long = fans(v2Hand([105, 205, 305, 405, 110, 310, 202, 402]));
   assert.deepEqual(pairs(long), [['anDui', 3], ['longDui', 3]]);
-  assert.equal(long.cappedFan, 5);
+  assert.equal(long.cappedFan, 6);
   // 亮了牌就不是暗四对。
   const opened = evaluateXinjinWin(v2Hand([105, 305, 110, 310, 202, 402], [{ kind: 'tou', codes: [111, 211, 311] }]),
     { ...flipAt(v2Hand([105])), incomingCardId: 'v2-1' }, v2Rules(4));

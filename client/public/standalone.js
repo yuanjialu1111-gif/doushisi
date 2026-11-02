@@ -1838,7 +1838,7 @@
   function xinjinRule(text, room) {
     var pay = /^场次规则: (房主、|AA、)/.exec(text), base = /、([^、]+分)$/.exec(text);
     return '场次规则: ' + (pay ? pay[1] : '') + (Number(room.wangNum) || 3) + '个王、红' + (Number(room.playerNum) === 4 ? 20 : 25) +
-      '起胡、跟斗翻、封顶5番、点炮包赔、自摸自吃' + (base ? '、' + base[1] : '') + '；' + XINJIN_FAN_TEXT;
+      '起胡、跟斗翻、不封顶、点炮包赔、自摸自吃' + (base ? '、' + base[1] : '') + '；' + XINJIN_FAN_TEXT;
   }
   function xinjinRuleText() {
     ['CommonPlayUIController', 'dss_gameController'].forEach(function (name) {

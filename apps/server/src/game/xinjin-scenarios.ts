@@ -7,7 +7,7 @@ import type { PhysicalCard } from './cards.js';
  * 没写满的用固定的牌补）；draws 是开局后依次摸到、翻出的牌。牌面：花色×100+点数，1、3 红，2、4 黑；1001~1003 是鬼。
  * 每个场景在 test/xinjin-scenarios.test.ts 里按 tip 一步步打过。
  */
-export interface XinjinScenario { key: string; group: '番型' | '操作'; title: string; tip: string; hands: number[][]; draws: number[] }
+export interface XinjinScenario { key: string; group: '番型' | '组合' | '操作'; title: string; tip: string; hands: number[][]; draws: number[] }
 
 export const XINJIN_SCENARIOS: readonly XinjinScenario[] = [
   { key: 'tianHu', group: '番型', title: '天胡', tip: '1号起手就有「胡」，点胡：天胡 3 番（红点 21，天胡也要够 20）。',
@@ -21,7 +21,7 @@ export const XINJIN_SCENARIOS: readonly XinjinScenario[] = [
   { key: 'anDui', group: '番型', title: '暗四对', tip: '1号打黑K；2号翻出黑J，1号点胡：暗四对 3 番（「对子」图）。',
     hands: [[105, 305, 110, 310, 202, 402, 211, 413]], draws: [411] },
   // 龙对放 3号：3号胡之前轮不到自己，不会冒「偷、杠」（以前放 1号，开局点了杠，补牌把黑2摸走，后面全乱，11-01 测试台）。
-  { key: 'longDui', group: '番型', title: '龙对', tip: '1号打黑K（别人有吃、碰都点过）；2号翻出黑2，3号点胡：暗四对 3 + 龙对 3，封顶 5 番。',
+  { key: 'longDui', group: '番型', title: '龙对', tip: '1号打黑K（别人有吃、碰都点过）；2号翻出黑2，3号点胡：暗四对 3 + 龙对 3 = 6 番（不封顶）。',
     hands: [[413], [], [105, 205, 305, 405, 110, 310, 202]], draws: [402] },
   { key: 'quanHong', group: '番型', title: '全红', tip: '1号打黑7；2号翻出红Q，1号点胡：全红 3 番（红点 22，全红也要够 20）。',
     hands: [[101, 113, 102, 112, 104, 310, 302, 207]], draws: [312] },
@@ -32,12 +32,19 @@ export const XINJIN_SCENARIOS: readonly XinjinScenario[] = [
   { key: 'hei50', group: '番型', title: '黑五十', tip: '1号打红Q；2号翻出黑7，1号点胡：黑五十 3 番（红点只有 4 也能胡）。',
     hands: [[210, 304, 209, 405, 208, 406, 207, 112]], draws: [407] },
   { key: 'jinGouDiao', group: '番型', title: '金钩钓（大吊车）',
-    tip: '1号偷三个5、再偷三个10，打红K；2号翻出红9，1号点碰；补到黑K，1号点胡：碰 3 + 金钩钓 3，封顶 5 番。',
+    tip: '1号偷三个5、再偷三个10，打红K；2号翻出红9，1号点碰；补到黑K，1号点胡：碰 3（偷两组、碰一组各 1）+ 金钩钓 3 = 6 番（不封顶）。',
     hands: [[105, 205, 305, 110, 210, 310, 109, 209]], draws: [113, 401, 309, 213] },
   { key: 'guiPengGang', group: '番型', title: '鬼、碰、杠',
     tip: '1号开局的鬼自动亮出补牌；点杠（四个5），补到第三张10，冒出「偷」不用管，打黑Q；2号翻出红10，1号点碰（弹框任选一组）；补到红J，1号点胡：鬼 1 + 碰 1 + 杠 2 = 4 番。',
     hands: [[1001, 105, 205, 305, 405, 110, 210, 412]], draws: [104, 410, 103, 310, 311] },
-  { key: 'cap', group: '番型', title: '5 番封顶', tip: '1号起手点胡：天胡 3 + 全红 3 + 红五十 3 = 9 番，只算 5 番。',
+  // 组合：几种番叠在一起，不封顶，番照加（DEC-20261102-不封顶）。
+  { key: 'tianQia20', group: '组合', title: '天胡＋金二十', tip: '1号起手点胡：天胡 3 + 金二十 3 = 6 番，64 份（红点正好 20）。',
+    hands: [[110, 404, 109, 205, 101, 213, 202, 412]], draws: [] },
+  { key: 'tianAnDui', group: '组合', title: '天胡＋暗四对', tip: '1号起手点胡：天胡 3 + 暗四对 3 = 6 番，64 份（红点 38）。',
+    hands: [[110, 310, 109, 309, 202, 402, 211, 411]], draws: [] },
+  { key: 'diQuanHong', group: '组合', title: '地胡＋全红', tip: '1号打红Q；2号点胡：地胡 3 + 全红 3 = 6 番，点炮 1号一人包三家（红点 22）。',
+    hands: [[312], [101, 113, 102, 112, 104, 310, 302]], draws: [] },
+  { key: 'cap', group: '组合', title: '不封顶', tip: '1号起手点胡：天胡 3 + 全红 3 + 红五十 3 = 9 番，512 份，不封顶照算。',
     hands: [[110, 304, 109, 305, 108, 306, 307, 107]], draws: [] },
   { key: 'gate', group: '番型', title: '红点不够不能胡',
     tip: '1号打红6；2号翻出黑Q，牌凑齐了但 1号没有「胡」：红点 4 不够 20，也不是全黑、黑五十。',

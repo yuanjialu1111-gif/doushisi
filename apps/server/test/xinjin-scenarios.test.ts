@@ -71,9 +71,18 @@ const flipWin = (key: string, discard: number, patterns: string[], capped: numbe
   return won(claim(state, 'a', 'hu'), 'a', patterns, capped);
 };
 
-test('番型：天胡、5 番封顶', () => {
+test('番型：天胡', () => {
   won(step(start('tianHu'), 'a', 'hu'), 'a', ['tianHu'], 3);
-  won(step(start('cap'), 'a', 'hu'), 'a', ['tianHu', 'quanHong', 'hong50'], 5);
+});
+test('组合：天胡＋金二十、天胡＋暗四对、地胡＋全红、不封顶', () => {
+  const units = (win: { scoreUnits: string }) => win.scoreUnits;
+  assert.equal(units(won(step(start('tianQia20'), 'a', 'hu'), 'a', ['tianHu', 'qia20'], 6)), '64');
+  const anDui = won(step(start('tianAnDui'), 'a', 'hu'), 'a', ['tianHu', 'anDui'], 6);
+  assert.equal(anDui.structure, 'four-pairs');
+  const di = step(start('diQuanHong'), 'a', 'discard', [312]);
+  const diWon = claim(di, 'b', 'hu');
+  assert.equal(won(diWon, 'b', ['diHu', 'quanHong'], 6).redPoints, 22);
+  assert.equal(units(won(step(start('cap'), 'a', 'hu'), 'a', ['tianHu', 'quanHong', 'hong50'], 9)), '512');
 });
 test('番型：地胡', () => {
   const state = step(start('diHu'), 'a', 'discard', [113]);
@@ -90,7 +99,7 @@ test('番型：金二十、暗四对、龙对、全红、全黑、红五十、�
   const longDui = pass(step(start('longDui'), 'a', 'discard', [413]), ['c']);
   assert.equal(options(start('longDui'), 'c', 'tou').length + options(start('longDui'), 'c', 'gang').length, 0);
   const longDuiWon = claim(longDui, 'c', 'hu');
-  won(longDuiWon, 'c', ['anDui', 'longDui'], 5);
+  won(longDuiWon, 'c', ['anDui', 'longDui'], 6);
   // 胡牌特效按番型编号播：暗四对 14（对子胡）、龙对 110（热更新脚本借大胡动画换字），DEC-20261101-胡牌特效补齐。
   assert.deepEqual(xinjinSettlementBrand(longDuiWon, 'c').cardType, [14, 110]);
   assert.equal(flipWin('quanHong', 207, ['quanHong'], 3).redPoints, 22);
@@ -103,7 +112,7 @@ test('番型：金钩钓（大吊车）', () => {
   state = step(state, 'a', 'tou', [110, 210, 310]);
   state = pass(step(state, 'a', 'discard', [113]), ['a']);
   state = claim(state, 'a', 'peng', [309]);
-  won(step(state, 'a', 'hu'), 'a', ['peng', 'jinGouDiao'], 5);
+  won(step(state, 'a', 'hu'), 'a', ['peng', 'jinGouDiao'], 6);
 });
 test('番型：鬼、碰、杠', () => {
   let state = start('guiPengGang');

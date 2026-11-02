@@ -54,13 +54,12 @@ export const XINJIN_V2_FANS = Object.freeze({
   gui: 1, peng: 1, gang: 2, baoJiao: 3, tianHu: 3, diHu: 3, qia20: 3, anDui: 3, longDui: 3,
   quanHong: 3, quanHei: 3, hong50: 3, hei50: 3, jinGouDiao: 3,
 });
-/** 新津 v2 计分：跟头翻 2^番、5 番封顶，门槛按人数，点炮包三家，只一家胡。 */
+/** 新津 v2 计分：跟头翻 2^番、不封顶（2026-11-02 改，以前 5 番封顶），门槛按人数，点炮包三家，只一家胡。 */
 export const XINJIN_SCORING_V2 = 'v2';
-export const XINJIN_V2_MAX_FAN = 5;
 export const xinjinRedGate = (playerNum: unknown): number => playerNum === 4 ? 20 : 25;
 /** v2 固定玩法：报叫留动作不加番，天走、接地开，其余 v1 番关，7 不偷；自己翻出的牌自己也能吃（ziChi 1，下家照旧能吃）。 */
 export const XINJIN_V2_OPTIONS = Object.freeze({
-  maxFan: 5, chengFan: 1, qiToWang: 0, baoJiao: 1, diHu: 1, tianHu: 1, ziChi: 1, anDui: 0, qia20: 0,
+  maxFan: 99, chengFan: 1, qiToWang: 0, baoJiao: 1, diHu: 1, tianHu: 1, ziChi: 1, anDui: 0, qia20: 0,
   longDui: 0, xiaoHu: 0, qia40: 0, qia50: 0, siGuiYi: 0,
 });
 export function freezeXinjinOptions(options: Record<string, unknown>) {
