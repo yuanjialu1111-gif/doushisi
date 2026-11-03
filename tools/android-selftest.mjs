@@ -24,7 +24,7 @@ import { deflateRawSync } from 'node:zlib';
 
 import { buildConfig, MEDIA_AUTHORITY, NATIVE_API, patchDecodedApk, renderBootScript } from './client-native-patch.mjs';
 import { buildNativeAdapter, hardcodedAddresses, NATIVE_ADAPTER_PATH, nativeAdapterFrom, validateManifest, verifyNativeAdapter, writeNativeAdapter } from './android-native-adapter.mjs';
-import { APP_NAME, applyBranding, applyVersion, brandStrings, checkAbis, checkAlignment, highestBuiltVersion, manifestFromTemplate, parseArguments, readVersion, readZipEntries, readZipEntry } from './android-build.mjs';
+import { APP_NAME, applyBranding, applyTrustCa, applyVersion, brandStrings, NETWORK_SECURITY_XML, readTrustCa, TRUST_CA_RAW, checkAbis, checkAlignment, highestBuiltVersion, manifestFromTemplate, parseArguments, readVersion, readZipEntries, readZipEntry } from './android-build.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const BASE_APK = join(ROOT, '线上部署包/doushisi.apk');
@@ -1235,6 +1235,32 @@ await section('8. android-build helpers and the JS <-> native contract', () => {
     && readFileSync(join(brandTree, 'res/values/strings.xml'), 'utf8').includes(`>${APP_NAME}<`));
   writeFileSync(join(brandTree, 'res/values/strings.xml'), '<resources><string name="app_name">x</string><string name="t">懒人娱乐</string></resources>');
   check('applyBranding refuses to build while 懒人 is left in strings.xml', throwsMatching(() => applyBranding(brandTree), /懒人/));
+
+  // --trust-ca: a private root for IP:port servers (DEC-20261103-IP加端口自建证书).
+  const caDir = join(TEMP, 'trust-ca'); mkdirSync(caDir, { recursive: true });
+  const openssl = (...args) => spawnSync('openssl', args, { cwd: caDir, stdio: 'ignore' }).status === 0;
+  const madeCa = openssl('req', '-x509', '-newkey', 'rsa:2048', '-nodes', '-keyout', 'ca.key', '-out', 'ca.crt', '-days', '2', '-subj', '/CN=Selftest CA', '-addext', 'basicConstraints=critical,CA:TRUE')
+    && openssl('req', '-x509', '-newkey', 'rsa:2048', '-nodes', '-keyout', 'leaf.key', '-out', 'leaf.crt', '-days', '2', '-subj', '/CN=leaf', '-addext', 'basicConstraints=critical,CA:FALSE');
+  if (!madeCa) note('openssl unavailable: --trust-ca certificate checks skipped');
+  else {
+    const caPem = readFileSync(join(caDir, 'ca.crt'), 'utf8');
+    const ca = readTrustCa(caPem);
+    check('readTrustCa accepts one CA certificate and reports its SHA-256', /^[0-9a-f]{64}$/.test(ca.sha256) && ca.pem.startsWith('-----BEGIN CERTIFICATE-----'));
+    check('readTrustCa refuses a private key', throwsMatching(() => readTrustCa(caPem + readFileSync(join(caDir, 'ca.key'), 'utf8')), /私钥/));
+    check('readTrustCa refuses a non-CA certificate', throwsMatching(() => readTrustCa(readFileSync(join(caDir, 'leaf.crt'), 'utf8')), /CA:TRUE/));
+    check('readTrustCa refuses two certificates', throwsMatching(() => readTrustCa(caPem + caPem), /2 张/));
+    const caTree = join(TEMP, 'trust-ca-tree'); mkdirSync(join(caTree, 'res'), { recursive: true });
+    writeFileSync(join(caTree, 'AndroidManifest.xml'), '<manifest>\n  <application android:allowBackup="false" android:usesCleartextTraffic="true">\n  </application>\n</manifest>\n');
+    applyTrustCa(caTree, ca.pem);
+    const caManifest = readFileSync(join(caTree, 'AndroidManifest.xml'), 'utf8');
+    check('applyTrustCa writes the CA, the network config (system + own root, cleartext kept) and points <application> at it',
+      readFileSync(join(caTree, 'res/raw', `${TRUST_CA_RAW}.pem`), 'utf8') === ca.pem
+      && readFileSync(join(caTree, 'res/xml/network_security_config.xml'), 'utf8') === NETWORK_SECURITY_XML
+      && /<certificates src="system" \/>/.test(NETWORK_SECURITY_XML) && NETWORK_SECURITY_XML.includes(`@raw/${TRUST_CA_RAW}`) && /cleartextTrafficPermitted="true"/.test(NETWORK_SECURITY_XML)
+      && /<application android:networkSecurityConfig="@xml\/network_security_config" android:allowBackup="false"/.test(caManifest));
+    check('applyTrustCa refuses a manifest that already has networkSecurityConfig', throwsMatching(() => applyTrustCa(caTree, ca.pem), /networkSecurityConfig/));
+  }
+  check('parseArguments reads --trust-ca', parseArguments(['--api-base', 'https://a.test:8443', '--trust-ca', 'ca.crt']).trustCa === 'ca.crt');
 
   const standalone = read('client/public/standalone.js');
   const smali = read('client/android/native/StandaloneMedia.smali');

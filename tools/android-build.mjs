@@ -13,7 +13,7 @@
 // DOUSHISI_KEYSTORE_PASSWORD (passed to apksigner by name only) or apksigner's own prompt.
 // The base APK is only read; all intermediate files live in ~/.doushisi-android/work.
 import { spawnSync } from 'node:child_process';
-import { createHash } from 'node:crypto';
+import { createHash, X509Certificate } from 'node:crypto';
 import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { basename, dirname, join, relative, resolve, sep } from 'node:path';
@@ -49,7 +49,7 @@ export function parseArguments(argv) {
   const names = {
     '--base': 'base', '--api-base': 'apiBase', '--ws-url': 'wsUrl', '--out': 'out',
     '--version-code': 'versionCode', '--version-name': 'versionName', '--keystore': 'keystore',
-    '--key-alias': 'keyAlias', '--expect-cert': 'expectCert',
+    '--key-alias': 'keyAlias', '--expect-cert': 'expectCert', '--trust-ca': 'trustCa',
   };
   for (let index = 0; index < argv.length; index += 1) {
     let argument = argv[index];
@@ -83,7 +83,8 @@ const USAGE = `用法：
   node ${join(PROJECT_ROOT, 'tools/android-build.mjs')} --api-base https://<域名> \\
        [--base <基础 APK，默认 线上部署包/doushisi.apk>] [--ws-url wss://<域名>/ws/original] \\
        [--out <输出目录，默认 ~/.doushisi-android/out>] [--version-code N] [--version-name X] \\
-       [--keystore <jks>] [--key-alias doushisi] [--expect-cert <证书 SHA-256>]
+       [--keystore <jks>] [--key-alias doushisi] [--expect-cert <证书 SHA-256>] [--trust-ca <自建根证书 PEM>]
+--trust-ca 给只能用 IP 加端口、签不到公开证书的服务器用：包里额外信任这张根证书（系统证书照常信任）。
 apiBase 也可用环境变量 DOUSHISI_API_BASE；签名密码用 DOUSHISI_KEYSTORE_PASSWORD，未设置时 apksigner 会当场询问。`;
 
 // ---------- tools ----------
@@ -259,6 +260,44 @@ export function applyBranding(decoded, brandRes = BRAND_RES) {
   return icons.length;
 }
 
+// Network security config that trusts the system CAs plus one private root (DEC-20261103-IP加端口自建证书).
+// Cleartext stays allowed because a networkSecurityConfig overrides android:usesCleartextTraffic.
+export const TRUST_CA_RAW = 'doushisi_ca';
+export const NETWORK_SECURITY_XML = `<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+  <base-config cleartextTrafficPermitted="true">
+    <trust-anchors>
+      <certificates src="system" />
+      <certificates src="@raw/${TRUST_CA_RAW}" />
+    </trust-anchors>
+  </base-config>
+</network-security-config>
+`;
+
+// Accepts one PEM CA certificate (no private key) and returns it normalised.
+export function readTrustCa(text) {
+  if (/PRIVATE KEY/.test(text)) fail('--trust-ca 给的是私钥，要给根证书（ca.crt）');
+  const blocks = text.match(/-----BEGIN CERTIFICATE-----[\s\S]+?-----END CERTIFICATE-----/g) || [];
+  if (blocks.length !== 1) fail(`--trust-ca 要正好一张 PEM 证书，现在是 ${blocks.length} 张`);
+  const cert = new X509Certificate(blocks[0]);
+  if (!cert.ca) fail('--trust-ca 不是根证书（没有 CA:TRUE）');
+  return { pem: blocks[0] + '\n', sha256: cert.fingerprint256.replace(/:/g, '').toLowerCase(), subject: cert.subject, validTo: cert.validTo };
+}
+
+// Writes res/raw/doushisi_ca.pem and res/xml/network_security_config.xml and points <application> at it.
+export function applyTrustCa(decoded, pem) {
+  const manifestPath = join(decoded, 'AndroidManifest.xml');
+  const manifest = readFileSync(manifestPath, 'utf8');
+  if (/android:networkSecurityConfig=/.test(manifest)) fail('清单里已经有 networkSecurityConfig，不能再加');
+  const application = /<application\b[^>]*>/.exec(manifest) || fail('清单里没有 <application>');
+  mkdirSync(join(decoded, 'res/raw'), { recursive: true });
+  mkdirSync(join(decoded, 'res/xml'), { recursive: true });
+  writeFileSync(join(decoded, 'res/raw', `${TRUST_CA_RAW}.pem`), pem);
+  writeFileSync(join(decoded, 'res/xml/network_security_config.xml'), NETWORK_SECURITY_XML);
+  const next = application[0].replace(/<application\b/, '<application android:networkSecurityConfig="@xml/network_security_config"');
+  writeFileSync(manifestPath, manifest.replace(application[0], () => next));
+}
+
 export function readVersion(apktoolYml, manifest) {
   const code = /^\s*versionCode:\s*'?(\d+)'?\s*$/m.exec(apktoolYml);
   const name = /^\s*versionName:\s*'?([^'\n]*?)'?\s*$/m.exec(apktoolYml);
@@ -306,6 +345,7 @@ export async function build(options) {
   const warnings = [];
   const apiBase = normalizeApiBase(options.apiBase || process.env.DOUSHISI_API_BASE || fail('缺少 --api-base（例如 --api-base https://game.example.com）'));
   if (apiBase.startsWith('http://')) warnings.push(`apiBase 是明文 http：${apiBase}`);
+  const trustCa = options.trustCa ? readTrustCa(readFileSync(resolve(options.trustCa), 'utf8')) : null;
   const defaultBase = join(PROJECT_ROOT, '线上部署包/doushisi.apk');
   const base = resolve(options.base || defaultBase);
   if (!existsSync(base) || !statSync(base).isFile()) fail(`找不到基础 APK：${base}`);
@@ -361,6 +401,7 @@ export async function build(options) {
   writeFileSync(decodedManifestPath, manifestFromTemplate(template, decodedManifest));
   const patch = await patchDecodedApk(decoded, { apiBase, wsUrl: options.wsUrl, acceptance: false });
   applyBranding(decoded);
+  if (trustCa) applyTrustCa(decoded, trustCa.pem);
 
   // 5. Version.
   let versionCode = options.versionCode;
@@ -432,6 +473,10 @@ export async function build(options) {
   if (!mainJs.includes(`"apiBase":"${apiBase}"`)) fail('APK 的 main.js 没有写入 apiBase');
   if (!mainJs.includes(`"sha256":"${nativeSha}"`)) fail('APK 的 main.js 记录的内置脚本哈希不对');
   if (/@standalone-(build-config|bundled-adapter|acceptance)/.test(mainJs)) fail('APK 的 main.js 还有未替换的占位符');
+  if (trustCa) {
+    if (readZipEntry(apk, entry(`res/raw/${TRUST_CA_RAW}.pem`)).toString('utf8') !== trustCa.pem) fail('APK 里的根证书和 --trust-ca 不一致');
+    entry('res/xml/network_security_config.xml');
+  } else if (entries.some(item => item.name === `res/raw/${TRUST_CA_RAW}.pem`)) fail('没给 --trust-ca，APK 里却有自建根证书');
   entry('res/xml/standalone_media_paths.xml');
   const dexes = entries.filter(item => /^classes\d*\.dex$/.test(item.name)).map(item => readZipEntry(apk, item).toString('latin1'));
   if (!dexes.some(dex => dex.includes('Lnet/doushisi/standalone/StandaloneMedia;'))) fail('dex 里没有 StandaloneMedia');
@@ -456,6 +501,7 @@ export async function build(options) {
     certificateSha256: certSha256,
     certificateChecked: Boolean(expectedCert),
     config: patch.config,
+    trustCa: trustCa && { sha256: trustCa.sha256, subject: trustCa.subject, validTo: trustCa.validTo },
     adapter: patch.adapter,
     fileProvider: patch.providerClass,
     tools: { java: tools.javaVersion, apktool: basename(tools.apktoolJar), buildTools: basename(tools.buildTools), zipalign: Boolean(tools.zipalign) },
@@ -467,6 +513,7 @@ export async function build(options) {
   console.log(`  版本      ${finalVersion.name} (${finalVersion.code})`);
   console.log(`  证书      ${certSha256}${expectedCert ? '（已对照）' : ''}`);
   console.log(`  apiBase   ${patch.config.apiBase}`);
+  if (trustCa) console.log(`  信任根证书 ${trustCa.subject.replace(/\n/g, ' ')}（${trustCa.sha256.slice(0, 16)}…，到 ${trustCa.validTo}）`);
   console.log(`  内置脚本  v${patch.adapter.version} ${patch.adapter.sha256}`);
   for (const warning of warnings) console.log(`  注意      ${warning}`);
   console.log('测试机需先卸载旧版（签名换了），再安装这个 APK。');
