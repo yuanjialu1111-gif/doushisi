@@ -6,7 +6,8 @@
 - **被拦**：从 45 和本机直连（Clash 加了 DIRECT 规则）都测过：80、443 不通（HTTP 发出去没回应、443 握手卡住），任何端口的明文 HTTP 都被重置，只有 8443 这类端口上的 HTTPS 能通；面板上有「域名过白」，是没备案拦截。Let's Encrypt 验证失败（certbot 已装在 `/opt/doushisi/certbot`，没用上，也没装续期定时器）。
 - **部署**：照教程第 1–4、6–8 步，改动：自建根证书（`.local/tls-123/`，私钥不进仓库；服务器 `/etc/doushisi-tls/`），nginx 只听 8443，`ADMIN_ORIGIN=https://123.99.195.114:8443`，80 端口那段去掉。管理员 `boss`（豆子）、`dealer`（发牌），随机密码写在服务器 `/root/doushisi-admins.txt`（600，聊天里没显示）。自检 6 项全 ok；本机、45 访问 `https://123.99.195.114:8443` 都通，WebSocket 101。服务器上代码是 bbf2325。
 - **安装包**：`tools/android-build.mjs` 加 `--trust-ca <根证书>`：包里加 `res/raw/doushisi_ca.pem` 和 `res/xml/network_security_config.xml`（信任系统证书加这张，明文照旧允许），`<application>` 指过去；签名后核对证书一致，没给 `--trust-ca` 包里却有就停。WebSocket 走引擎的 libwebsockets，没给证书文件时放行自签。`android-selftest` 357 过（加 7 条）；拿上次解包目录副本真跑 apktool 回包，aapt2 看编译后的配置和清单都对。没在真手机上试过。
-- **没做**：第 7 版安装包要用户打（签名密码），打好上传到这台 `/var/lib/doushisi/downloads/doushisi.apk`；没发布 108；新提交没推仓库（服务器跑的 bbf2325 不含打包脚本改动，不影响）。
+- **安装包第 7 版**：用户自己打（`--api-base https://123.99.195.114:8443 --trust-ca .local/tls-123/ca.crt --version-code 7`），`doushisi-v4.0-7-20261103-111926.apk`，97,922,385 字节，sha256 08cdf4d9…5685，报告里根证书指纹和 `ca.crt` 一致、没有警告。已放到这台 `/var/lib/doushisi/downloads/doushisi.apk`，`https://123.99.195.114:8443/doushisi.apk` 返回 200，从 45 下载下来的哈希一致。
+- **没做**：真手机装第 7 版登录、进桌（用户核对）；没发布 108；本地提交没推仓库（服务器跑的 bbf2325 不含打包脚本改动，不影响）。
 
 # 当前任务（2026-11-03 去掉原包名字和联系方式：用户「这个游戏里边很多侵权的东西去去 比如懒人娱乐改改想过名字」→ 名字「四川红二十」、联系方式「全部删掉」、图标「只把「懒人」角标抹掉」）
 
