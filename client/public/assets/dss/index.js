@@ -4321,7 +4321,7 @@ i += "ID: " + this.body.userScoreInfo[s].uid + "\n";
 i += "豆子: " + window.Standalone.signedAmount(this.body.userScoreInfo[s].score) + "\n";
 i += "-----------------------------\n";
 }
-cc.mm.gameserver.setClipboard("懒人耍十四\n" + t + "\n\n" + i);
+cc.mm.gameserver.setClipboard("四川红二十\n" + t + "\n\n" + i);
 }
 },
 onClickExitBtn: function() {

@@ -31,6 +31,9 @@ export const CERT_DIGEST_FILE = join(SIGNING_HOME, 'doushisi-release.cert-sha256
 // Real phones load arm64-v8a or armeabi-v7a; x86/x86_64 are emulator-only and cost ~59MB (DEC-20261102-安装包去x86).
 export const KEPT_ABIS = ['arm64-v8a', 'armeabi-v7a'];
 export const DROPPED_ABIS = ['x86', 'x86_64'];
+// Own name and the launcher icon without the original publisher's badge (DEC-20261103-去原包名字).
+export const APP_NAME = '四川红二十';
+export const BRAND_RES = join(PROJECT_ROOT, 'tools/android-res');
 
 class BuildError extends Error {}
 const fail = message => { throw new BuildError(message); };
@@ -233,6 +236,29 @@ export function manifestFromTemplate(template, decoded) {
   return xml;
 }
 
+// Sets every <string name="app_name"> in a strings.xml to APP_NAME.
+export function brandStrings(xml) {
+  return xml.replace(/(<string\s+name="app_name"[^>]*>)[^<]*(<\/string>)/g, (_, open, close) => `${open}${APP_NAME}${close}`);
+}
+
+// Copies tools/android-res over the decoded res/ and renames the app; fails if the old name is left.
+export function applyBranding(decoded, brandRes = BRAND_RES) {
+  const icons = findFiles(brandRes, path => /\.png$/.test(path));
+  if (!icons.length) fail('tools/android-res 里没有图标');
+  for (const icon of icons) {
+    const target = join(decoded, 'res', relative(brandRes, icon));
+    if (!existsSync(target)) fail(`基础 APK 没有 res/${relative(brandRes, icon)}，图标位置对不上`);
+    copyFileSync(icon, target);
+  }
+  for (const path of findFiles(join(decoded, 'res'), path => /[\\/]values[^\\/]*[\\/]strings\.xml$/.test(path))) {
+    const xml = readFileSync(path, 'utf8');
+    const next = brandStrings(xml);
+    if (next !== xml) writeFileSync(path, next);
+    if (/懒人/.test(next)) fail(`${relative(decoded, path)} 里还有「懒人」`);
+  }
+  return icons.length;
+}
+
 export function readVersion(apktoolYml, manifest) {
   const code = /^\s*versionCode:\s*'?(\d+)'?\s*$/m.exec(apktoolYml);
   const name = /^\s*versionName:\s*'?([^'\n]*?)'?\s*$/m.exec(apktoolYml);
@@ -334,6 +360,7 @@ export async function build(options) {
   const template = readFileSync(join(PROJECT_ROOT, 'AndroidManifest.xml'), 'utf8');
   writeFileSync(decodedManifestPath, manifestFromTemplate(template, decodedManifest));
   const patch = await patchDecodedApk(decoded, { apiBase, wsUrl: options.wsUrl, acceptance: false });
+  applyBranding(decoded);
 
   // 5. Version.
   let versionCode = options.versionCode;

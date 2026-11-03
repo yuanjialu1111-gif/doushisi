@@ -24,7 +24,7 @@ import { deflateRawSync } from 'node:zlib';
 
 import { buildConfig, MEDIA_AUTHORITY, NATIVE_API, patchDecodedApk, renderBootScript } from './client-native-patch.mjs';
 import { buildNativeAdapter, hardcodedAddresses, NATIVE_ADAPTER_PATH, nativeAdapterFrom, validateManifest, verifyNativeAdapter, writeNativeAdapter } from './android-native-adapter.mjs';
-import { applyVersion, checkAbis, checkAlignment, highestBuiltVersion, manifestFromTemplate, parseArguments, readVersion, readZipEntries, readZipEntry } from './android-build.mjs';
+import { APP_NAME, applyBranding, applyVersion, brandStrings, checkAbis, checkAlignment, highestBuiltVersion, manifestFromTemplate, parseArguments, readVersion, readZipEntries, readZipEntry } from './android-build.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const BASE_APK = join(ROOT, '线上部署包/doushisi.apk');
@@ -1221,6 +1221,20 @@ await section('8. android-build helpers and the JS <-> native contract', () => {
   check('parseArguments', options.apiBase === API && options.versionCode === 121 && options.versionName === '1.2.1' && options.expectCert === 'ab'.repeat(32) && options.keyAlias === 'doushisi');
   check('parseArguments rejects bad input', throwsMatching(() => parseArguments(['--version-code', '0']), /version-code/) && throwsMatching(() => parseArguments(['--expect-cert', 'zz']), /expect-cert/)
     && throwsMatching(() => parseArguments(['--bogus']), /未知参数/) && throwsMatching(() => parseArguments(['--api-base']), /缺少取值/));
+
+  // Own name and badge-free icon (DEC-20261103-去原包名字).
+  check('brandStrings renames app_name only', brandStrings('<resources>\n  <string name="app_name">大懒人娱乐</string>\n  <string name="x">懒</string>\n</resources>') === `<resources>\n  <string name="app_name">${APP_NAME}</string>\n  <string name="x">懒</string>\n</resources>`);
+  check('manifest template labels the app with the own name', read('AndroidManifest.xml').includes(`android:label="${APP_NAME}"`) && !/懒人/.test(read('AndroidManifest.xml')));
+  const brandTree = join(TEMP, 'brand');
+  mkdirSync(join(brandTree, 'res/values'), { recursive: true });
+  for (const d of ['mipmap-ldpi', 'mipmap-mdpi', 'mipmap-hdpi', 'mipmap-xhdpi', 'mipmap-xxhdpi', 'mipmap-xxxhdpi']) { mkdirSync(join(brandTree, 'res', d), { recursive: true }); writeFileSync(join(brandTree, 'res', d, 'ic_launcher.png'), 'old'); }
+  mkdirSync(join(brandTree, 'res/drawable'), { recursive: true }); writeFileSync(join(brandTree, 'res/drawable/launcher.png'), 'old');
+  writeFileSync(join(brandTree, 'res/values/strings.xml'), '<resources><string name="app_name">大懒人娱乐</string></resources>');
+  const copied = applyBranding(brandTree);
+  check('applyBranding copies all 7 icons from tools/android-res and renames the app', copied === 7 && read('tools/android-res/mipmap-xxxhdpi/ic_launcher.png') === readFileSync(join(brandTree, 'res/mipmap-xxxhdpi/ic_launcher.png'), 'utf8')
+    && readFileSync(join(brandTree, 'res/values/strings.xml'), 'utf8').includes(`>${APP_NAME}<`));
+  writeFileSync(join(brandTree, 'res/values/strings.xml'), '<resources><string name="app_name">x</string><string name="t">懒人娱乐</string></resources>');
+  check('applyBranding refuses to build while 懒人 is left in strings.xml', throwsMatching(() => applyBranding(brandTree), /懒人/));
 
   const standalone = read('client/public/standalone.js');
   const smali = read('client/android/native/StandaloneMedia.smali');

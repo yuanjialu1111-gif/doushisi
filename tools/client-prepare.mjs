@@ -90,6 +90,8 @@ for (const [method, action, parameter] of [['continue', 'continue', ''], ['onSli
   replay = exactlyOnce(replay, signature, signature + '\nif (window.StandaloneReplay && StandaloneReplay.handle(this, "' + action + '"' + (parameter ? ', ' + parameter : '') + ')) return;');
 }
 main = main.slice(0, replayStart) + replay + main.slice(replayEnd);
+// 复制战绩开头的原包名字换成自己的（DEC-20261103-去原包名字）。
+main = exactlyOnce(main, 'setClipboard("懒人耍十四\\n"', 'setClipboard("四川红二十\\n"');
 await writeFile(join(target, 'assets/main/index.js'), main);
 let hall = (await readFile(join(source, 'assets/hall/index.js'), 'utf8')).replace(/\r\n/g, '\n');
 hall = exactlyOnce(hall, 'cc.sys.openURL("https://jzyx.ink/pF2mZ3");', 'cc.sys.openURL("about:blank");');
@@ -138,6 +140,7 @@ dss = exactlyOnce(dss, 'var s = i.changeScore, a = s > 0 ? t : e;', 'var s = i.c
 dss = exactlyOnce(dss, 'return e.basicTimes / 10;', 'return window.Standalone.divideAmount(e.basicTimes, 10);');
 dss = exactlyOnce(dss, 't.scoreNum && t.scoreNum >= 0 ? e.getChildByName("winscoreLabel").getComponent(cc.Label).string = "+" + cc.mm.gamefunc.numformat(t.scoreNum) : t.scoreNum && t.scoreNum < 0 && (e.getChildByName("losescoreLabel").getComponent(cc.Label).string = "" + cc.mm.gamefunc.numformat(t.scoreNum));', 'var positiveScore = window.Standalone.compareAmount(t.scoreNum, 0) >= 0;\ne.getChildByName("winscoreLabel").active = positiveScore;\ne.getChildByName("losescoreLabel").active = !positiveScore;\nwindow.Standalone.beanAmountLabel(e.getChildByName(positiveScore ? "winscoreLabel" : "losescoreLabel"), t.scoreNum, true);');
 dss = exactlyOnce(dss, 'i += "积分: " + this.body.userScoreInfo[s].score + "\\n";', 'i += "豆子: " + window.Standalone.signedAmount(this.body.userScoreInfo[s].score) + "\\n";');
+dss = exactlyOnce(dss, 'setClipboard("懒人耍十四\\n"', 'setClipboard("四川红二十\\n"');
 await writeFile(join(target, 'assets/dss/index.js'), dss);
 
 // Reuse the rounded end of the original minus so the missing decimal keeps its exact color and texture.
