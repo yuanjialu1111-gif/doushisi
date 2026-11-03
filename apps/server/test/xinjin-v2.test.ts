@@ -446,3 +446,82 @@ test('v2 报叫了没胡、被别家胡了：只有报叫的这家按番数 + 3 
   assert.equal(paid.b, paid.c! * 8);
   assert.equal(paid.a, -(paid.b! + paid.c! + paid.d!));
 });
+
+test('v2 胡的那张之前手里加摆出的全红只能胡红、全黑只能胡黑，红黑都有两样都能胡（DEC-20261103-胡牌看颜色）', () => {
+  const at = (codes: number[], melds: Parameters<typeof v2Hand>[1] = []) => {
+    const state = v2Hand(codes, melds);
+    // 最后一张是胡的那张。
+    return evaluateXinjinWin(state, { ...flipAt(state), incomingCardId: state.concealed.at(-1)!.id }, v2Rules());
+  };
+  const reason = (win: ReturnType<typeof at>) => win.status === 'not-winning' ? win.reason : 'winning';
+  assert.equal(reason(at([110, 104, 109, 105, 108, 106, 107, 207])), 'color', '七张全红不能胡黑7');
+  const red = at([110, 104, 109, 105, 108, 106, 107, 307]);
+  assert.ok(red.status === 'winning' && red.items.some(item => item.pattern === 'quanHong'));
+  assert.equal(reason(at([110, 104, 109, 105, 108, 206, 107, 207])), 'winning', '六红一黑，胡黑的也行');
+  assert.equal(reason(at([210, 204, 209, 205, 208, 206, 207, 107])), 'color', '七张全黑不能胡红7');
+  // 亮出来的也一起算：手里全红、吃的一组是黑的，就是红黑都有。
+  assert.equal(reason(at([110, 304, 109, 305, 108, 206], [{ kind: 'chi', codes: [210, 404] }])), 'winning');
+  assert.equal(reason(at([110, 304, 109, 305, 108, 206], [{ kind: 'chi', codes: [107, 307] }])), 'color');
+  // 报叫听的牌也照这条：七张全红单吊 7，只听红7。
+  const opened = apply(make([[201, 202, 203, 204, 206, 301, 302, 303], [110, 304, 109, 305, 108, 306, 107]]), 'a',
+    action(make([[201, 202, 203, 204, 206, 301, 302, 303], [110, 304, 109, 305, 108, 306, 107]]), 'a', 'begin'));
+  assert.ok(opened.openingDeclare!.pending.includes('b'));
+  assert.deepEqual(run(opened, 'b', 'bao').players[1]!.declaredWaits, [307]);
+});
+
+test('v2 报叫了没胡、别人点炮被截胡：多的 3 番由点炮的人付（DEC-20261103-截胡点炮付）', () => {
+  const state = make([[310, 402, 403, 405, 406, 407, 409, 410], [110, 204, 309, 205, 101, 413, 404],
+    [103, 211, 102, 212, 108, 206, 104], [201, 202, 203, 207, 208, 209, 401]]);
+  const next = run(state, 'a', 'begin');
+  // d 报了叫（听的牌这里不要紧），a 点炮给 b。
+  next.players[3]!.declaredWaits = [113]; next.players[3]!.declaredBonusIds = [];
+  let thrown = run(next, 'a', 'discard', 310);
+  const hu = xinjinLegalActions(thrown, 'b').find(item => item.type === 'respond' && item.choiceId !== null &&
+    (thrown.claims!.offers.find(offer => offer.id === item.choiceId)!.action as { type: string }).type === 'hu')!;
+  thrown = apply(thrown, 'b', hu);
+  while (thrown.phase === 'response') {
+    const waiting = thrown.players.find(item => xinjinLegalActions(thrown, item.userId).length)!;
+    thrown = apply(thrown, waiting.userId, xinjinLegalActions(thrown, waiting.userId).find(item => item.type === 'respond' && item.choiceId === null)!);
+  }
+  assert.deepEqual(thrown.outcome!.winners.map(winner => winner.userId), ['b']);
+  // 接地 3 番 8 份 × 包三家 3 × 截胡 8 × 底分 100；报叫的 d 不出钱。
+  assert.deepEqual(Object.fromEntries(thrown.outcome!.payments.postings.map(posting => [posting.userId, Number(posting.amount)])),
+    { a: -19200, b: 19200, c: 0, d: 0 });
+});
+
+test('v2 手里四张一样的先偷三张再巴；没偷就摸牌、出牌，要摸到鬼才再提示（DEC-20261103-偷牌顺序）', () => {
+  const four = run(make([[112, 212, 312, 412, 101, 102, 103, 104], [201, 202, 203, 204, 205, 206, 208]]), 'a', 'begin');
+  assert.ok(!xinjinLegalActions(four, 'a').some(item => item.type === 'gang'), '手里四张不能直接杠');
+  assert.ok(xinjinLegalActions(four, 'a').some(item => item.type === 'tou'));
+  const touFaces = (state: XinjinRound) => xinjinLegalActions(state, 'a').filter(item => item.type === 'tou');
+  let state = run(make([[112, 212, 312, 101, 102, 103, 104, 105], [201, 202, 203, 204, 205, 206, 208]], [413, 1001, 113]), 'a', 'begin');
+  assert.ok(touFaces(state).length);
+  state = passAll(run(state, 'a', 'discard', 105));
+  assert.deepEqual(state.players[0]!.touPassed, [12]);
+  state = passAll(run(state, 'b', 'draw'));
+  assert.equal(state.phase, 'draw'); assert.equal(state.activeId, 'a');
+  assert.equal(touFaces(state).length, 0, '点过的偷不再提示');
+  state = run(state, 'a', 'draw');
+  assert.equal(state.players[0]!.touPassed, undefined);
+  assert.ok(touFaces(state).length, '摸到鬼再提示偷');
+});
+
+test('v2 偷出的三张别家看牌背、自己看灰牌，巴上第四张才翻开（DEC-20261103-偷牌顺序）', () => {
+  let state = run(make([[105, 205, 305, 101, 102, 103, 104, 106], [202, 203, 204, 206, 208, 209, 211]], [405, 110]), 'a', 'begin');
+  const adapter = createXinjinEngine('v2-hidden-tou', () => 0).original!;
+  const column = (type: 'tou' | 'ba', viewer: string) => {
+    const result = applyXinjinAction(state, 'a', xinjinLegalActions(state, 'a').find(item => item.type === type)!);
+    const packets = adapter.notifications({ ...result.snapshot as XinjinRound, deal: {} }, result.events, viewer, 'action');
+    return { result, column: packets.filter(packet => packet.command === MSGEvent.HWNotifyActionFlow)
+      .map(packet => (packet.body as any).action.colInfo?.[0]).find(Boolean) };
+  };
+  assert.equal(column('tou', 'b').column.isFan, false);
+  const tou = column('tou', 'a');
+  assert.equal(tou.column.isFan, false);
+  state = tou.result.snapshot as XinjinRound;
+  // 重连进桌：偷的那组照样不翻。
+  const enter = (adapter.enter({ ...state, deal: {} }, 'b') as any).body.gameStart.seats[0].outCol;
+  assert.equal(enter[0].isFan, false);
+  const ba = column('ba', 'b');
+  assert.equal(ba.column.isFan, true); assert.equal(ba.column.addToId, 11);
+});

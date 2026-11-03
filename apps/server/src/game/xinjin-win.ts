@@ -13,7 +13,7 @@ export interface XinjinWinContext {
 }
 export interface XinjinWinItem { pattern: keyof typeof XINJIN_INDEPENDENT_FANS | keyof typeof XINJIN_V2_FANS; count: number; fan: number }
 export type XinjinWin =
-  | { version: typeof XINJIN_INDEPENDENT_VERSION; status: 'not-winning'; reason: 'special-card-in-hand' | 'shape' | 'points' | 'minimum-fan'; redPoints: number; blackPoints: number }
+  | { version: typeof XINJIN_INDEPENDENT_VERSION; status: 'not-winning'; reason: 'special-card-in-hand' | 'shape' | 'points' | 'color' | 'minimum-fan'; redPoints: number; blackPoints: number }
   | { version: typeof XINJIN_INDEPENDENT_VERSION; status: 'winning'; structure: 'ordinary' | 'four-pairs'; items: XinjinWinItem[];
     totalFan: number; cappedFan: number; scoreUnits: string; redPoints: number; blackPoints: number; concealedGroups: string[][] };
 
@@ -126,7 +126,7 @@ export function evaluateXinjinWin(hand: XinjinHand, context: XinjinWinContext, r
  * 牌型两种：四组（暗手只按两张凑 14 拆）；暗四对（一组没亮，8 张是四个同点对子，四张同点算一个龙）。两种都成立取番大的。
  */
 function evaluateV2(hand: XinjinHand, context: XinjinWinContext, rules: Readonly<Record<string, unknown>>, ordinary: PhysicalCard[],
-  redPoints: number, blackPoints: number, fail: (reason: 'shape' | 'points') => XinjinWin): XinjinWin {
+  redPoints: number, blackPoints: number, fail: (reason: 'shape' | 'points' | 'color') => XinjinWin): XinjinWin {
   // 手里的三张、四张要先偷出来才算，暗手只按两张凑 14 拆。
   const candidates = ordinaryMeldCandidates(hand.concealed, ['chi']);
   const decompositions = decomposeCards(hand.concealed.map(card => card.id), candidates, 4 - hand.melds.length);
@@ -138,6 +138,11 @@ function evaluateV2(hand: XinjinHand, context: XinjinWinContext, rules: Readonly
   const daDiao = hand.melds.length === 3 && hand.melds.every(meld => meld.kind !== 'chi') && hand.concealed.length === 2 &&
     hand.concealed.every(card => !special(card.code)) && ordinaryRank(hand.concealed[0]!.code) === ordinaryRank(hand.concealed[1]!.code);
   if (!decompositions.length && !fourPairs && !daDiao) return fail('shape');
+  // 胡的那张之前手里加摆出的牌（鬼不算）全红只能胡红、全黑只能胡黑，红黑都有两样都能胡（DEC-20261103-胡牌看颜色）；天胡没有胡的那张。
+  const incoming = ordinary.find(card => card.id === context.incomingCardId);
+  const before = ordinary.filter(card => card !== incoming);
+  if (incoming && before.length && (before.every(card => red(card.code)) || before.every(card => !red(card.code))) &&
+    red(incoming.code) !== red(before[0]!.code)) return fail('color');
   const quanHong = ordinary.length > 0 && ordinary.every(card => red(card.code));
   const quanHei = ordinary.length > 0 && ordinary.every(card => !red(card.code));
   const tianHu = context.source === 'original-hand';

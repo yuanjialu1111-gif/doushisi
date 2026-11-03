@@ -134,5 +134,6 @@ export function createXinjinEngine(referenceDigest: string, random: (max: number
       points: (snapshot, userId) => xinjinPoints(core(snapshot), userId),
       jiaoTishi: (snapshot, userId) => xinjinJiaoTishi(core(snapshot), userId),
       turnSeconds: snapshot => xinjinTurnSeconds(core(snapshot)),
+      hiddenTou: snapshot => isXinjinV2(core(snapshot).rules),
     }) };
 }

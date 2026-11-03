@@ -163,7 +163,10 @@ test('番型：金钩钓（大吊车）', () => {
 test('番型：鬼、碰、杠', () => {
   let state = start('guiPengGang');
   assert.deepEqual(zone(state, 'bonus:a'), [1001]);
-  state = step(state, 'a', 'gang', [105, 205, 305, 405]);
+  // 手里四张一样的不能直接杠：先偷三张，再巴第四张（DEC-20261103-偷牌顺序）。
+  assert.equal(options(state, 'a', 'gang').length, 0);
+  state = step(state, 'a', 'tou', [105, 205, 305]);
+  state = step(state, 'a', 'ba', [405]);
   state = pass(step(state, 'a', 'discard', [412]), ['a']);
   state = claim(state, 'a', 'peng', [310]);
   const win = won(step(state, 'a', 'hu'), 'a', ['gui', 'peng', 'gang'], 4);

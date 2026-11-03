@@ -59,6 +59,8 @@ export interface RoundAdapterOptions {
   jiaoTishi?(state: unknown, userId: string): { chuCard: number; huInfo: { huCard: number; num: number; fanNum: number }[] }[];
   /** 牌桌上倒计时显示的秒数（原版读 autoIntoSecond，0 就显示 0），和托管超时一致（E8）。 */
   turnSeconds?(state: unknown): number;
+  /** 偷出的三张只有自己看得见（别家画牌背，自己画灰），巴上第四张才翻开给大家看；原版按组合的 isFan 画（DEC-20261103-偷牌顺序）。 */
+  hiddenTou?(state: unknown): boolean;
 }
 
 export function createRoundOriginalAdapter(options: RoundAdapterOptions): EngineOriginalAdapter {
@@ -217,6 +219,7 @@ export function createRoundOriginalAdapter(options: RoundAdapterOptions): Engine
             colType: meld.kind === 'ba' ? COL.gangBa : meld.kind === 'gang' ? COL.gangMing
               : meld.kind === 'peng' ? COL.peng : meld.kind === 'tou' ? COL.tou : COL.chi,
             cards: meld.cardIds.map(id => codeFor(s, id)),
+            ...(options.hiddenTou?.(s) ? { isFan: meld.kind !== 'tou' } : {}),
           })),
           protectCards: ids(s, `bonus:${player.userId}`).map(id => codeFor(s, id)),
           ...pointsFor(s, player.userId, userId), auto: false, isPiao: player.piao === 1,
@@ -355,7 +358,7 @@ export function createRoundOriginalAdapter(options: RoundAdapterOptions): Engine
           packets.push({ command: MSGEvent.HWNotifyActionFlow, body: { action: {
             seatIndex: seatOf(s, meld.userId), actType, destCard: codes[0] ?? 0,
             colInfo: [{ ...column, seatIndex: seatOf(s, meld.userId), actType, colType, cards: codes,
-              destCard: codes[0] ?? 0, destCardIsOwn: userId === meld.userId }],
+              destCard: codes[0] ?? 0, destCardIsOwn: userId === meld.userId, ...(options.hiddenTou?.(s) ? { isFan: meld.kind !== 'tou' } : {}) }],
             tilesOnHandNum: ids(s, `hand:${meld.userId}`).length, ...pointsFor(s, meld.userId, userId),
             // 原版偷、杠动作都会用 protectCard 覆盖鬼牌区，要带上已有的鬼。
             ...(actType === ACT.tou || actType === ACT.gang ? { protectCard: protectAt(meld.userId, index), useCard: [] } : {}),

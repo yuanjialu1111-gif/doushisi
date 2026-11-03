@@ -13,8 +13,11 @@ import { evaluateXinjinWin, isXinjinV2, type XinjinHand, type XinjinWin, type Xi
 
 type Win = Extract<XinjinWin, { status: 'winning' }>;
 type Meld = { kind: 'chi' | 'peng' | 'gang' | 'ba' | 'tou'; cardIds: string[] };
-/** declarePending：庄家起手点了「报」但还不能胡，这手出牌只能打留得住叫的牌，打出去那张算报叫。 */
-interface Player extends EnginePlayer { melds: Meld[]; declaredWaits: number[] | null; declaredBonusIds: string[] | null; declarePending?: true }
+/**
+ * declarePending：庄家起手点了「报」但还不能胡，这手出牌只能打留得住叫的牌，打出去那张算报叫。
+ * touPassed：v2 提示了偷、巴没偷就摸牌或出牌的点数，摸到鬼才再提示（DEC-20261103-偷牌顺序）；发布前的老局没有。
+ */
+interface Player extends EnginePlayer { melds: Meld[]; declaredWaits: number[] | null; declaredBonusIds: string[] | null; declarePending?: true; touPassed?: number[] }
 type Source = { kind: XinjinWinContext['source']; userId: string; cardId: string | null };
 /** bao / buBao：v2 起手报叫窗口里的「报」「不报」（DEC-20261102-起手报叫）。 */
 type Move = { type: 'begin' | 'draw' | 'hu' | 'bao' | 'buBao' } | { type: 'discard' | 'declare'; cardId: string }
@@ -154,8 +157,11 @@ function paymentsFor(state: XinjinRound, winners: Outcome['winners']) {
       ? [state.source.userId] : members.filter(id => id !== winner.userId);
     // v2 点炮（含接地）放牌人一人包三家：份数 ×（人数 − 1）；翻牌、自摸其他人各付一份。
     const shares = v2 && state.source?.kind === 'discard' ? BigInt(members.length - 1) : 1n;
-    // v2 报叫了没胡、被别人胡了：这家自己出的那份按番数 + 3 算（×8），别人不变；别人点炮时他不出钱也不多番。
-    const declaredLoss = (payerId: string) => v2 && (player(state, payerId).declaredWaits ?? null) !== null ? 8n : 1n;
+    // v2 报叫了没胡、被别人胡了（截胡）多 3 番（×8）：点炮时点炮的人付，不管他报没报（DEC-20261103-截胡点炮付）；
+    // 翻牌、自摸时报叫那家自己那份 ×8，别人不变。
+    const declared = (userId: string) => userId !== winner.userId && (player(state, userId).declaredWaits ?? null) !== null;
+    const declaredLoss = (payerId: string) => !v2 ? 1n : state.source?.kind === 'discard'
+      ? members.some(declared) ? 8n : 1n : declared(payerId) ? 8n : 1n;
     return payers.filter(id => id !== winner.userId).map((payerId, payIndex) => ({
       id: `xinjin:${winnerIndex}:${payIndex}`, payerId, payeeId: winner.userId,
       ...baseTimesRatio(state.rules.baseBeans as string,
@@ -184,6 +190,7 @@ function replenish(state: XinjinRound, id: string, target: number, events: Xinji
       move(state, handZone(id), bonusZone(id), [card.id]);
       events.push({ type: 'bonus', userId: id, card });
     }
+    if (stolen.length) delete player(state, id).touPassed;
     if (ids(state, handZone(id)).length >= target) return last;
     const next = ids(state, 'deck')[0];
     if (!next) { drawEnd(state, events); return null; }
@@ -195,17 +202,21 @@ function replenish(state: XinjinRound, id: string, target: number, events: Xinji
 function ownMelds(state: XinjinRound, id: string): Move[] {
   const current = player(state, id), currentCards = cards(state, handZone(id));
   if ((current.declaredWaits ?? null) !== null || current.declarePending) return [];
+  const v2 = isXinjinV2(state.rules), passed = current.touPassed ?? [];
   // v2 巴杠：已经碰或偷出的三张，手里摸到第四张可以补上去。
-  const ba: Move[] = !isXinjinV2(state.rules) ? [] : current.melds.flatMap((meld, meldIndex) => {
+  const ba: Move[] = !v2 ? [] : current.melds.flatMap((meld, meldIndex) => {
     if (meld.kind !== 'peng' && meld.kind !== 'tou') return [];
     const rank = ordinaryRank(physical(state, meld.cardIds[0]!).code);
+    if (passed.includes(rank)) return [];
     return currentCards.filter(card => !isSpecial(card.code) && ordinaryRank(card.code) === rank)
       .map(card => ({ type: 'ba' as const, cardId: card.id, meldIndex }));
   });
   if (current.melds.length >= 3) return ba;
-  return [...ordinaryMeldCandidates(currentCards, ['peng', 'gang']).map(meld => ({
-    type: meld.kind === 'peng' ? 'tou' as const : 'gang' as const, cardIds: [...meld.cardIds],
-  })), ...ba];
+  // v2 手里四张一样的不能直接杠：先偷三张，再提示巴第四张；点过的点数要摸到鬼才再提示。
+  return [...ordinaryMeldCandidates(currentCards, v2 ? ['peng'] : ['peng', 'gang'])
+    .filter(meld => !passed.includes(ordinaryRank(physical(state, meld.cardIds[0]!).code))).map(meld => ({
+      type: meld.kind === 'peng' ? 'tou' as const : 'gang' as const, cardIds: [...meld.cardIds],
+    })), ...ba];
 }
 function offers(state: XinjinRound, source: Source): ClaimOffer[] {
   const result: ClaimOffer[] = [];
@@ -337,6 +348,12 @@ export function applyXinjinAction(previous: XinjinRound, id: string, action: unk
     'INVALID_ACTION', 'Choose an action offered by the server.', 409);
   const typed = action as XinjinAction, state = structuredClone(previous), events: XinjinEvent[] = [];
   normalizeDeclarations(state);
+  // v2 提示了偷、巴却去摸牌、出牌，算点过：这些点数摸到鬼才再提示，新凑成的照常马上提示。
+  if (isXinjinV2(state.rules) && ['draw', 'discard', 'declare'].includes(typed.type)) {
+    const ranks = ownMelds(state, id).flatMap(item => item.type === 'tou' ? [item.cardIds[0]!] : item.type === 'ba' ? [item.cardId] : [])
+      .map(cardId => ordinaryRank(physical(state, cardId).code));
+    if (ranks.length) player(state, id).touPassed = [...new Set([...player(state, id).touPassed ?? [], ...ranks])].sort((a, b) => a - b);
+  }
   if (typed.type === 'respond') {
     state.claims = submitClaim(state.claims!, typed.decisionId, id, typed.choiceId);
     const chosen = resolveClaims(state.claims);
@@ -441,6 +458,10 @@ export function assertXinjinRound(state: XinjinRound): void {
     'INVALID_XINJIN_STATE', 'Declared wait and bonus snapshots must be paired and valid.', 500);
     requireCondition(isDeepStrictEqual(current.melds.flatMap(meld => meld.cardIds).sort(), [...ids(state, meldZone(current.userId))].sort()),
       'INVALID_XINJIN_STATE', 'Meld references must match the physical zone.', 500);
+    const passed = current.touPassed;
+    requireCondition(passed === undefined || Array.isArray(passed) && passed.length > 0 && new Set(passed).size === passed.length &&
+      passed.every(rank => Number.isSafeInteger(rank) && rank >= 1 && rank <= 13),
+    'INVALID_XINJIN_STATE', 'Passed tou ranks must be distinct card ranks.', 500);
     if (state.phase === 'finished') continue;
     const expected = fullSize(state, current.userId) -
       (['opening', 'declaring', 'discard'].includes(state.phase) && state.activeId === current.userId ? 0 : 1);
