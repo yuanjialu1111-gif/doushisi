@@ -62,6 +62,21 @@ export const XINJIN_V2_OPTIONS = Object.freeze({
   maxFan: 99, chengFan: 1, qiToWang: 0, baoJiao: 1, diHu: 1, tianHu: 1, ziChi: 1, anDui: 0, qia20: 0,
   longDui: 0, xiaoHu: 0, qia40: 0, qia50: 0, siGuiYi: 0,
 });
+/**
+ * v2 每张桌自己选的两项（DEC-20261108-翻法封顶每桌选）：翻法（跟斗翻 1×2^番 / 梯坎翻 1+番）和封顶（不封顶 / 3 / 4 / 5 番）。
+ * 不选就是 XINJIN_V2_OPTIONS 里的跟斗翻、不封顶，老桌照旧。
+ */
+export const XINJIN_V2_CHOICES = Object.freeze({
+  chengFan: Object.freeze([{ value: 1, label: '跟斗翻' }, { value: 0, label: '梯坎翻' }]),
+  maxFan: Object.freeze([{ value: 99, label: '不封顶' }, { value: 3, label: '3 番封顶' }, { value: 4, label: '4 番封顶' }, { value: 5, label: '5 番封顶' }]),
+});
+export const XINJIN_V2_CHOICE_KEYS = Object.freeze(['chengFan', 'maxFan'] as const);
+/** 桌上和大厅显示用：「跟斗翻、不封顶」「梯坎翻、4 番封顶」。 */
+export function xinjinFanText(rules: Readonly<Record<string, unknown>>): string {
+  const flip = XINJIN_V2_CHOICES.chengFan.find(item => item.value === rules.chengFan)?.label ?? '跟斗翻';
+  const cap = XINJIN_V2_CHOICES.maxFan.find(item => item.value === rules.maxFan)?.label ?? '不封顶';
+  return `${flip}、${cap}`;
+}
 export function freezeXinjinOptions(options: Record<string, unknown>) {
   return {
     version: XINJIN_INDEPENDENT_VERSION,

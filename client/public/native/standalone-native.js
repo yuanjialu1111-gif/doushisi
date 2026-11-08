@@ -1554,6 +1554,10 @@
     if (hot) lobbyShadow(pill.getChildByName('label').getComponent(cc.Label));
     // 有人的桌子都显示离我多远（S2-AC3），只给档位不给米数；我没开定位时服务端不给。
     if (table.nearby) lobbyPill(card, table.nearby.band, width / 2 - 16, height / 2 - 16, 15, cc.color(255, 255, 255, 242), rgb('#1f6fc4'), 1, pinIcon, 29);
+    // 桌的基础玩法（玩家反馈第六条）：左下几个王，右下翻法和封顶（DEC-20261108-翻法封顶每桌选）。
+    var ruleBottom = -height / 2 + 14 + 24, ruleBg = cc.color(0, 0, 0, 77), ruleFg = rgb('#ffe9b8');
+    if (table.wangNum) lobbyPill(card, table.wangNum + ' 个王', -width / 2 + 14, ruleBottom, 13, ruleBg, ruleFg, 0, null, 24);
+    if (table.fanText) lobbyPill(card, table.fanText.replace('、', ' · '), width / 2 - 14, ruleBottom, 13, ruleBg, ruleFg, 1, null, 24);
     return card;
   }
   // 点头像弹的信息卡（S2-AC2）：昵称、性别、对外数字 ID；点别处关闭。
@@ -1838,7 +1842,12 @@
   function xinjinRule(text, room) {
     var pay = /^场次规则: (房主、|AA、)/.exec(text), base = /、([^、]+分)$/.exec(text);
     return '场次规则: ' + (pay ? pay[1] : '') + (Number(room.wangNum) || 3) + '个王、红' + (Number(room.playerNum) === 4 ? 20 : 25) +
-      '起胡、跟斗翻、不封顶、点炮包赔、自摸自吃' + (base ? '、' + base[1] : '') + '；' + XINJIN_FAN_TEXT;
+      '起胡、' + xinjinFanWords(room) + '、点炮包赔、自摸自吃' + (base ? '、' + base[1] : '') + '；' + XINJIN_FAN_TEXT;
+  }
+  // 翻法、封顶每张桌自己选（DEC-20261108-翻法封顶每桌选）：chengFan 1 跟斗翻 / 0 梯坎翻，maxFan 99 不封顶 / 3、4、5 番封顶。
+  function xinjinFanWords(room) {
+    var cap = Number(room && room.maxFan);
+    return (room && Number(room.chengFan) === 0 ? '梯坎翻' : '跟斗翻') + '、' + ([3, 4, 5].indexOf(cap) >= 0 ? cap + '番封顶' : '不封顶');
   }
   function xinjinRuleText() {
     ['CommonPlayUIController', 'dss_gameController'].forEach(function (name) {

@@ -1,5 +1,5 @@
 import { createHash, randomUUID } from 'node:crypto';
-import { catalogue, getDefaultOptions, getRoomSpec, getVariant, isVisibleVariant, supportsNewRoom, VISIBLE_VARIANT_KEYS, XINJIN_V2_OPTIONS } from '@dss/rules';
+import { catalogue, getDefaultOptions, getRoomSpec, getVariant, isVisibleVariant, supportsNewRoom, VISIBLE_VARIANT_KEYS, XINJIN_V2_OPTIONS, XINJIN_V2_CHOICES, xinjinFanText } from '@dss/rules';
 import type { Database } from './database.js';
 import { requireRole, type Actor } from './auth.js';
 import { AppError, requireCondition } from './errors.js';
@@ -44,7 +44,7 @@ const variantName = (key: string) => getVariant(key)?.name ?? key;
 
 const CHOICE_UNITS: Record<string, string> = { playerNum: ' 人', gameNum: ' 局', wangNum: ' 个王' };
 /** 四川斗十四 v2 固定的玩法，后台模板只读显示（和牌桌「场次规则」一致）。 */
-const XINJIN_FIXED_RULES = '红点 20 起胡（3 人、2 人要 25）、跟斗翻、不封顶、点炮包赔、自己翻的牌自己也能吃、能报叫；' +
+const XINJIN_FIXED_RULES = '红点 20 起胡（3 人、2 人要 25）、点炮包赔、自己翻的牌自己也能吃、能报叫；' +
   '天胡、地胡、报叫、金二十、暗四对、全红、全黑、红五十、黑五十、大吊车各 3 番，龙对每个再加 3 番；鬼每张 1 番，碰、偷每组 1 番，杠、巴每组 2 番；公开桌房费 AA。';
 
 export class LobbyService {
@@ -71,6 +71,10 @@ export class LobbyService {
       const choices = spec.fields.filter(field => field.control === 'choice' && field.key !== 'useCardType' && !(field.key in fixed))
         .map(field => ({ key: field.key, label: field.label.replace(/[:：]\s*$/, ''), defaultValue: field.defaultValue,
           values: field.allowedValues.map(value => ({ value, label: `${value}${CHOICE_UNITS[field.key] ?? ''}` })) }));
+      // v2 的翻法、封顶每张桌自己选（DEC-20261108-翻法封顶每桌选），默认跟斗翻、不封顶。
+      if (variant.key === '4:0') choices.push(
+        { key: 'chengFan', label: '翻法', defaultValue: XINJIN_V2_OPTIONS.chengFan, values: XINJIN_V2_CHOICES.chengFan.map(item => ({ ...item })) },
+        { key: 'maxFan', label: '封顶', defaultValue: XINJIN_V2_OPTIONS.maxFan, values: XINJIN_V2_CHOICES.maxFan.map(item => ({ ...item })) });
       return { key: variant.key, name: variant.name, defaults: getDefaultOptions(variant.key),
         needsBaseBeans: spec.unresolvedFields.includes('basicTimes'), needsPlayerNum: spec.unresolvedFields.includes('playerNum'),
         choices, fixedRules: variant.key === '4:0' ? XINJIN_FIXED_RULES : '' };
@@ -183,8 +187,11 @@ export class LobbyService {
       const standing = (await this.db.query(`SELECT r.id,r.variant_key,r.rules FROM rooms r WHERE r.lobby_template_id=$1 AND r.state='waiting' AND r.current_round=0
         AND NOT EXISTS(SELECT 1 FROM room_members m WHERE m.room_id=r.id) ORDER BY r.created_at`, [template.id])).rows;
       // 发布前开的新津空桌还是 v1 规则，或 v2 的固定玩法后来改过（比如 11-01 开了自己翻牌自己吃）：收掉，按现在的规则补开。
+      // 翻法、封顶按模板现在选的比（没选就是默认），后台改了也收掉空桌重开。
+      const wantedRules: Record<string, unknown> = { ...XINJIN_V2_OPTIONS };
+      for (const key of Object.keys(XINJIN_V2_CHOICES)) if (template.options?.[key] !== undefined) wantedRules[key] = template.options[key];
       const stale = standing.filter(room => room.variant_key === '4:0' && (!isXinjinV2(room.rules ?? {}) ||
-        Object.entries(XINJIN_V2_OPTIONS).some(([key, value]) => room.rules?.[key] !== value)));
+        Object.entries(wantedRules).some(([key, value]) => room.rules?.[key] !== value)));
       for (const room of stale) await this.rooms.closeEmptySystemRoom(room.id);
       const empty = standing.filter(room => !stale.includes(room));
       // 其他玩法的老模板不再补桌，空桌收掉；模板本身留着不动（S1）。
@@ -256,6 +263,8 @@ export class LobbyService {
           threshold: money(new Decimal(baseBeans).times(row.threshold_multiplier ?? DEFAULT_THRESHOLD_MULTIPLIER)),
           playerCount: row.player_count, rounds: row.rounds, currentRound: row.current_round, matchSeq: row.match_seq ?? 1,
           state: row.state === 'waiting' && row.current_round === 0 ? 'waiting' : 'playing', system: Boolean(row.lobby_template_id),
+          // 每张桌的基础玩法（玩家反馈第六条）：几个王、翻法、封顶。
+          wangNum: row.rules?.wangNum ?? null, fanText: row.variant_key === '4:0' ? xinjinFanText(row.rules ?? {}) : '',
           seats: [], sortOrder: row.sort_order ?? Number.MAX_SAFE_INTEGER, createdAt: new Date(row.created_at).getTime(), nearestKm: Infinity };
         byRoom.set(row.id, table);
       }

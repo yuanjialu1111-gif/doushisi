@@ -167,6 +167,11 @@ const messages: Record<string, string> = {
   UNSUPPORTED_OPERATION: '此功能未开放。', RATE_LIMITED: '操作过于频繁，请稍后重试。',
   GAME_REMOVED: '这个玩法已经下线，现在只有四川斗十四。',
   REPLAY_WHILE_IN_ROOM: '请先退出或结束当前房间，再查看回放。',
+  // 打牌时常见的几种：原来没中文对照，英文原文直接弹给玩家。
+  STALE_CLAIM_WINDOW: '这一步已经过了，按桌上最新的来。', STATE_VERSION_CONFLICT: '牌桌刚更新过，按桌上最新的来。',
+  ROUND_VERSION_CONFLICT: '牌桌刚更新过，按桌上最新的来。', INVALID_ACTION: '现在不能这样出牌，请重新选。',
+  NOT_ROOM_MEMBER: '你不在这个房间里。', ROOM_CLOSED: '房间已经散了。', ROUND_NOT_FOUND: '这一局已经结束。',
+  ORIGINAL_ADAPTER_UNAVAILABLE: '这个玩法暂时打不了。',
 };
 const resultCodes: Record<string, number> = {
   USERNAME_TAKEN: 1005, INVALID_USERNAME: 1004, INVALID_PASSWORD: 1004, INVALID_CREDENTIALS: 1006,
@@ -496,7 +501,9 @@ export async function registerOriginalProtocol(app: FastifyInstance, services: O
 
     async function failure(command: number | undefined, error: unknown, ack?: OriginalExtension['ack']) {
       const code = error instanceof AppError ? error.code : error instanceof Error && error.name === 'RuleValidationError' ? 'INVALID_ROOM_OPTIONS' : 'INVALID_REQUEST';
-      const message = messages[code] ?? (error instanceof AppError && error.statusCode < 500 ? error.message : '请求无效，请重试。');
+      // 没有中文对照的报错不把英文原文发给玩家（玩家反馈「老跳出来一排英文」）。
+      const own = error instanceof AppError && error.statusCode < 500 && /[\u4e00-\u9fff]/.test(error.message) ? error.message : undefined;
+      const message = messages[code] ?? own ?? '操作没有生效，请重试。';
       const response = command === undefined ? undefined : responseCommands.get(command);
       const extension = { code, message };
       await refreshCursor();
@@ -545,6 +552,19 @@ export async function registerOriginalProtocol(app: FastifyInstance, services: O
       connection.pendingBalance = undefined;
       if (pendingBalance !== undefined && pendingBalance !== connection.lastBalance) publishBalanceChanges([{ userId: actor.id, balance: pendingBalance }]);
       if (!wasOnline) await publishPresence(actor.id);
+    }
+
+    /**
+     * 房间已经散了（门槛不够散桌、解散、打完）还停在桌上的人：点「继续」「退出」「解散」时
+     * 回原版认的「异常退出房间」码 1032，dss.onResponseLogout 收到就回大厅；原来回 1003 客户端不理，只能退出程序。
+     */
+    async function backToHall(actor: Actor, code?: number): Promise<boolean> {
+      const room = await rooms.current(actor.id);
+      if (room && (code === undefined || Number(room.code) === code)) return false;
+      if (room && connection.roomId === room.id) return false;
+      connection.roomId = undefined; await refreshCursor();
+      connection.send(MSGEvent.HWResponseLogoutTable, { result: 1032 });
+      return true;
     }
 
     async function enterFinished(actor: Actor, code: number) {
@@ -684,6 +704,7 @@ export async function registerOriginalProtocol(app: FastifyInstance, services: O
         }
         case MSGEvent.HWRequestEnterTableFinish: await enterFinished(actor, body.roomId); return;
         case MSGEvent.HWRequestReadyForGame: {
+          if (await backToHall(actor)) return;
           const room = await activeRoom(actor);
           requireCondition(typeof body.state === 'boolean', 'INVALID_REQUEST', 'Ready state is required.');
           if (body.state && rooms.engines.has(room.variantKey)) requireCondition(rooms.engines.get(room.variantKey, room.ruleVersion).original,
@@ -693,6 +714,7 @@ export async function registerOriginalProtocol(app: FastifyInstance, services: O
           connection.send(MSGEvent.HWResponseReadyForGame, { result: 1, state: body.state, showType: [], leftCardNum: 0 }); return;
         }
         case MSGEvent.HWRequestLogoutTable: {
+          if (await backToHall(actor, body.roomId)) return;
           const room = await activeRoom(actor, body.roomId);
           await attachRoom(connection, room.id);
           await rooms.leave(actor, room.id); await refreshCursor(); connection.send(MSGEvent.HWResponseLogoutTable, { result: 1 });
@@ -712,6 +734,7 @@ export async function registerOriginalProtocol(app: FastifyInstance, services: O
           await queueRoom(current.id); return;
         }
         case MSGEvent.HWRequestDissolveTable: {
+          if (await backToHall(actor, body.roomId)) return;
           const room = await activeRoom(actor, body.roomId);
           requireCondition(typeof body.choice === 'boolean', 'INVALID_REQUEST', 'Dissolve choice is required.');
           await attachRoom(connection, room.id);

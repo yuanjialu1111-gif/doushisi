@@ -38,6 +38,8 @@ interface RoundState {
   outcome?: { reason: string; payments: { postings: { userId: string; amount: string }[] };
     winners?: { userId: string }[]; sourceCardId?: string | null } | null;
   rules?: Record<string, unknown>;
+  /** 每家出牌区：打出、翻出没人要的牌（新津记，其他玩法没有）。 */
+  folds?: Record<string, string[]>;
   startEvents?: unknown[];
 }
 type Move = Record<string, unknown> & { type: string; cardId?: string; cardIds?: string[]; value?: number; decisionId?: string };
@@ -61,6 +63,8 @@ export interface RoundAdapterOptions {
   turnSeconds?(state: unknown): number;
   /** 偷出的三张只有自己看得见（别家画牌背，自己画灰），巴上第四张才翻开给大家看；原版按组合的 isFan 画（DEC-20261103-偷牌顺序）。 */
   hiddenTou?(state: unknown): boolean;
+  /** 轮到自己摸牌但有偷、巴可选时给一个「过」，点了就摸牌（不用等倒计时）；起手偷牌的「过」（guo）也走这个（DEC-20261108-起手依次偷）。 */
+  drawPass?(state: unknown): boolean;
 }
 
 export function createRoundOriginalAdapter(options: RoundAdapterOptions): EngineOriginalAdapter {
@@ -115,6 +119,8 @@ export function createRoundOriginalAdapter(options: RoundAdapterOptions): Engine
     // 起手报叫：「报」不带牌，「不报」用「过」。
     if (action.type === 'bao' || action.type === 'buBao') return { type: 'original', actType: action.type === 'bao' ? ACT.declare : ACT.pass,
       colType: 0, destCard: 0, cards: [], decisionId };
+    if (action.type === 'guo' || action.type === 'draw' && options.drawPass?.(s))
+      return { type: 'original', actType: ACT.pass, colType: 0, destCard: 0, cards: [], decisionId };
     if (action.type === 'begin' || action.type === 'draw') return null;
     const col = column(s, userId, action);
     return col ? { type: 'original', actType: col.actType, colType: col.colType,
@@ -123,7 +129,12 @@ export function createRoundOriginalAdapter(options: RoundAdapterOptions): Engine
 
   function choices(s: RoundState, userId: string) {
     const seatIndex = seatOf(s, userId), hand = ids(s, `hand:${userId}`), items: OriginalChoiceItem[] = [];
-    for (const action of options.legalActions(s, userId)) {
+    const actions = options.legalActions(s, userId);
+    for (const action of actions) {
+      if (action.type === 'guo' || action.type === 'draw' && options.drawPass?.(s) && actions.length > 1) {
+        items.push({ kind: 'other', choice: { seatIndex, actType: ACT.pass, destCard: 0 } });
+        continue;
+      }
       if (action.type === 'begin' || action.type === 'draw') continue;
       if (action.type === 'piao') {
         items.push({ kind: 'other', choice: { seatIndex, actType: action.value === 1 ? ACT.piao : ACT.piaoPass } });
@@ -222,6 +233,8 @@ export function createRoundOriginalAdapter(options: RoundAdapterOptions): Engine
             ...(options.hiddenTou?.(s) ? { isFan: meld.kind !== 'tou' } : {}),
           })),
           protectCards: ids(s, `bonus:${player.userId}`).map(id => codeFor(s, id)),
+          // 重连进桌原版按 outCardsNo 依次摆出牌区（DEC-20261108-出牌翻牌都看得见）。
+          outCardsNo: (s.folds?.[player.userId] ?? []).map(id => codeFor(s, id)),
           ...pointsFor(s, player.userId, userId), auto: false, isPiao: player.piao === 1,
           // 重连进桌原版按 baoTing 摆「报」字（报叫过的人，起手报叫也算）。
           baoTing: (player.declaredWaits ?? null) !== null,
@@ -337,7 +350,8 @@ export function createRoundOriginalAdapter(options: RoundAdapterOptions): Engine
           packets.push({ command: MSGEvent.HWNotifyActionFlow, body: { action: {
             seatIndex: seatOf(s, String(raw.userId)), actType: ACT.discard, destCard: card.code,
             destCardIsOwn: userId === raw.userId, leftCardNum: ids(s, 'deck').length,
-            tilesOnHandNum: ids(s, `hand:${raw.userId}`).length - 1, ...pointsFor(s, String(raw.userId), userId),
+            // 原版直接拿这个数当手牌张数（不自己再减）；以前多减 1，出牌后别家看这家少一张（DEC-20261108-手牌张数）。
+            tilesOnHandNum: ids(s, `hand:${raw.userId}`).length, ...pointsFor(s, String(raw.userId), userId),
           } } });
           continue;
         }
@@ -365,6 +379,15 @@ export function createRoundOriginalAdapter(options: RoundAdapterOptions): Engine
           } } });
           continue;
         }
+        // 没人要的牌：原版「弃牌」动作（actType 1）把桌中间那张缩进这家的出牌区，四家都看得见（DEC-20261108-出牌翻牌都看得见）。
+        if (raw.type === 'fold') {
+          packets.push({ command: MSGEvent.HWNotifyActionFlow, body: { action: {
+            seatIndex: seatOf(s, String(raw.userId)), actType: ACT.unknown, destCard: (raw.card as { code: number }).code,
+            destCardIsOwn: userId === raw.userId,
+            // 原版收到动作就拿 redPoint 覆盖这家的红点，不带就成了 0（本机测试台：自己翻的牌没人要，底下红点变 0）。
+            tilesOnHandNum: ids(s, `hand:${raw.userId}`).length, ...pointsFor(s, String(raw.userId), userId) } } });
+          continue;
+        }
         if (raw.type === 'replacement' && raw.userId !== userId) continue;
         if (raw.type === 'flip' || raw.type === 'replacement') {
           packets.push({ command: MSGEvent.HWNotifyPlayerDealCard, body: {
@@ -377,15 +400,23 @@ export function createRoundOriginalAdapter(options: RoundAdapterOptions): Engine
             // 进手的牌原版还要 isShua 才重画手牌（protobuf 默认 false）；不带的话偷、摸鬼后手里还显示旧牌（11-01 测试台）。
             ...(raw.type === 'replacement' ? { isShua: true } : {}) } });
         }
-        if (raw.type === 'bonus') packets.push({ command: MSGEvent.HWNotifyPlayerDealCard, body: {
+        // 手里的鬼自己点偷：牌本来就在手里，不再播一张摸牌（DEC-20261108-起手依次偷）。
+        if (raw.type === 'bonus' && !raw.fromHand) packets.push({ command: MSGEvent.HWNotifyPlayerDealCard, body: {
           seatIndex: seatOf(s, String(raw.userId)), value: (raw.card as { code: number }).code,
           isFanPai: false, leftCardNum: ids(s, 'deck').length,
           tilesOnHandNum: ids(s, `hand:${raw.userId}`).length, isShangShou: false } });
+        // 手里几张鬼一起点偷：合成一条「偷」，最后一张时发（DEC-20261108-起手依次偷）。
+        const sameTou = (other: Record<string, unknown> | undefined) => other?.type === 'bonus' && other.fromHand === true && other.userId === raw.userId;
+        if (raw.type === 'bonus' && raw.fromHand && sameTou(visible[index + 1] as Record<string, unknown> | undefined)) continue;
+        let first = index;
+        while (raw.type === 'bonus' && raw.fromHand && first > 0 && sameTou(visible[first - 1] as Record<string, unknown> | undefined)) first--;
         // 摸到鬼：原版「偷」动作把它从手里挪到鬼牌区，播偷字横幅和语音（E4）。
         if (raw.type === 'bonus') packets.push({ command: MSGEvent.HWNotifyActionFlow, body: { action: {
           seatIndex: seatOf(s, String(raw.userId)), actType: ACT.tou, destCard: (raw.card as { code: number }).code,
           destCardIsOwn: userId === raw.userId, protectCard: protectAt(String(raw.userId), index),
-          useCard: [(raw.card as { code: number }).code], colInfo: [], leftCardNum: ids(s, 'deck').length } } });
+          useCard: visible.slice(first, index + 1).map(item => ((item as Record<string, unknown>).card as { code: number }).code),
+          colInfo: [], leftCardNum: ids(s, 'deck').length,
+          ...(raw.fromHand ? { tilesOnHandNum: ids(s, `hand:${raw.userId}`).length, ...pointsFor(s, String(raw.userId), userId) } : {}) } } });
       }
       packets.push(...turnPackets(s, userId));
       return packets;

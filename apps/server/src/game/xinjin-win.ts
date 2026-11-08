@@ -22,6 +22,14 @@ const enabled = (value: unknown) => value === 1 || value === true;
 const red = (code: number) => [1, 3].includes(Math.floor(code / 100));
 const point = (code: number) => { const rank = ordinaryRank(code); return rank >= 11 ? 1 : rank; };
 const seat = (value: number | null): value is number => Number.isInteger(value) && value! >= 1 && value! <= 4;
+/** v2 封顶：maxFan 99 不封顶，其余封到那么多番（DEC-20261108-翻法封顶每桌选）。 */
+export const xinjinCappedFan = (fan: number, rules: Readonly<Record<string, unknown>>) =>
+  typeof rules.maxFan === 'number' && rules.maxFan !== 99 ? Math.min(fan, rules.maxFan) : fan;
+/** v2 一份：跟斗翻（chengFan 1）1×2^番，梯坎翻（chengFan 0）1+番；先封顶再算。 */
+export const xinjinScoreUnits = (fan: number, rules: Readonly<Record<string, unknown>>) => {
+  const capped = xinjinCappedFan(fan, rules);
+  return rules.chengFan === 0 ? 1n + BigInt(capped) : 2n ** BigInt(capped);
+};
 /** 桌规则里冻结了 v2 才按 v2 算；发布前开的老桌没有这个字段，照 v1 打完。 */
 export const isXinjinV2 = (rules: Readonly<Record<string, unknown>>) =>
   (rules.xinjin as Record<string, unknown> | undefined)?.scoring === XINJIN_SCORING_V2;
@@ -175,7 +183,7 @@ function evaluateV2(hand: XinjinHand, context: XinjinWinContext, rules: Readonly
       add('longDui', [...byRank.values()].filter(cards => cards.length === 4).length);
     }
     const totalFan = items.reduce((sum, item) => sum + item.fan, 0);
-    const cappedFan = totalFan;
+    const cappedFan = xinjinCappedFan(totalFan, rules);
     const concealedGroups = structure === 'ordinary' ? !decompositions.length ? [hand.concealed.map(card => card.id).sort()] :
       decompositions[0]!.map(id => [...candidates.find(candidate => candidate.id === id)!.cardIds]) :
       [...byRank].sort(([a], [b]) => a - b).flatMap(([, cards]) => {
@@ -183,7 +191,7 @@ function evaluateV2(hand: XinjinHand, context: XinjinWinContext, rules: Readonly
         return ids.length === 4 ? [ids.slice(0, 2), ids.slice(2)] : [ids];
       });
     alternatives.push({ version: XINJIN_INDEPENDENT_VERSION, status: 'winning', structure, items, totalFan, cappedFan,
-      scoreUnits: (2n ** BigInt(cappedFan)).toString(), redPoints, blackPoints, concealedGroups });
+      scoreUnits: xinjinScoreUnits(totalFan, rules).toString(), redPoints, blackPoints, concealedGroups });
   }
   alternatives.sort((a, b) => b.cappedFan - a.cappedFan || b.totalFan - a.totalFan || a.structure.localeCompare(b.structure));
   return alternatives[0]!;

@@ -9,7 +9,7 @@ import { xinjinDealEvaluation } from './xinjin-deal.js';
 import { xinjinTestDeck } from './xinjin-scenarios.js';
 import { isXinjinV2 } from './xinjin-win.js';
 import { applyXinjinAction, assertXinjinOptionsSupported, createXinjinRound, viewXinjinRound, xinjinLegalActions, xinjinJiaoTishi, xinjinTurnSeconds, xinjinPoints, xinjinSettlementBrand,
-  xinjinOpeningWindow, xinjinTimedAction, type XinjinAction, type XinjinEvent, type XinjinRound } from './xinjin-round.js';
+  xinjinOpeningWindow, xinjinTimedAction, XINJIN_FLIP_DELAY_MS, type XinjinAction, type XinjinEvent, type XinjinRound } from './xinjin-round.js';
 
 export const XINJIN_ENGINE_VERSION = XINJIN_INDEPENDENT_VERSION;
 export interface XinjinEngineSnapshot extends XinjinRound {
@@ -70,7 +70,8 @@ function systemAction(state: XinjinRound): { userId: string; action: XinjinActio
     const begin = actions.find(action => action.type === 'begin');
     return begin ? { userId: state.dealerId, action: begin } : null;
   }
-  if (state.phase !== 'draw') return null;
+  // v2 没人要的牌不再一口气连翻：每家翻牌走定时，一家一家翻（DEC-20261108-一家一家翻）。
+  if (state.phase !== 'draw' || isXinjinV2(state.rules)) return null;
   const actions = xinjinLegalActions(state, state.activeId);
   if (actions.some(action => action.type !== 'draw')) return null;
   const draw = actions.find(action => action.type === 'draw');
@@ -133,7 +134,11 @@ export function createXinjinEngine(referenceDigest: string, random: (max: number
       settlement: (snapshot, userId) => xinjinSettlementBrand(core(snapshot), userId),
       points: (snapshot, userId) => xinjinPoints(core(snapshot), userId),
       jiaoTishi: (snapshot, userId) => xinjinJiaoTishi(core(snapshot), userId),
-      turnSeconds: snapshot => xinjinTurnSeconds(core(snapshot)),
+      // 只能翻的那家 1.5 秒就自动翻，桌上的闹钟跟着显示 2 秒，不显示 15 秒让人以为要点什么。
+      turnSeconds: snapshot => { const state = core(snapshot);
+        const timed = state.phase === 'draw' ? xinjinTimedAction(state, state.activeId) : null;
+        return timed?.delayMs === XINJIN_FLIP_DELAY_MS ? Math.ceil(XINJIN_FLIP_DELAY_MS / 1000) : xinjinTurnSeconds(state); },
       hiddenTou: snapshot => isXinjinV2(core(snapshot).rules),
+      drawPass: snapshot => isXinjinV2(core(snapshot).rules),
     }) };
 }

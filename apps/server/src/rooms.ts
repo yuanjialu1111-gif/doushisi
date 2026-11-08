@@ -1,6 +1,6 @@
 import { randomInt, randomUUID } from 'node:crypto';
 import { EventEmitter } from 'node:events';
-import { catalogue, isVisibleVariant, supportsNewRoom, freezeQionglaiOptions, freezeYaanOptions, freezeXinjinOptions, XINJIN_V2_OPTIONS, freezeAnyueOptions, freezePujiangOptions, freezeAbaOptions, freezeScoreRegionOptions, freezeIndependentApproval, getVariant, validateRoomOptions, getDefaultOptions, getRoomSpec, baseScoreDecimal } from '@dss/rules';
+import { catalogue, isVisibleVariant, supportsNewRoom, freezeQionglaiOptions, freezeYaanOptions, freezeXinjinOptions, XINJIN_V2_OPTIONS, XINJIN_V2_CHOICES, freezeAnyueOptions, freezePujiangOptions, freezeAbaOptions, freezeScoreRegionOptions, freezeIndependentApproval, getVariant, validateRoomOptions, getDefaultOptions, getRoomSpec, baseScoreDecimal } from '@dss/rules';
 import { encodeFrame, expectedBodyField, MSGEvent } from '@dss/protocol';
 import type { Database, Sql } from './database.js';
 import { requireRole, type Actor } from './auth.js';
@@ -27,6 +27,18 @@ export interface DissolveState {
   initiatorId: string;
   expiresAt: number;
   votes: { userId: string; agree: boolean; seat: number }[];
+}
+
+/** 模板或开房带来的翻法、封顶：没带用默认（跟斗翻、不封顶），带了不在可选里就报错。 */
+export function xinjinChoicePicks(options: Record<string, unknown>) {
+  const picks: Record<string, number> = {};
+  for (const [key, values] of Object.entries(XINJIN_V2_CHOICES)) {
+    if (options[key] === undefined) continue;
+    requireCondition(values.some(item => item.value === options[key]), 'INVALID_ROOM_OPTIONS',
+      key === 'chengFan' ? '翻法只能选跟斗翻或梯坎翻。' : '封顶只能选不封顶、3 番、4 番或 5 番。', 400);
+    picks[key] = options[key] as number;
+  }
+  return picks;
 }
 
 export class RoomService extends EventEmitter {
@@ -64,11 +76,13 @@ export class RoomService extends EventEmitter {
     const requestedBaseBeans = options.baseBeans;
     const requestedPlayerNum = options.playerNum;
     // 房内不再定位（R11）：老客户端、老模板带来的 openGps 一律忽略。
+    // 新津 v2 的翻法、封顶不走原版选项表（原版封顶没有 3 番），单独校验（DEC-20261108-翻法封顶每桌选）。
+    const xinjinPicks = variantKey === '4:0' ? xinjinChoicePicks(options) : {};
     const ruleOptions = Object.fromEntries(Object.entries(options).filter(([key]) => key !== 'baseBeans' && key !== 'openGps' &&
-      !(key === 'playerNum' && spec.unresolvedFields.includes('playerNum'))));
+      !(key === 'playerNum' && spec.unresolvedFields.includes('playerNum')) && !(variantKey === '4:0' && key in XINJIN_V2_CHOICES)));
     const normalized = validateRoomOptions(variantKey, { ...getDefaultOptions(variantKey, region as never), ...ruleOptions }, region as never) as Record<string, any>;
     // 新津 v2 玩法固定（DEC-20261031-第三轮规则v2）：番和封顶不再由开房选项决定。
-    if (variantKey === '4:0') Object.assign(normalized, XINJIN_V2_OPTIONS);
+    if (variantKey === '4:0') Object.assign(normalized, XINJIN_V2_OPTIONS, xinjinPicks);
     let playerNumSource: 'manual' | 'original';
     if (spec.unresolvedFields.includes('playerNum')) {
       requireCondition(typeof requestedPlayerNum === 'number' && [2, 3, 4].includes(requestedPlayerNum), 'RULE_DEFAULT_NOT_VERIFIED', 'A player count of 2, 3 or 4 is required.', 409);

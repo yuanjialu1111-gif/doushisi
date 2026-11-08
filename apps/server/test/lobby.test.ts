@@ -355,8 +355,10 @@ test('admin templates: Chinese validation messages, not-found code, role check, 
   assert.equal(list.variants[0].needsBaseBeans, true);
   // 后台表单只给人数、局数、王数三个中文单选，房费和 v2 固定玩法不给改（DEC-20261102-模板中文表单）。
   assert.deepEqual(list.variants[0].choices.map((choice: any) => [choice.label, choice.values.map((item: any) => item.label)]), [
-    ['局数', ['4 局', '8 局', '12 局']], ['人数', ['2 人', '3 人', '4 人']], ['王数', ['3 个王', '5 个王', '6 个王', '9 个王']]]);
-  assert.match(list.variants[0].fixedRules, /不封顶.*公开桌房费 AA/);
+    ['局数', ['4 局', '8 局', '12 局']], ['人数', ['2 人', '3 人', '4 人']], ['王数', ['3 个王', '5 个王', '6 个王', '9 个王']],
+    ['翻法', ['跟斗翻', '梯坎翻']], ['封顶', ['不封顶', '3 番封顶', '4 番封顶', '5 番封顶']]]);
+  assert.match(list.variants[0].fixedRules, /点炮包赔.*公开桌房费 AA/);
+  assert.doesNotMatch(list.variants[0].fixedRules, /跟斗翻|不封顶/);
   const updated = await ctx.app.inject({ method: 'PUT', url: `/api/admin/lobby-templates/${saved.id}`, headers: ctx.beansHeaders,
     payload: template({ options: { baseBeans: '2', playerNum: 2, gameNum: 4 } }) });
   assert.equal(updated.statusCode, 200, updated.body);
@@ -492,4 +494,32 @@ test('第三轮规则 v2：发布前开的新津空桌（v1）被收掉，按 v2
   const latest = await ctx.db.query("SELECT id,rules->>'ziChi' AS zi FROM rooms WHERE state='waiting'");
   assert.equal(latest.rows.length, 2);
   assert.ok(latest.rows.every(room => room.zi === '1' && room.id !== after[0].id));
+});
+
+test('翻法、封顶每张桌自己选：模板选了梯坎翻 4 番封顶，开出的桌照这个算、大厅显示王数和翻法；改了换桌；不在可选里报错（DEC-20261108-翻法封顶每桌选）', async t => {
+  const ctx = await setup(); t.after(ctx.close);
+  const post = (payload: unknown) => ctx.app.inject({ method: 'POST', url: '/api/admin/lobby-templates', headers: ctx.beansHeaders, payload });
+  for (const bad of [{ maxFan: 6 }, { maxFan: 99, chengFan: 2 }]) {
+    const refused = await post(template({ options: { baseBeans: '1', playerNum: 2, gameNum: 4, ...bad } }));
+    assert.equal(refused.statusCode, 400, refused.body);
+    assert.equal(refused.json().error.code, 'INVALID_TEMPLATE');
+  }
+  const saved = await post(template({ options: { baseBeans: '1', playerNum: 2, gameNum: 4, wangNum: 5, chengFan: 0, maxFan: 4 } }));
+  assert.equal(saved.statusCode, 200, saved.body);
+  await ctx.lobby.maintain();
+  const rules = async () => (await ctx.db.query("SELECT id,(rules->>'chengFan')::int AS flip,(rules->>'maxFan')::int AS cap FROM rooms WHERE state='waiting' ORDER BY created_at")).rows;
+  const first = await rules();
+  assert.deepEqual(first.map(room => [room.flip, room.cap]), [[0, 4], [0, 4]]);
+  const player = await ctx.player('lobby_fan_text', '10');
+  const listed = (await tablesOf(ctx, player.headers)).tables;
+  assert.deepEqual(listed.map((table: any) => [table.wangNum, table.fanText]), [[5, '梯坎翻、4 番封顶'], [5, '梯坎翻、4 番封顶']]);
+  // 改回默认（不带这两项）：空桌换成跟斗翻、不封顶。
+  await ctx.lobby.updateTemplate(ctx.beans, saved.json().id, template({ options: { baseBeans: '1', playerNum: 2, gameNum: 4, wangNum: 5 } }));
+  await ctx.lobby.maintain();
+  const second = await rules();
+  assert.deepEqual(second.map(room => [room.flip, room.cap]), [[1, 99], [1, 99]]);
+  assert.ok(!second.some(room => first.some(old => old.id === room.id)));
+  // 没改的桌下一轮不再换。
+  await ctx.lobby.maintain();
+  assert.deepEqual((await rules()).map(room => room.id), second.map(room => room.id));
 });

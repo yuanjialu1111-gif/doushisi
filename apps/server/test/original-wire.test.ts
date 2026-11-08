@@ -154,6 +154,16 @@ test('waiting-room presence, self leave, vote cancellation, timeout and reconnec
   assert.equal(((await a.wait(32, mark)).frame.data.hwNotifyDissolvedTable as any).result, true);
   assert.equal(await rooms.current(actors[0]!.id), null);
   assert.equal((await db.query('SELECT count(*)::int AS n FROM ledger_operations')).rows[0]!.n, 0);
+
+  // 房间散了还停在桌上（门槛不够散桌、结算后点「继续」、点退出）：回原版的 1032，客户端收到就回大厅。
+  assert.equal(((await b.request(8, { hwRequestReadyForGame: { state: true } }, 14)).frame.data.hwResponseLogoutTable as any).result, 1032);
+  assert.equal(((await a.request(13, { hwRequestLogoutTable: { roomId: anotherCode } }, 14)).frame.data.hwResponseLogoutTable as any).result, 1032);
+  assert.equal(((await c.request(29, { hwRequestDissolveTable: { roomId: anotherCode, choice: true } }, 14)).frame.data.hwResponseLogoutTable as any).result, 1032);
+  // 没有中文对照的报错不把英文原文发给玩家。
+  await a.request(3, { hwRequestCreateTable: { ...getDefaultOptions('4:0'), playerNum: 2, roomType: 100, areaType: 4 } }, 4);
+  const again = await a.request(8, { hwRequestReadyForGame: {} }, 9);
+  assert.equal(again.extension?.error?.code, 'INVALID_REQUEST');
+  assert.equal(again.extension?.error?.message, '操作没有生效，请重试。');
 });
 
 test('original HWFR registration, login, rooms, reconnect and authorization against real services', async t => {

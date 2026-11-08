@@ -9,7 +9,7 @@ import { openClaims, projectClaims, resolveClaims, submitClaim, type ClaimWindow
 import { ordinaryMeldCandidates, ordinaryRank } from './ordinary-melds.js';
 import { declaredWaitMatches, sameDeclaredWaits } from './declared-waits.js';
 import { createXinjinCardState, xinjinPackSpecification } from './xinjin-pack.js';
-import { evaluateXinjinWin, isXinjinV2, type XinjinHand, type XinjinWin, type XinjinWinContext } from './xinjin-win.js';
+import { evaluateXinjinWin, isXinjinV2, xinjinScoreUnits, type XinjinHand, type XinjinWin, type XinjinWinContext } from './xinjin-win.js';
 
 type Win = Extract<XinjinWin, { status: 'winning' }>;
 type Meld = { kind: 'chi' | 'peng' | 'gang' | 'ba' | 'tou'; cardIds: string[] };
@@ -19,8 +19,8 @@ type Meld = { kind: 'chi' | 'peng' | 'gang' | 'ba' | 'tou'; cardIds: string[] };
  */
 interface Player extends EnginePlayer { melds: Meld[]; declaredWaits: number[] | null; declaredBonusIds: string[] | null; declarePending?: true; touPassed?: number[] }
 type Source = { kind: XinjinWinContext['source']; userId: string; cardId: string | null };
-/** bao / buBao：v2 起手报叫窗口里的「报」「不报」（DEC-20261102-起手报叫）。 */
-type Move = { type: 'begin' | 'draw' | 'hu' | 'bao' | 'buBao' } | { type: 'discard' | 'declare'; cardId: string }
+/** bao / buBao：v2 起手报叫窗口里的「报」「不报」（DEC-20261102-起手报叫）；guo：起手偷牌轮到自己点「过」（DEC-20261108-起手依次偷）。 */
+type Move = { type: 'begin' | 'draw' | 'hu' | 'bao' | 'buBao' | 'guo' } | { type: 'discard' | 'declare'; cardId: string }
   | { type: 'tou' | 'gang' | 'peng' | 'chi'; cardIds: string[] } | { type: 'ba'; cardId: string; meldIndex: number };
 export type XinjinAction = (Move | { type: 'respond'; choiceId: string | null }) & { decisionId: string };
 interface Outcome { reason: 'hu' | 'draw'; winners: { userId: string; win: Win }[];
@@ -30,10 +30,14 @@ interface Outcome { reason: 'hu' | 'draw'; winners: { userId: string; win: Win }
 export interface XinjinRound {
   version: typeof XINJIN_INDEPENDENT_VERSION; number: number; rules: Record<string, unknown>;
   players: Player[]; cards: CardState; dealerId: string; dealerRun: number; activeId: string;
-  phase: 'opening' | 'declaring' | 'discard' | 'draw' | 'response' | 'finished'; serial: number;
+  phase: 'opening' | 'touing' | 'declaring' | 'discard' | 'draw' | 'response' | 'finished'; serial: number;
   source: Source | null; claims: ClaimWindow | null; outcome: Outcome | null;
   /** 起手报叫窗口里还没选「报」「不报」的人；窗口关了是 null，发布前的老局没有。 */
   openingDeclare?: { pending: string[] } | null;
+  /** v2 起手偷牌：从庄家起还没轮完的人，第一个是正在偷的；轮完是 null，发布前的老局没有（DEC-20261108-起手依次偷）。 */
+  openingTou?: { pending: string[] } | null;
+  /** 打出、翻出没人要的牌，按打出、翻出的人记顺序：原版每家的出牌区（DEC-20261108-出牌翻牌都看得见）；发布前的老局没有。 */
+  folds?: Record<string, string[]>;
 }
 export interface XinjinEvent { type: string; [key: string]: unknown }
 const isSpecial = (code: number) => [1001, 1002, 1003].includes(code);
@@ -136,7 +140,7 @@ function canDeclare(state: XinjinRound, id: string, discardId: string | null, bo
 function canDeclareOpening(state: XinjinRound, id: string): boolean {
   const bonusIds = ids(state, bonusZone(id));
   if (id === state.dealerId) return winning(state, id, state.source!, false) !== null ||
-    ids(state, handZone(id)).some(cardId => canDeclare(state, id, cardId, bonusIds));
+    ids(state, handZone(id)).some(cardId => !isSpecial(physical(state, cardId).code) && canDeclare(state, id, cardId, bonusIds));
   return canDeclare(state, id, null, bonusIds);
 }
 function stage(state: XinjinRound, phase: XinjinRound['phase'], activeId: string, source: Source | null = null) {
@@ -157,15 +161,16 @@ function paymentsFor(state: XinjinRound, winners: Outcome['winners']) {
       ? [state.source.userId] : members.filter(id => id !== winner.userId);
     // v2 点炮（含接地）放牌人一人包三家：份数 ×（人数 − 1）；翻牌、自摸其他人各付一份。
     const shares = v2 && state.source?.kind === 'discard' ? BigInt(members.length - 1) : 1n;
-    // v2 报叫了没胡、被别人胡了（截胡）多 3 番（×8）：点炮时点炮的人付，不管他报没报（DEC-20261103-截胡点炮付）；
-    // 翻牌、自摸时报叫那家自己那份 ×8，别人不变。
+    // v2 报叫了没胡、被别人胡了（截胡）多 3 番：点炮时点炮的人付，不管他报没报（DEC-20261103-截胡点炮付）；
+    // 翻牌、自摸时报叫那家自己那份多 3 番，别人不变。多的 3 番和胡的番加在一起再封顶、再按翻法算（DEC-20261108-翻法封顶每桌选）。
     const declared = (userId: string) => userId !== winner.userId && (player(state, userId).declaredWaits ?? null) !== null;
-    const declaredLoss = (payerId: string) => !v2 ? 1n : state.source?.kind === 'discard'
-      ? members.some(declared) ? 8n : 1n : declared(payerId) ? 8n : 1n;
+    const extraFan = (payerId: string) => !v2 ? 0 : state.source?.kind === 'discard'
+      ? members.some(declared) ? 3 : 0 : declared(payerId) ? 3 : 0;
+    const units = (payerId: string) => !v2 ? BigInt(winner.win.scoreUnits)
+      : xinjinScoreUnits((winner.win as { totalFan: number }).totalFan + extraFan(payerId), state.rules);
     return payers.filter(id => id !== winner.userId).map((payerId, payIndex) => ({
       id: `xinjin:${winnerIndex}:${payIndex}`, payerId, payeeId: winner.userId,
-      ...baseTimesRatio(state.rules.baseBeans as string,
-        BigInt(winner.win.scoreUnits) * shares * declaredLoss(payerId)),
+      ...baseTimesRatio(state.rules.baseBeans as string, units(payerId) * shares),
     }));
   });
   return roundTransfers(transfers, members);
@@ -181,10 +186,15 @@ function finish(state: XinjinRound, reason: Outcome['reason'], winners: Outcome[
     postings: payments.postings });
 }
 function drawEnd(state: XinjinRound, events: XinjinEvent[]) { finish(state, 'draw', [], events); }
+/** v2 鬼要自己点偷（DEC-20261108-起手依次偷）；报了叫的人手牌锁住，摸到鬼照旧自动偷、补牌。 */
+/** v2 鬼自己点偷（DEC-20261108-起手依次偷）；开七当王的桌（v2 不开，只有测试会配）照旧自动亮。 */
+const manualTou = (rules: Readonly<Record<string, unknown>>) => isXinjinV2(rules) && rules.qiToWang !== 1;
+/** 报了叫锁牌的人照旧自动亮鬼、补牌。 */
+const autoBonus = (state: XinjinRound, id: string) => !manualTou(state.rules) || (player(state, id).declaredWaits ?? null) !== null;
 function replenish(state: XinjinRound, id: string, target: number, events: XinjinEvent[]): string | null {
   let last: string | null = null;
   for (;;) {
-    const stolen = cards(state, handZone(id)).filter(card => isSpecial(card.code) ||
+    const stolen = !autoBonus(state, id) ? [] : cards(state, handZone(id)).filter(card => isSpecial(card.code) ||
       state.rules.qiToWang === 1 && ordinaryRank(card.code) === 7);
     for (const card of stolen) {
       move(state, handZone(id), bonusZone(id), [card.id]);
@@ -196,13 +206,23 @@ function replenish(state: XinjinRound, id: string, target: number, events: Xinji
     if (!next) { drawEnd(state, events); return null; }
     move(state, 'deck', handZone(id), [next]);
     last = next;
+    // 新摸进一张鬼：点过的偷重新提示。
+    if (isSpecial(physical(state, next).code) && !autoBonus(state, id)) delete player(state, id).touPassed;
     events.push({ type: 'replacement', userId: id, card: physical(state, next), remaining: ids(state, 'deck').length });
   }
 }
+/** 鬼在 touPassed 里记成 0。 */
+const GHOST_RANK = 0;
 function ownMelds(state: XinjinRound, id: string): Move[] {
-  const current = player(state, id), currentCards = cards(state, handZone(id));
+  const current = player(state, id), handCards = cards(state, handZone(id));
   if ((current.declaredWaits ?? null) !== null || current.declarePending) return [];
   const v2 = isXinjinV2(state.rules), passed = current.touPassed ?? [];
+  // v2 手里的鬼自己点偷，几张一起偷（DEC-20261108-起手依次偷）；点过了要再摸到鬼才提示，
+  // 鬼不能打出去，手里只剩鬼时一直提示偷。
+  const ghosts = handCards.filter(card => isSpecial(card.code));
+  const onlyGhosts = ghosts.length === handCards.length;
+  const ghostTou: Move[] = v2 && ghosts.length && (!passed.includes(GHOST_RANK) || onlyGhosts) ? [{ type: 'tou', cardIds: ghosts.map(card => card.id) }] : [];
+  const currentCards = handCards.filter(card => !isSpecial(card.code));
   // v2 巴杠：已经碰或偷出的三张，手里摸到第四张可以补上去。
   const ba: Move[] = !v2 ? [] : current.melds.flatMap((meld, meldIndex) => {
     if (meld.kind !== 'peng' && meld.kind !== 'tou') return [];
@@ -211,9 +231,9 @@ function ownMelds(state: XinjinRound, id: string): Move[] {
     return currentCards.filter(card => !isSpecial(card.code) && ordinaryRank(card.code) === rank)
       .map(card => ({ type: 'ba' as const, cardId: card.id, meldIndex }));
   });
-  if (current.melds.length >= 3) return ba;
+  if (current.melds.length >= 3) return [...ghostTou, ...ba];
   // v2 手里四张一样的不能直接杠：先偷三张，再提示巴第四张；点过的点数要摸到鬼才再提示。
-  return [...ordinaryMeldCandidates(currentCards, v2 ? ['peng'] : ['peng', 'gang'])
+  return [...ghostTou, ...ordinaryMeldCandidates(currentCards, v2 ? ['peng'] : ['peng', 'gang'])
     .filter(meld => !passed.includes(ordinaryRank(physical(state, meld.cardIds[0]!).code))).map(meld => ({
       type: meld.kind === 'peng' ? 'tou' as const : 'gang' as const, cardIds: [...meld.cardIds],
     })), ...ba];
@@ -230,13 +250,19 @@ function offers(state: XinjinRound, source: Source): ClaimOffer[] {
     if (winning(state, id, source, true)) add(id, { type: 'hu' }, 100);
     if ((player(state, id).declaredWaits ?? null) !== null) continue;
     if (player(state, id).melds.length >= 3) continue;
-    for (const meld of ordinaryMeldCandidates([...cards(state, handZone(id)), incoming], ['chi', 'peng', 'gang'])) {
+    for (const meld of ordinaryMeldCandidates([...cards(state, handZone(id)).filter(card => !isSpecial(card.code)), incoming], ['chi', 'peng', 'gang'])) {
       if (!meld.cardIds.includes(incoming.id)) continue;
       if (meld.kind === 'chi' && id !== nextSeat && !(state.rules.ziChi === 1 && source.kind === 'flip' && id === source.userId)) continue;
       add(id, { type: meld.kind, cardIds: [...meld.cardIds] }, meld.kind === 'gang' ? 30 : meld.kind === 'peng' ? 20 : 10);
     }
   }
   return result;
+}
+/** 没人要的牌进打出、翻出那家的出牌区，四家都看得见（DEC-20261108-出牌翻牌都看得见）。 */
+function fold(state: XinjinRound, source: Source, events: XinjinEvent[]) {
+  move(state, 'table', 'discards', [source.cardId!]);
+  state.folds = { ...state.folds, [source.userId]: [...state.folds?.[source.userId] ?? [], source.cardId!] };
+  events.push({ type: 'fold', userId: source.userId, card: physical(state, source.cardId!) });
 }
 function openResponse(state: XinjinRound, source: Source, events: XinjinEvent[]) {
   stage(state, 'response', source.userId, source);
@@ -245,15 +271,24 @@ function openResponse(state: XinjinRound, source: Source, events: XinjinEvent[])
   const tieOrder = isXinjinV2(state.rules) && source.kind === 'flip' ? [source.userId, ...order.slice(0, -1)] : order;
   state.claims = openClaims(decision(state), tieOrder, offers(state, source));
   if (!state.claims.offers.length) {
-    move(state, 'table', 'discards', [source.cardId!]);
+    fold(state, source, events);
     stage(state, 'draw', cycle(state, source.userId)[0]!);
   } else events.push({ type: 'response-opened', decisionId: decision(state), sourceId: source.userId });
 }
 function performMeld(state: XinjinRound, id: string, action: Move, external: boolean, events: XinjinEvent[]) {
   const current = player(state, id);
-  const resume = external ? 'discard' as const : state.phase as 'draw' | 'discard';
+  const resume = external ? 'discard' as const : state.phase as 'draw' | 'discard' | 'touing';
   const incomingId = external ? state.source!.cardId! : null;
   let changed = current.melds.length;
+  if (action.type === 'tou' && 'cardIds' in action && action.cardIds.every(cardId => isSpecial(physical(state, cardId).code))) {
+    // 偷鬼：从手里放到鬼牌区，每张补一张（DEC-20261108-起手依次偷）。
+    for (const cardId of action.cardIds) {
+      move(state, handZone(id), bonusZone(id), [cardId]);
+      events.push({ type: 'bonus', userId: id, card: physical(state, cardId), fromHand: true });
+    }
+    afterOwnMeld(state, id, resume, events);
+    return;
+  }
   if (action.type === 'ba') {
     changed = action.meldIndex;
     const meld = current.melds[action.meldIndex]!;
@@ -271,9 +306,33 @@ function performMeld(state: XinjinRound, id: string, action: Move, external: boo
   const meld = current.melds[Math.min(changed, current.melds.length - 1)]!;
   events.push({ type: 'meld', userId: id, kind: action.type, cards: meld.cardIds.map(cardId => physical(state, cardId)),
     ...(action.type === 'ba' ? { meldIndex: changed, addedCardId: action.cardId } : {}) });
-  const replacement = replenish(state, id, fullSize(state, id) - (resume === 'draw' ? 1 : 0), events);
+  afterOwnMeld(state, id, resume, events);
+}
+/** 偷、巴、杠之后补牌，接着原来那一步；起手偷牌时偷完还有能偷的就接着偷，没有就轮下一家。 */
+function afterOwnMeld(state: XinjinRound, id: string, resume: 'draw' | 'discard' | 'touing', events: XinjinEvent[]) {
+  const holdsTurn = resume === 'discard' || resume === 'touing' && id === state.dealerId;
+  const replacement = replenish(state, id, fullSize(state, id) - (holdsTurn ? 0 : 1), events);
   if (state.phase === 'finished') return;
+  if (resume === 'touing') {
+    if (ownMelds(state, id).length) stage(state, 'touing', id, state.source);
+    else { state.openingTou = { pending: state.openingTou!.pending.slice(1) }; advanceOpening(state); }
+    return;
+  }
   stage(state, resume, id, replacement && resume === 'discard' ? { kind: 'replacement', userId: id, cardId: replacement } : null);
+}
+/**
+ * v2 起手：从庄家起一家一家偷（鬼、三张、四张都自己点，DEC-20261108-起手依次偷），没有能偷的直接跳过；
+ * 轮完再一起弹「报」「过」，最后庄家出牌。
+ */
+function advanceOpening(state: XinjinRound) {
+  const source: Source = { kind: 'original-hand', userId: state.dealerId, cardId: null };
+  let pending = state.openingTou?.pending ?? [];
+  while (pending.length && !ownMelds(state, pending[0]!).length) pending = pending.slice(1);
+  if (pending.length) { state.openingTou = { pending }; stage(state, 'touing', pending[0]!, source); return; }
+  state.openingTou = null;
+  stage(state, 'discard', state.dealerId, source);
+  const declaring = state.rules.baoJiao === 1 ? state.players.map(item => item.userId).filter(userId => canDeclareOpening(state, userId)) : [];
+  if (declaring.length) { state.phase = 'declaring'; state.openingDeclare = { pending: declaring }; }
 }
 /** firstDealerId：第一局的庄家，v2 由引擎随机挑；不给就是房主。 */
 export function createXinjinRound(input: RoundInput, orderedCardIds: readonly string[], firstDealerId = input.ownerUserId): XinjinRound {
@@ -322,6 +381,7 @@ export function xinjinLegalActions(state: XinjinRound, id: string): XinjinAction
     ? [{ type: 'bao' as const, decisionId: decision(state) }, { type: 'buBao' as const, decisionId: decision(state) }] : [];
   if (state.activeId !== id) return [];
   const choices: Move[] = [];
+  if (state.phase === 'touing') return [...ownMelds(state, id), { type: 'guo' as const }].map(action => ({ ...action, decisionId: decision(state) }));
   if (state.source && winning(state, id, state.source, false)) choices.push({ type: 'hu' });
   if (state.phase === 'opening') choices.push({ type: 'begin' });
   else {
@@ -329,12 +389,15 @@ export function xinjinLegalActions(state: XinjinRound, id: string): XinjinAction
     if (state.phase === 'draw') choices.push({ type: 'draw' });
     else for (const cardId of ids(state, handZone(id))) {
       const current = player(state, id);
+      // v2 鬼不能打，只能偷。
+      if (isXinjinV2(state.rules) && isSpecial(physical(state, cardId).code)) continue;
       const waits = declarationFaces(state, id, cardId, current.declaredBonusIds ?? ids(state, bonusZone(id)));
       const declared = current.declaredWaits ?? null;
       // 庄家起手已经点了「报」：只能打留得住叫的牌，打出去就是报叫，不另弹「报」。
       if (current.declarePending) { if (waits && canDeclare(state, id, cardId, ids(state, bonusZone(id)))) choices.push({ type: 'discard', cardId }); continue; }
       if (declared === null || sameDeclaredWaits(declared, waits)) choices.push({ type: 'discard', cardId });
-      if (state.rules.baoJiao === 1 && declared === null && waits && canDeclare(state, id, cardId, ids(state, bonusZone(id))))
+      // v2 只能起手报叫，打牌中途有叫也不能报（DEC-20261108-只能起手报）；老桌照旧。
+      if (!isXinjinV2(state.rules) && state.rules.baoJiao === 1 && declared === null && waits && canDeclare(state, id, cardId, ids(state, bonusZone(id))))
         choices.push({ type: 'declare', cardId });
     }
   }
@@ -349,9 +412,9 @@ export function applyXinjinAction(previous: XinjinRound, id: string, action: unk
   const typed = action as XinjinAction, state = structuredClone(previous), events: XinjinEvent[] = [];
   normalizeDeclarations(state);
   // v2 提示了偷、巴却去摸牌、出牌，算点过：这些点数摸到鬼才再提示，新凑成的照常马上提示。
-  if (isXinjinV2(state.rules) && ['draw', 'discard', 'declare'].includes(typed.type)) {
+  if (isXinjinV2(state.rules) && ['draw', 'discard', 'declare', 'guo'].includes(typed.type)) {
     const ranks = ownMelds(state, id).flatMap(item => item.type === 'tou' ? [item.cardIds[0]!] : item.type === 'ba' ? [item.cardId] : [])
-      .map(cardId => ordinaryRank(physical(state, cardId).code));
+      .map(cardId => isSpecial(physical(state, cardId).code) ? GHOST_RANK : ordinaryRank(physical(state, cardId).code));
     if (ranks.length) player(state, id).touPassed = [...new Set([...player(state, id).touPassed ?? [], ...ranks])].sort((a, b) => a - b);
   }
   if (typed.type === 'respond') {
@@ -359,14 +422,22 @@ export function applyXinjinAction(previous: XinjinRound, id: string, action: unk
     const chosen = resolveClaims(state.claims);
     if (chosen) {
       if (!chosen.length) {
-        move(state, 'table', 'discards', [state.source!.cardId!]);
-        stage(state, 'draw', cycle(state, state.source!.userId)[0]!);
+        const source = state.source!;
+        fold(state, source, events);
+        stage(state, 'draw', cycle(state, source.userId)[0]!);
       } else if ((chosen[0]!.action as Move).type === 'hu') finish(state, 'hu',
         chosen.map(choice => ({ userId: choice.userId, win: winning(state, choice.userId, state.source!, true)! })), events);
       else performMeld(state, chosen[0]!.userId, chosen[0]!.action as Move, true, events);
     }
   } else if (typed.type === 'hu') finish(state, 'hu', [{ userId: id, win: winning(state, id, state.source!, false)! }], events);
-  else if (typed.type === 'begin') {
+  else if (typed.type === 'begin' && manualTou(state.rules)) {
+    // v2 发完牌不自动亮鬼补牌：从庄家起依次自己偷（DEC-20261108-起手依次偷）。
+    state.openingTou = { pending: [state.dealerId, ...cycle(state, state.dealerId).slice(0, -1)] };
+    advanceOpening(state);
+  } else if (typed.type === 'guo') {
+    state.openingTou = { pending: state.openingTou!.pending.slice(1) };
+    advanceOpening(state);
+  } else if (typed.type === 'begin') {
     let replacement: string | null = null;
     for (const currentId of [state.dealerId, ...cycle(state, state.dealerId).slice(0, -1)]) {
       const last = replenish(state, currentId, currentId === state.dealerId ? 8 : 7, events);
@@ -399,7 +470,13 @@ export function applyXinjinAction(previous: XinjinRound, id: string, action: unk
   } else if (typed.type === 'draw') {
     const next = ids(state, 'deck')[0];
     if (!next) drawEnd(state, events);
-    else if (isSpecial(physical(state, next).code) ||
+    else if (isSpecial(physical(state, next).code) && !autoBonus(state, id)) {
+      // v2 摸到鬼进手，自己点偷；不偷就留在手里（DEC-20261108-起手依次偷）。
+      move(state, 'deck', handZone(id), [next]);
+      delete player(state, id).touPassed;
+      events.push({ type: 'replacement', userId: id, card: physical(state, next), remaining: ids(state, 'deck').length });
+      stage(state, 'discard', id, { kind: 'replacement', userId: id, cardId: next });
+    } else if (isSpecial(physical(state, next).code) ||
       (state.rules.qiToWang === 1 && ordinaryRank(physical(state, next).code) === 7)) {
       move(state, 'deck', handZone(id), [next]);
       const last = replenish(state, id, fullSize(state, id), events);
@@ -439,13 +516,22 @@ export function assertXinjinRound(state: XinjinRound): void {
     .flatMap(entry => Array<number>(entry.count).fill(entry.code)).sort((a, b) => a - b);
   requireCondition(isDeepStrictEqual(state.cards.pack.map(card => card.code).sort((a, b) => a - b), capacity) &&
     state.players.some(item => item.userId === state.dealerId) &&
-    ['opening', 'declaring', 'discard', 'draw', 'response', 'finished'].includes(state.phase),
+    ['opening', 'touing', 'declaring', 'discard', 'draw', 'response', 'finished'].includes(state.phase),
   'INVALID_XINJIN_STATE', 'Physical pack and turn phase must be consistent.', 500);
   const pending = state.openingDeclare?.pending;
   requireCondition(state.phase === 'declaring' ? Array.isArray(pending) && pending.length > 0 && new Set(pending).size === pending.length &&
     pending.every(userId => state.players.some(item => item.userId === userId) && (player(state, userId).declaredWaits ?? null) === null)
     : pending === undefined,
   'INVALID_XINJIN_STATE', 'The opening declaration window must list undecided players only while it is open.', 500);
+  const discarded = new Set(ids(state, 'discards'));
+  const folded = Object.entries(state.folds ?? {});
+  requireCondition(folded.every(([userId, cardIds]) => state.players.some(item => item.userId === userId) && cardIds.every(cardId => discarded.delete(cardId))),
+  'INVALID_XINJIN_STATE', 'Folded cards must be distinct discards of seated players.', 500);
+  const touing = state.openingTou?.pending;
+  requireCondition(state.phase === 'touing' ? Array.isArray(touing) && touing.length > 0 && new Set(touing).size === touing.length &&
+    touing.every(userId => state.players.some(item => item.userId === userId)) && touing[0] === state.activeId
+    : touing === undefined,
+  'INVALID_XINJIN_STATE', 'The opening tou turn must list the remaining players, current one first, only while it is open.', 500);
   for (const current of state.players) {
     const waits = current.declaredWaits, bonusIds = current.declaredBonusIds;
     requireCondition(current.declarePending === undefined || current.declarePending === true && waits === null &&
@@ -460,14 +546,15 @@ export function assertXinjinRound(state: XinjinRound): void {
       'INVALID_XINJIN_STATE', 'Meld references must match the physical zone.', 500);
     const passed = current.touPassed;
     requireCondition(passed === undefined || Array.isArray(passed) && passed.length > 0 && new Set(passed).size === passed.length &&
-      passed.every(rank => Number.isSafeInteger(rank) && rank >= 1 && rank <= 13),
+      passed.every(rank => Number.isSafeInteger(rank) && rank >= GHOST_RANK && rank <= 13),
     'INVALID_XINJIN_STATE', 'Passed tou ranks must be distinct card ranks.', 500);
     if (state.phase === 'finished') continue;
-    const expected = fullSize(state, current.userId) -
-      (['opening', 'declaring', 'discard'].includes(state.phase) && state.activeId === current.userId ? 0 : 1);
+    const expected = fullSize(state, current.userId) - (state.phase === 'touing' ? current.userId === state.dealerId ? 0 : 1
+      : ['opening', 'declaring', 'discard'].includes(state.phase) && state.activeId === current.userId ? 0 : 1);
     requireCondition(ids(state, handZone(current.userId)).length === expected,
       'INVALID_XINJIN_STATE', 'Concealed hand count is inconsistent.', 500);
-    requireCondition(state.phase === 'opening' || cards(state, handZone(current.userId)).every(card =>
+    // v2 鬼自己点偷，可以留在手里（DEC-20261108-起手依次偷）。
+    requireCondition(state.phase === 'opening' || manualTou(state.rules) || cards(state, handZone(current.userId)).every(card =>
       !isSpecial(card.code) && !(state.rules.qiToWang === 1 && ordinaryRank(card.code) === 7)),
     'INVALID_XINJIN_STATE', 'Unprocessed reward cards cannot remain in a playable hand.', 500);
   }
@@ -487,27 +574,37 @@ export function viewXinjinRound(state: XinjinRound, id: string) {
       winners: state.outcome.winners.map(winner => ({ userId: winner.userId, redPoints: winner.win.redPoints,
         blackPoints: winner.win.blackPoints, scoreUnits: winner.win.scoreUnits })) } : null });
 }
+/** 一家翻完到下一家翻之间的间隔：原版翻牌亮大牌约 1 秒再缩进出牌区。 */
+export const XINJIN_FLIP_DELAY_MS = 1500;
 export function xinjinTimedAction(state: XinjinRound, id: string) {
   const actions = xinjinLegalActions(state, id);
   if (!actions.length) return null;
   // 起手报叫 15 秒不点算不报。
   if (state.phase === 'declaring') return { userId: id, decisionId: decision(state), delayMs: xinjinTurnSeconds(state) * 1000,
     action: actions.find(action => action.type === 'buBao')! };
+  // 起手偷牌 15 秒不点算不偷（DEC-20261108-起手依次偷）。
+  if (state.phase === 'touing') return { userId: id, decisionId: decision(state), delayMs: xinjinTurnSeconds(state) * 1000,
+    action: actions.find(action => action.type === 'guo')! };
   const hu = state.phase === 'response' ? actions.find(action => action.type === 'respond' && action.choiceId !== null &&
     (state.claims!.offers.find(offer => offer.id === action.choiceId)!.action as Move).type === 'hu') : actions.find(action => action.type === 'hu');
   const v2 = isXinjinV2(state.rules);
+  // v2 轮到翻牌、只能翻：隔一下自动翻，前一家翻的牌看清了再翻下一家（DEC-20261108-一家一家翻）。
+  if (v2 && state.phase === 'draw' && actions.every(action => action.type === 'draw'))
+    return { userId: id, decisionId: decision(state), delayMs: XINJIN_FLIP_DELAY_MS, action: actions[0]! };
   // v2 要牌超时：能胡就胡，能碰就碰，其余过。
   const peng = v2 && state.phase === 'response' ? actions.find(action => action.type === 'respond' && action.choiceId !== null &&
     (state.claims!.offers.find(offer => offer.id === action.choiceId)!.action as Move).type === 'peng') : undefined;
   const fallback = peng ?? (state.phase === 'response' ? actions.find(action => action.type === 'respond' && action.choiceId === null)
     : actions.find(action => action.type === 'begin' || action.type === 'draw') ??
-      (v2 ? autoDiscard(state, id, actions) : undefined) ?? actions.find(action => action.type === 'discard'));
+      (v2 ? autoDiscard(state, id, actions) : undefined) ?? actions.find(action => action.type === 'discard') ??
+      // 手里只剩鬼打不出去：偷鬼。
+      actions.find(action => action.type === 'tou'));
   // v2 每步 15 秒（E8）；v1 老桌照旧。
   return { userId: id, decisionId: decision(state), delayMs: xinjinTurnSeconds(state) * 1000, action: hu ?? fallback! };
 }
 /** 托管打牌：先打凑不成 14、也没有同点的牌，同等情况下先打红点少的。 */
 function autoDiscard(state: XinjinRound, id: string, actions: XinjinAction[]) {
-  const handCards = cards(state, handZone(id));
+  const handCards = cards(state, handZone(id)).filter(card => !isSpecial(card.code));
   const score = (cardId: string) => {
     const card = physical(state, cardId), rank = ordinaryRank(card.code);
     const paired = handCards.some(other => other.id !== cardId && (ordinaryRank(other.code) + rank === 14 || ordinaryRank(other.code) === rank));
