@@ -57,7 +57,8 @@ test('21-game catalogue rejects removed creation, preserves old rooms, and freez
     const playing = await rooms.ready(guest, room.id, true);
     assert.equal(playing.state, 'playing');
     assert.equal((await rooms.current(owner.id))!.feeCharged, true);
-    assert.equal((await db.query('SELECT count(*)::int AS n FROM ledger_entries')).rows[0]!.n, 4);
+    // 开局不扣房费，只有两笔充值（DEC-20261112-大赢家付房费）。
+    assert.equal((await db.query('SELECT count(*)::int AS n FROM ledger_entries')).rows[0]!.n, 2);
   } finally { await app.close(); await db.close(); }
 });
 
@@ -145,7 +146,7 @@ test('Ya’an classic rooms retain original options and joins while blood-battle
     const playing = await rooms.ready(guest, room.id, true);
     assert.equal(playing.state, 'playing');
     assert.equal((await rooms.current(owner.id))!.feeCharged, true);
-    assert.equal(await ledger.balance(owner.id), '1');
+    assert.equal(await ledger.balance(owner.id), '2');
     await rooms.dissolve(owner, room.id, true);
     await rooms.dissolve(guest, room.id, true);
   } finally { await app.close(); await db.close(); }

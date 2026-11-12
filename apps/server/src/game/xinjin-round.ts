@@ -211,8 +211,8 @@ function replenish(state: XinjinRound, id: string, target: number, events: Xinji
     events.push({ type: 'replacement', userId: id, card: physical(state, next), remaining: ids(state, 'deck').length });
   }
 }
-/** 鬼在 touPassed 里记成 0。 */
-const GHOST_RANK = 0;
+/** 鬼在 touPassed 里记成 0；点过的「杠」（手里四张）记成点数 + 100，和点过的「偷」分开（DEC-20261112-四张直接杠）。 */
+const GHOST_RANK = 0, GANG_PASSED = 100;
 function ownMelds(state: XinjinRound, id: string): Move[] {
   const current = player(state, id), handCards = cards(state, handZone(id));
   if ((current.declaredWaits ?? null) !== null || current.declarePending) return [];
@@ -232,9 +232,13 @@ function ownMelds(state: XinjinRound, id: string): Move[] {
       .map(card => ({ type: 'ba' as const, cardId: card.id, meldIndex }));
   });
   if (current.melds.length >= 3) return [...ghostTou, ...ba];
-  // v2 手里四张一样的不能直接杠：先偷三张，再提示巴第四张；点过的点数要摸到鬼才再提示。
-  return [...ghostTou, ...ordinaryMeldCandidates(currentCards, v2 ? ['peng'] : ['peng', 'gang'])
-    .filter(meld => !passed.includes(ordinaryRank(physical(state, meld.cardIds[0]!).code))).map(meld => ({
+  // v2 手里凑成四张一样的直接提示「杠」，不再先偷三张（DEC-20261112-四张直接杠，改 DEC-20261103-偷牌顺序）；
+  // 三张提示「偷」。点过的点数要摸到鬼才再提示；点过三张的偷、后来凑成四张照样提示杠。
+  const rankOf = (meld: { cardIds: readonly string[] }) => ordinaryRank(physical(state, meld.cardIds[0]!).code);
+  const melds = ordinaryMeldCandidates(currentCards, ['peng', 'gang']);
+  const fours = new Set(melds.filter(meld => meld.kind === 'gang').map(rankOf));
+  return [...ghostTou, ...melds.filter(meld => meld.kind === 'gang'
+    ? !passed.includes(rankOf(meld) + (v2 ? GANG_PASSED : 0)) : !passed.includes(rankOf(meld)) && !(v2 && fours.has(rankOf(meld)))).map(meld => ({
       type: meld.kind === 'peng' ? 'tou' as const : 'gang' as const, cardIds: [...meld.cardIds],
     })), ...ba];
 }
@@ -413,8 +417,9 @@ export function applyXinjinAction(previous: XinjinRound, id: string, action: unk
   normalizeDeclarations(state);
   // v2 提示了偷、巴却去摸牌、出牌，算点过：这些点数摸到鬼才再提示，新凑成的照常马上提示。
   if (isXinjinV2(state.rules) && ['draw', 'discard', 'declare', 'guo'].includes(typed.type)) {
-    const ranks = ownMelds(state, id).flatMap(item => item.type === 'tou' ? [item.cardIds[0]!] : item.type === 'ba' ? [item.cardId] : [])
-      .map(cardId => isSpecial(physical(state, cardId).code) ? GHOST_RANK : ordinaryRank(physical(state, cardId).code));
+    const ranks = ownMelds(state, id).flatMap(item => item.type === 'tou' || item.type === 'gang' ? [{ cardId: item.cardIds[0]!, gang: item.type === 'gang' }]
+      : item.type === 'ba' ? [{ cardId: item.cardId, gang: false }] : [])
+      .map(({ cardId, gang }) => isSpecial(physical(state, cardId).code) ? GHOST_RANK : ordinaryRank(physical(state, cardId).code) + (gang ? GANG_PASSED : 0));
     if (ranks.length) player(state, id).touPassed = [...new Set([...player(state, id).touPassed ?? [], ...ranks])].sort((a, b) => a - b);
   }
   if (typed.type === 'respond') {
@@ -546,7 +551,7 @@ export function assertXinjinRound(state: XinjinRound): void {
       'INVALID_XINJIN_STATE', 'Meld references must match the physical zone.', 500);
     const passed = current.touPassed;
     requireCondition(passed === undefined || Array.isArray(passed) && passed.length > 0 && new Set(passed).size === passed.length &&
-      passed.every(rank => Number.isSafeInteger(rank) && rank >= GHOST_RANK && rank <= 13),
+      passed.every(rank => Number.isSafeInteger(rank) && (rank >= GHOST_RANK && rank <= 13 || rank > GANG_PASSED && rank <= GANG_PASSED + 13)),
     'INVALID_XINJIN_STATE', 'Passed tou ranks must be distinct card ranks.', 500);
     if (state.phase === 'finished') continue;
     const expected = fullSize(state, current.userId) - (state.phase === 'touing' ? current.userId === state.dealerId ? 0 : 1

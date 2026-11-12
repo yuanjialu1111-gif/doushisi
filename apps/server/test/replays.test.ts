@@ -61,7 +61,7 @@ test('archived replay pins engine version, rebuilds actions once and filters hid
     const response = await app.inject({ method: 'GET', url: `/api/records/${room.id}/replay/${roundId}`, headers: { authorization: `Bearer ${login.token}` } });
     assert.equal(response.statusCode, 200);
     assert.equal(response.json().frames.length, 3);
-    assert.equal(await ledger.balance(players[0]!.id), '9.125');
+    assert.equal(await ledger.balance(players[0]!.id), '10.125');
     assert.equal((await db.query("SELECT COUNT(*)::int AS count FROM ledger_operations WHERE kind='round_settlement'")).rows[0]!.count, 1);
   } finally { await app.close(); await db.close(); }
 });

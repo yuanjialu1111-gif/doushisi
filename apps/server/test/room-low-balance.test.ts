@@ -73,11 +73,13 @@ test('公开桌打完一局有人豆子低于入座门槛：这局只扣到 0，
   const started = await ctx.rooms.ready(rich.actor, room.id, true);
   await ctx.rooms.action(w.actor, room.id, 'low-balance-settle-1', { type: 'settle' }, started.stateVersion!, started.roundId!);
 
-  // 房费 AA 每人 1 豆，poor 剩 19 只输 19，赢家少拿 11。
-  assert.deepEqual(await settlementOf(ctx, started.roundId!), { [w.actor.id]: '49', [poor.actor.id]: '-19', [rich.actor.id]: '-30' });
+  // 开局不扣房费：poor 有 20 只输 20，赢家少拿 10；赢家赢 50 够 20 倍底分，另付 4 豆房费（DEC-20261112-大赢家付房费）。
+  const paid = { [w.actor.id]: '50', [poor.actor.id]: '-20', [rich.actor.id]: '-30' };
+  assert.deepEqual(await settlementOf(ctx, started.roundId!), paid);
   assert.equal(await ctx.ledger.balance(poor.actor.id), '0');
+  assert.equal(await ctx.ledger.balance(w.actor.id), '146');
   const results = (await ctx.db.query('SELECT results FROM rounds WHERE id=$1', [started.roundId])).rows[0]!.results;
-  assert.deepEqual(Object.fromEntries(results.map((posting: any) => [posting.userId, posting.amount])), { [w.actor.id]: '49', [poor.actor.id]: '-19', [rich.actor.id]: '-30' });
+  assert.deepEqual(Object.fromEntries(results.map((posting: any) => [posting.userId, posting.amount])), paid);
 
   // 才打 1 局（共 4 局）就散：没有下一场、没人留座。
   const closed = (await ctx.db.query('SELECT state,current_round FROM rooms WHERE id=$1', [room.id])).rows[0]!;

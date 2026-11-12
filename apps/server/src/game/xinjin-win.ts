@@ -130,7 +130,7 @@ export function evaluateXinjinWin(hand: XinjinHand, context: XinjinWinContext, r
 }
 
 /**
- * v2：门槛 4 人红 20、3 人和 2 人红 25；只有全黑、黑五十、暗四对不看门槛（全红、天走、接地也要够，DEC-20261102-胡牌门槛）；跟头翻不封顶（DEC-20261102-不封顶）。
+ * v2：门槛几人桌都是红 20（DEC-20261112-都红20起胡，以前 3 人、2 人 25）；只有全黑、黑五十、暗四对不看门槛（全红、天走、接地也要够，DEC-20261102-胡牌门槛）；跟头翻不封顶（DEC-20261102-不封顶）。
  * 牌型两种：四组（暗手只按两张凑 14 拆）；暗四对（一组没亮，8 张是四个同点对子，四张同点算一个龙）。两种都成立取番大的。
  */
 function evaluateV2(hand: XinjinHand, context: XinjinWinContext, rules: Readonly<Record<string, unknown>>, ordinary: PhysicalCard[],

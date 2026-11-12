@@ -82,7 +82,7 @@ test('autoplay JSON endpoint enforces ownership, roles, strict input and immutab
     assert.ok(replayed.json().members.every((member: { autoPlay: boolean }) => member.autoPlay === false));
     assert.equal((await db.query("SELECT count(*)::int AS count FROM game_events WHERE room_id=$1 AND payload->>'type'='autoplay_changed'", [room.id])).rows[0]!.count, 2);
     assert.equal((await rooms.view(room.id, players[0]!.id)).stateVersion, 0);
-    assert.equal(await services.ledger.balance(players[0]!.id), '9');
+    assert.equal(await services.ledger.balance(players[0]!.id), '10');
   } finally { await services.app.close(); await db.close(); }
 });
 
@@ -100,8 +100,8 @@ test('application readiness automatically resumes an overdue stored action after
     await services.app.ready();
     assert.equal((await changed)[0], room.id);
     assert.equal((await services.rooms.view(room.id, players[0]!.id)).state, 'between_rounds');
-    assert.equal(await services.ledger.balance(players[0]!.id), '9.125');
-    assert.equal(await services.ledger.balance(players[1]!.id), '8.875');
+    assert.equal(await services.ledger.balance(players[0]!.id), '10.125');
+    assert.equal(await services.ledger.balance(players[1]!.id), '9.875');
     assert.deepEqual(await services.scheduler!.poll(), { checked: 0, applied: 0, failed: 0 });
     const replay = await services.replays.read(players[0]!, room.id, started.roundId!);
     assert.deepEqual(replay.frames.map(frame => frame.stateVersion), [0, 1]);

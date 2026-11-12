@@ -41,6 +41,20 @@ export function xinjinChoicePicks(options: Record<string, unknown>) {
   return picks;
 }
 
+/**
+ * 每局房费（DEC-20261112-大赢家付房费）：这局赢得最多的人付；赢够 20 倍底分扣 4 倍底分，不够不扣。
+ * 底分 1：赢 20 豆及以上扣 4 豆；底分 2：40 扣 8；底分 5：100 扣 20；其他底分同比例。几家并列赢得最多就平摊（除不尽的零头算第一家）。
+ */
+export function roundFee(baseBeans: unknown, paid: readonly Posting[]): Posting[] {
+  const base = beanUnits(baseBeans ?? '0');
+  const top = paid.reduce((max, posting) => beanUnits(posting.amount) > max ? beanUnits(posting.amount) : max, 0n);
+  if (base <= 0n || top <= 0n || top < base * 20n) return [];
+  const winners = paid.filter(posting => beanUnits(posting.amount) === top).map(posting => posting.userId).sort();
+  // 平摊按分（0.01 豆）切，零头给第一家。
+  const cent = beanUnits('0.01'), total = base * 4n, each = total / BigInt(winners.length) / cent * cent, rest = total - each * BigInt(winners.length);
+  return winners.map((userId, index) => ({ userId, amount: unitsMoney(-(each + (index === 0 ? rest : 0n))) }));
+}
+
 export class RoomService extends EventEmitter {
   constructor(private db: Database, public engines: EngineRegistry, private policies: PolicyService, private now: () => number = Date.now) { super(); }
   /** 能新开的玩法：只有四川斗十四（DEC-20261101-四川斗十四）。其他地区的代码留着不启用，只有测试打开它们跑。 */
@@ -290,13 +304,7 @@ export class RoomService extends EventEmitter {
         const atMs = this.now();
         const interactionState = engine.interactions ? planInteractions({ engine, snapshot, playerIds: sortedIds, roundId, atMs,
           autoPlayUserIds: members.rows.filter(member => member.auto_play).map(member => member.user_id), previous: null }) : null;
-        if (!room.fee_charged) {
-          const perPlayer = room.rounds / 4;
-          const postings = room.fee_mode === 'owner' ? [{ userId: room.owner_id, amount: String(-perPlayer * room.player_count) }] : sortedIds.map(userId => ({ userId, amount: String(-perPlayer) }));
-          const operation = { key: `room-fee:${roomId}`, kind: 'room_fee' as const, roomId, reason: 'Room creation fee', postings };
-          const result = await appendOperation(tx, operation);
-          committedBalances = balanceChanges(result, operation);
-        }
+        // 开局不再按局数先扣房费，改成每局结算时由最大赢家付（DEC-20261112-大赢家付房费，见 roundFee）。
         await tx.query("INSERT INTO rounds(id,room_id,number,state,snapshot,initial_snapshot,policy_snapshot,interaction_state,initial_interaction_state,next_action_at) VALUES($1,$2,$3,'playing',$4,$4,$5,$6,$6,$7)", [roundId, roomId, room.current_round + 1, JSON.stringify(snapshot), JSON.stringify(policy), interactionState ? JSON.stringify(interactionState) : null, this.scheduledTimestamp(interactionState)]);
         await tx.query("UPDATE rooms SET state='playing',current_round=current_round+1,fee_charged=true WHERE id=$1", [roomId]);
         await this.event(tx, roomId, actor.id, `round-start:${roundId}`, { type: 'round_started', roundId, number: room.current_round + 1, atMs,
@@ -573,6 +581,12 @@ export class RoomService extends EventEmitter {
       reason: endReason === 'dissolved' ? 'Confirmed scores at unanimous dissolution' : 'Automatic round settlement', postings };
     const operation = await appendOperation(tx, operationSpec);
     if (operation.replayed) return [];
+    // 房费：每局结算时由这局赢得最多的人付（DEC-20261112-大赢家付房费）；单独一笔，不进这局的输赢，回放照样对得上。
+    // 上线前开局已经按局数扣过房费的房间，这一场打完都不再收（新旧交接，不重复收）。
+    const charged = (await tx.query("SELECT 1 FROM ledger_operations WHERE room_id=$1 AND kind='room_fee' AND round_id IS NULL", [room.id])).rows.length > 0;
+    const fee = endReason === 'completed' && !charged ? roundFee(room.rules?.baseBeans, postings) : [];
+    const feeSpec = { key: `room-fee:${roundId}`, kind: 'room_fee' as const, roomId: room.id, roundId, reason: 'Round winner room fee', postings: fee };
+    const feeChanges = fee.length ? balanceChanges(await appendOperation(tx, feeSpec), feeSpec) : [];
     await tx.query('UPDATE room_members SET ready=false WHERE room_id=$1', [room.id]);
     // 第二轮 S3-AC4：同桌打完不再自动加好友（改成申请制），只刷新已是好友的最近同桌时间。
     for (const userId of ids) for (const friendId of ids) if (userId !== friendId) await tx.query('UPDATE friends SET last_played_at=now() WHERE user_id=$1 AND friend_id=$2', [userId, friendId]);
@@ -590,7 +604,8 @@ export class RoomService extends EventEmitter {
         : `${names.join('、')}豆子输光了，下一局开不了，房间自动解散，看完结算回大厅。`;
       await this.event(tx, room.id, SYSTEM_ACCOUNT_ID, `room-low-balance:${roundId}`, { type: 'room_closed_low_balance', userIds: plan.lowUserIds, threshold: money(plan.threshold!), message });
     } else if (closed && endReason === 'completed' && room.lobby_template_id) await this.nextMatch(tx, room);
-    return balanceChanges(operation, operationSpec);
+    const changes = [...balanceChanges(operation, operationSpec), ...feeChanges];
+    return changes.filter((change, index) => !changes.slice(index + 1).some(later => later.userId === change.userId));
   }
 
   async leave(actor: Actor, roomId: string) {

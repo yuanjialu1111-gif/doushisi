@@ -44,7 +44,7 @@ test('records API is bean-first and exposes score only as a room-bean compatibil
     assert.equal(list.statusCode, 200);
     const record = list.json().records.find((entry: { id: string }) => entry.id === room.id);
     assert.ok(record);
-    assert.equal(record.beanBalance, '10.125');
+    assert.equal(record.beanBalance, '11.125');
     assert.equal(record.roomBeanDelta, '0.125');
     assert.equal(record.score, record.roomBeanDelta);
     assert.notEqual(record.score, record.beanBalance);

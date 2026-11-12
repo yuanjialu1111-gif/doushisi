@@ -46,8 +46,8 @@ test('same-window replies accept the observed opening version, survive retry and
     const restored = new (rooms.constructor as typeof import('../src/rooms.js').RoomService)(db, rooms.engines, services.policies);
     await restored.action(b, room.id, 'last-response', { respond: true }, 0, started.roundId!, undefined, 'test-window:1');
     await restored.action(b, room.id, 'last-response', { respond: true }, 0, started.roundId!, undefined, 'test-window:1');
-    assert.equal(await ledger.balance(a.id), '9.000000000001');
-    assert.equal(await ledger.balance(b.id), '8.999999999999');
+    assert.equal(await ledger.balance(a.id), '10.000000000001');
+    assert.equal(await ledger.balance(b.id), '9.999999999999');
     assert.equal((await replays.read(a, room.id, started.roundId!)).frames.at(-1)!.stateVersion, 2);
     assert.equal((await db.query('SELECT count(*)::int AS n FROM round_score_events')).rows[0]!.n, 1);
   } finally { await services.app.close(); await db.close(); }

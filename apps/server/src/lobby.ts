@@ -44,7 +44,7 @@ const variantName = (key: string) => getVariant(key)?.name ?? key;
 
 const CHOICE_UNITS: Record<string, string> = { playerNum: ' 人', gameNum: ' 局', wangNum: ' 个王' };
 /** 四川斗十四 v2 固定的玩法，后台模板只读显示（和牌桌「场次规则」一致）。 */
-const XINJIN_FIXED_RULES = '红点 20 起胡（3 人、2 人要 25）、点炮包赔、自己翻的牌自己也能吃、能报叫；' +
+const XINJIN_FIXED_RULES = '红点 20 起胡（几人桌都一样）、点炮包赔、自己翻的牌自己也能吃、能报叫；' +
   '天胡、地胡、报叫、金二十、暗四对、全红、全黑、红五十、黑五十、大吊车各 3 番，龙对每个再加 3 番；鬼每张 1 番，碰、偷每组 1 番，杠、巴每组 2 番；公开桌房费 AA。';
 
 export class LobbyService {

@@ -190,10 +190,11 @@ test('番型：鬼、碰、杠', () => {
   assert.deepEqual(zone(state, 'bonus:a'), []);
   state = step(state, 'a', 'tou', [1001]);
   assert.deepEqual(zone(state, 'bonus:a'), [1001]);
-  // 手里四张一样的不能直接杠：先偷三张，再巴第四张（DEC-20261103-偷牌顺序）。
-  assert.equal(options(state, 'a', 'gang').length, 0);
-  state = step(state, 'a', 'tou', [105, 205, 305]);
-  state = step(state, 'a', 'ba', [405]);
+  // 手里四张一样的直接弹「杠」，不再先偷三张（DEC-20261112-四张直接杠）。
+  assert.equal(options(state, 'a', 'tou').length, 0);
+  assert.equal(options(state, 'a', 'gang').length, 1);
+  state = step(state, 'a', 'gang', [105, 205, 305, 405]);
+  assert.equal(state.players[0]!.melds[0]!.kind, 'gang');
   // 还弹三个10的「偷」：点过。
   assert.ok(options(state, 'a', 'tou').length);
   state = noBao(noTou(state));
@@ -201,6 +202,18 @@ test('番型：鬼、碰、杠', () => {
   state = claim(state, 'a', 'peng', [310]);
   const win = won(step(state, 'a', 'hu'), 'a', ['gui', 'peng', 'gang'], 4);
   assert.equal(win.totalFan, 4);
+});
+test('手里三张后来又进第四张，直接弹「杠」不弹「偷」（DEC-20261112-四张直接杠）', () => {
+  let state = open('siZhangGang');
+  assert.equal(options(state, 'a', 'tou').length, 2);
+  state = step(state, 'a', 'tou', [1001]);
+  assert.ok(zone(state, `hand:a`).includes(406));
+  assert.equal(options(state, 'a', 'tou').length, 0);
+  assert.equal(options(state, 'a', 'gang').length, 1);
+  state = step(state, 'a', 'gang', [106, 206, 306, 406]);
+  assert.equal(state.players[0]!.melds[0]!.kind, 'gang');
+  // 点过的杠记下，这四张不再提示；点过三张的偷、后来凑成四张照样提示杠（上面就是）。
+  assert.equal(options(state, 'a', 'gang').length, 0);
 });
 test('番型：红点不够不能胡', () => {
   let state = pass(step(start('gate'), 'a', 'discard', [106]));
@@ -315,13 +328,13 @@ test('开局有鬼不自动亮：轮到的人收到「偷 / 过」，点偷后�
   }
 });
 
-test('场景的牌都排得出来，四家手里一开始都没有鬼（鬼、碰、杠和天胡＋鬼那两局除外）', () => {
+test('场景的牌都排得出来，四家手里一开始都没有鬼（鬼、碰、杠，天胡＋鬼，凑成四张弹杠那三局除外）', () => {
   for (const scenario of XINJIN_SCENARIOS) {
     const state = open(scenario.key);
     for (const id of users) {
       assert.equal(zone(state, 'bonus:' + id).length, 0, scenario.key);
       const ghosts = zone(state, 'hand:' + id).filter(face => face > 1000).length;
-      assert.equal(ghosts > 0, id === 'a' && ['guiPengGang', 'tianGui'].includes(scenario.key), `${scenario.key} ${id}`);
+      assert.equal(ghosts > 0, id === 'a' && ['guiPengGang', 'tianGui', 'siZhangGang'].includes(scenario.key), `${scenario.key} ${id}`);
     }
   }
 });

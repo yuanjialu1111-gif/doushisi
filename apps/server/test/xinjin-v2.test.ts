@@ -89,16 +89,21 @@ function v2Hand(codes: number[], melds: { kind: 'tou' | 'gang' | 'peng' | 'ba' |
 const flipAt = (state: XinjinHand): XinjinWinContext =>
   ({ winnerSeat: 2, dealerSeat: 1, source: 'flip', sourceSeat: 1, incomingCardId: state.concealed[0]!.id, discardCount: 3 });
 
-test('v2 门槛按人数：4 人红 20 能胡，3 人要 25', () => {
+test('v2 门槛几人桌都是红 20（DEC-20261112-都红20起胡）', () => {
   const state = v2Hand([110, 204, 309, 205, 101, 413, 206, 408]);
   const four = evaluateXinjinWin(state, flipAt(state), v2Rules(4));
   assert.equal(four.status, 'winning');
   // 红正好 20 是金二十 3 番。
   if (four.status === 'winning') { assert.equal(four.redPoints, 20); assert.equal(four.totalFan, 3); assert.equal(four.scoreUnits, '8'); }
-  const three = evaluateXinjinWin(state, flipAt(state), v2Rules(3));
-  assert.equal(three.status, 'not-winning');
-  if (three.status === 'not-winning') assert.equal(three.reason, 'points');
-  assert.equal(evaluateXinjinWin(state, flipAt(state), v2Rules(2)).status, 'not-winning');
+  assert.equal(evaluateXinjinWin(state, flipAt(state), v2Rules(3)).status, 'winning');
+  assert.equal(evaluateXinjinWin(state, flipAt(state), v2Rules(2)).status, 'winning');
+  // 红 9 换成黑 9：红只剩 11，几人桌都不够。
+  const short = v2Hand([110, 204, 409, 205, 101, 413, 206, 408]);
+  for (const players of [4, 3, 2]) {
+    const result = evaluateXinjinWin(short, flipAt(short), v2Rules(players));
+    assert.equal(result.status, 'not-winning');
+    if (result.status === 'not-winning') assert.equal(result.reason, 'points');
+  }
 });
 
 test('v2 番：鬼每张 1、偷出三张算碰 1、杠 2，跟头翻不封顶', () => {
@@ -162,11 +167,13 @@ test('v2 手里的三张没偷出来不算组；只有全黑、黑五十、暗�
   // 三张 10 加一张 4 在手里不能拆成两两凑 14。
   const concealedTriple = v2Hand([110, 210, 310, 104, 101, 413, 206, 408]);
   assert.equal(evaluateXinjinWin(concealedTriple, flipAt(concealedTriple), v2Rules(4)).status, 'not-winning');
-  // 全红也要够门槛：红 23，4 人桌（20）能胡，3 人桌（25）不能。
+  // 全红也要够门槛：红 23 几人桌都能胡（门槛都是 20，DEC-20261112-都红20起胡）；红 16（换进一张黑 7）不能胡。
   const allRed = v2Hand([101, 113, 102, 112, 103, 111, 104, 110]);
   const red = evaluateXinjinWin(allRed, flipAt(allRed), v2Rules(4));
   assert.ok(red.status === 'winning' && red.items.some(item => item.pattern === 'quanHong') && red.scoreUnits === '8');
-  assert.equal(evaluateXinjinWin(allRed, flipAt(allRed), v2Rules(3)).status, 'not-winning');
+  assert.equal(evaluateXinjinWin(allRed, flipAt(allRed), v2Rules(3)).status, 'winning');
+  const lowRed = v2Hand([101, 113, 102, 112, 103, 111, 207, 307]);
+  assert.equal(evaluateXinjinWin(lowRed, flipAt(lowRed), v2Rules(3)).status, 'not-winning');
   const allBlack = v2Hand([201, 213, 202, 212, 203, 211, 204, 210]);
   const black = evaluateXinjinWin(allBlack, flipAt(allBlack), v2Rules(4));
   assert.ok(black.status === 'winning' && black.items.some(item => item.pattern === 'quanHei') && black.redPoints === 0);
@@ -227,11 +234,11 @@ test('v2 一张牌只让下家胡，点炮放牌人包三家，托管先打不�
 });
 
 test('v2 偷出三张后摸到第四张可以巴杠', () => {
-  const state = make([[112, 212, 312, 412, 101, 102, 103, 104], [201, 202, 203, 204, 205, 206, 208]], [], {});
-  // 起手轮到庄家偷：偷三张，第四张接着弹巴。
+  // 手里三张 Q，偷出来补到第四张 Q，接着弹巴（手里本来就四张的直接弹杠，见下一条，DEC-20261112-四张直接杠）。
+  const state = make([[112, 212, 312, 101, 102, 103, 104, 105], [201, 202, 203, 204, 205, 206, 208]], [412], {});
   let next = begun(state);
   assert.equal(next.phase, 'touing');
-  const tou = xinjinLegalActions(next, 'a').find(item => item.type === 'tou' && item.cardIds.every(id => code(next, id) !== 412));
+  const tou = xinjinLegalActions(next, 'a').find(item => item.type === 'tou');
   assert.ok(tou);
   next = apply(next, 'a', tou);
   const ba = xinjinLegalActions(next, 'a').find(item => item.type === 'ba');
@@ -530,11 +537,15 @@ test('v2 报叫了没胡、别人点炮被截胡：多的 3 番由点炮的人�
     { a: -19200, b: 19200, c: 0, d: 0 });
 });
 
-test('v2 手里四张一样的先偷三张再巴；没偷就摸牌、出牌，要摸到鬼才再提示（DEC-20261103-偷牌顺序）', () => {
+test('v2 手里四张一样的直接弹杠（DEC-20261112-四张直接杠）；偷没点就摸牌、出牌，要摸到鬼才再提示（DEC-20261103-偷牌顺序）', () => {
   const four = begun(make([[112, 212, 312, 412, 101, 102, 103, 104], [201, 202, 203, 204, 205, 206, 208]]));
   assert.equal(four.phase, 'touing');
-  assert.ok(!xinjinLegalActions(four, 'a').some(item => item.type === 'gang'), '手里四张不能直接杠');
-  assert.ok(xinjinLegalActions(four, 'a').some(item => item.type === 'tou'));
+  assert.equal(xinjinLegalActions(four, 'a').filter(item => item.type === 'gang').length, 1, '手里四张直接弹杠');
+  assert.ok(!xinjinLegalActions(four, 'a').some(item => item.type === 'tou'), '不再先弹偷三张');
+  // 点过杠：记成点数 + 100，出牌时也不再提示杠。
+  const passedGang = noBao(noTou(four));
+  assert.deepEqual(passedGang.players[0]!.touPassed, [112]);
+  assert.ok(!xinjinLegalActions(passedGang, 'a').some(item => item.type === 'gang'));
   const touFaces = (state: XinjinRound) => xinjinLegalActions(state, 'a').filter(item => item.type === 'tou');
   let state = begun(make([[112, 212, 312, 101, 102, 103, 104, 105], [201, 202, 203, 204, 205, 206, 208]], [413, 1001, 113]));
   assert.ok(touFaces(state).length);

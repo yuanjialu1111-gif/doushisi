@@ -68,7 +68,7 @@ test('confirmed scores survive restart, dissolve atomically and remain independe
       await rooms.action(players[1]!, room.id, 'score-reemit-command', action, 1, roundId);
       assert.equal((await db.query('SELECT count(*)::int AS count FROM round_score_events WHERE round_id=$1', [roundId])).rows[0]!.count, 1);
       assert.deepEqual((await rooms.view(room.id, players[0]!.id)).confirmedScores, totals(players, action.delta));
-      assert.equal(await ledger.balance(players[0]!.id), '9');
+      assert.equal(await ledger.balance(players[0]!.id), '10');
       assert.equal(await count(room.id, 'round_settlement'), 0);
       for (const [suffix, invalid, code] of [
         ['changed', { ...action, delta: '2' }, 'CONFIRMED_SCORE_CONFLICT'],
@@ -94,10 +94,10 @@ test('confirmed scores survive restart, dissolve atomically and remain independe
         ...Array.from({ length: 12 }, () => recovered.dissolve(players[1]!, room.id, true)),
         ...Array.from({ length: 20 }, (_, index) => ledger.adjust(beans, players[0]!.id, '0.01', 'concurrent adjustment', `score-concurrent-${index}`)),
       ]);
-      assert.equal(await ledger.balance(players[0]!.id), '9.325');
-      assert.equal(await ledger.balance(players[1]!.id), '8.875');
+      assert.equal(await ledger.balance(players[0]!.id), '10.325');
+      assert.equal(await ledger.balance(players[1]!.id), '9.875');
       assert.equal(await count(room.id, 'round_settlement'), 1);
-      assert.equal(await count(room.id, 'room_fee'), 1);
+      assert.equal(await count(room.id, 'room_fee'), 0);
       const saved = (await db.query('SELECT state,snapshot,results,end_reason FROM rounds WHERE id=$1', [roundId])).rows[0]!;
       assert.equal(saved.state, 'settled');
       assert.equal(saved.end_reason, 'dissolved');
@@ -117,8 +117,8 @@ test('confirmed scores survive restart, dissolve atomically and remain independe
       const recovered = new RoomService(db, new EngineRegistry([{ ...fixture, apply() { throw new Error('Dissolve must not invoke a winning or draw evaluator'); } }]), policies);
       await recovered.dissolve(players[0]!, room.id, true);
       await recovered.dissolve(players[1]!, room.id, true);
-      assert.equal(await ledger.balance(players[0]!.id), '9');
-      assert.equal(await ledger.balance(players[1]!.id), '9');
+      assert.equal(await ledger.balance(players[0]!.id), '10');
+      assert.equal(await ledger.balance(players[1]!.id), '10');
       assert.deepEqual((await replay.read(players[0]!, room.id, roundId)).results, totals(players, '0'));
       assert.equal(await count(room.id, 'round_settlement'), 1);
     });
@@ -132,9 +132,9 @@ test('confirmed scores survive restart, dissolve atomically and remain independe
       assert.deepEqual((await rooms.view(room.id, players[0]!.id)).confirmedScores, totals(players, '-3.25'));
       await rooms.dissolve(players[0]!, room.id, true);
       await rooms.dissolve(players[1]!, room.id, true);
-      // 只有 1 豆（交过房费）就只输 1 豆，对家也只赢 1 豆。
+      // 只有 2 豆就只输 2 豆，对家也只赢 2 豆；同意解散不收房费（DEC-20261112-大赢家付房费）。
       assert.equal(await ledger.balance(players[0]!.id), '0');
-      assert.equal(await ledger.balance(players[1]!.id), '2');
+      assert.equal(await ledger.balance(players[1]!.id), '4');
       await assert.rejects(ledger.adjust(beans, players[0]!.id, '-0.01', 'forbidden debt increase', 'score-debt-deduction'), { code: 'INSUFFICIENT_BALANCE' });
     });
 
@@ -144,7 +144,7 @@ test('confirmed scores survive restart, dissolve atomically and remain independe
       await assert.rejects(rooms.action(players[0]!, room.id, 'score-unexplained-final', { finish: '1' }, 1, roundId), { code: 'INVALID_SETTLEMENT' });
       await assert.rejects(rooms.action(players[0]!, room.id, 'score-final-missing-earlier', { eventId: 'earned:terminal', delta: '0.375', finish: '0.375' }, 1, roundId), { code: 'INVALID_SETTLEMENT' });
       await rooms.action(players[0]!, room.id, 'score-terminal-increment', { eventId: 'earned:terminal', delta: '0.375', finish: '0.5' }, 1, roundId);
-      assert.equal(await ledger.balance(players[0]!.id), '9.5');
+      assert.equal(await ledger.balance(players[0]!.id), '10.5');
       const first = (await db.query('SELECT snapshot,results,end_reason FROM rounds WHERE id=$1', [roundId])).rows[0];
       assert.equal((await replay.read(players[0]!, room.id, roundId)).endReason, 'completed');
       for (const player of players) await rooms.ready(player, room.id, true);
@@ -153,10 +153,10 @@ test('confirmed scores survive restart, dissolve atomically and remain independe
       await rooms.dissolve(players[0]!, room.id, true);
       await rooms.dissolve(players[1]!, room.id, true);
       assert.deepEqual((await db.query('SELECT snapshot,results,end_reason FROM rounds WHERE id=$1', [roundId])).rows[0], first);
-      assert.equal(await count(room.id, 'room_fee'), 1);
+      assert.equal(await count(room.id, 'room_fee'), 0);
       assert.equal(await count(room.id, 'round_settlement'), 2);
-      assert.equal(await ledger.balance(players[0]!.id), '9.375');
-      assert.equal(await ledger.balance(players[1]!.id), '8.625');
+      assert.equal(await ledger.balance(players[0]!.id), '10.375');
+      assert.equal(await ledger.balance(players[1]!.id), '9.625');
       const scores = (await rooms.view(room.id, players[0]!.id)).members.map(member => new Decimal(member.score).toFixed());
       assert.deepEqual(scores, ['0.375', '-0.375']);
     });

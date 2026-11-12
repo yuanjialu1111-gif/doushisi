@@ -123,7 +123,7 @@ test('R2/R1/R5: templates keep standing empty system tables, the lobby lists onl
   assert.equal(listing.tables.filter((table: any) => table.system && table.seats.length === 0).length, 2);
 });
 
-test('第三轮 R5：一场打完同桌号开下一场，留座 15 秒，点继续认领座位、到时没点空出来，每场各扣一次 AA', async t => {
+test('第三轮 R5：一场打完同桌号开下一场，留座 15 秒，点继续认领座位、到时没点空出来；房费每局大赢家付，赢不够 20 倍底分不扣', async t => {
   const ctx = await setup(); t.after(ctx.close);
   await ctx.lobby.createTemplate(ctx.beans, template({ standingEmpty: 1 }));
   await ctx.lobby.maintain();
@@ -138,9 +138,9 @@ test('第三轮 R5：一场打完同桌号开下一场，留座 15 秒，点继�
     await ctx.rooms.action(a.actor, joined.id, `lobby-settle-${round}`, { type: 'settle' }, started.stateVersion!, started.roundId!);
   }
   assert.equal((await ctx.db.query('SELECT state FROM rooms WHERE id=$1', [joined.id])).rows[0]!.state, 'closed');
-  // AA：4 局房费每人 1 豆，只扣一次。
+  // 房费每局由大赢家付，赢够 20 倍底分才扣；夹具每局只赢 1 豆，整场不扣、开局也不扣（DEC-20261112-大赢家付房费）。
   const feesOf = async (roomId: string) => (await ctx.db.query("SELECT e.amount::text FROM ledger_entries e JOIN ledger_operations o ON o.id=e.operation_id WHERE o.kind='room_fee' AND o.room_id=$1", [roomId])).rows.map(fee => fee.amount).sort();
-  assert.deepEqual(await feesOf(joined.id), ['-1', '-1']);
+  assert.deepEqual(await feesOf(joined.id), []);
 
   // 下一场：同桌号、第 2 场，两人的座位都留着，还算不上「在桌上」。
   const next = (await ctx.db.query("SELECT id,match_seq,previous_room_id FROM rooms WHERE code=$1 AND state <> 'closed'", [code])).rows[0]!;
@@ -168,21 +168,21 @@ test('第三轮 R5：一场打完同桌号开下一场，留座 15 秒，点继�
   assert.equal(listing.tables[0].code, code);
   assert.match(listing.beans, /^\d+(\.\d+)?$/);
 
-  // 别人补进来就开第 2 场，第 2 场再扣一次 AA。
+  // 别人补进来就开第 2 场，开局不扣房费。
   const c = await ctx.player('lobby_round_c', '50');
   await ctx.rooms.join(c.actor, code);
   await ctx.rooms.ready(a.actor, next.id, true);
   assert.equal((await ctx.rooms.ready(c.actor, next.id, true)).currentRound, 1);
-  assert.deepEqual(await feesOf(next.id), ['-1', '-1']);
+  assert.deepEqual(await feesOf(next.id), []);
 });
 
 test('第三轮 R5 AC2/AC3：打完一局有人豆子不够门槛整桌散、不留座，回大厅也坐不下；留座的人主动离开、全走光桌子变回空桌', async t => {
   const ctx = await setup(); t.after(ctx.close);
   await ctx.lobby.createTemplate(ctx.beans, template({ standingEmpty: 1 }));
   await ctx.lobby.maintain();
-  const [a, b] = [await ctx.player('lobby_poor_a', '11'), await ctx.player('lobby_poor_b', '50')];
+  const [a, b] = [await ctx.player('lobby_poor_a', '10'), await ctx.player('lobby_poor_b', '50')];
   let code = (await tablesOf(ctx, a.headers)).tables[0].code;
-  // b 坐 1 号（夹具里 1 号每局赢 1 豆），a 交 1 豆房费再输 1 局剩 9 豆，不够 10 豆门槛：4 局才打 1 局就散。
+  // b 坐 1 号（夹具里 1 号每局赢 1 豆），a 正好 10 豆、输 1 局剩 9 豆（开局不扣房费），不够 10 豆门槛：4 局才打 1 局就散。
   await ctx.rooms.join(b.actor, code);
   const room = await ctx.rooms.join(a.actor, code);
   await ctx.rooms.ready(a.actor, room.id, true);
@@ -431,7 +431,7 @@ test('本机测试台：指定牌局只在打开时有；按场景发牌、请�
   const players = [];
   for (const name of ['a', 'b', 'c', 'd']) players.push(await ctx.player(`lobby_dev_${name}`, '50'));
   const listed = (await ctx.app.inject({ method: 'GET', url: '/api/dev/scenarios', headers: players[0]!.headers })).json();
-  assert.equal(listed.length, 33);
+  assert.equal(listed.length, 34);
   const code = (await tablesOf(ctx, players[0]!.headers)).tables[0].code;
   let room;
   for (const player of players) room = await ctx.rooms.join(player.actor, code);

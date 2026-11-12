@@ -63,8 +63,8 @@ test('JSON actions require the observed round and version without weakening comm
       assert.equal((await rooms.view(room.id, players[0]!.id)).stateVersion, 0);
       assert.equal((await db.query('SELECT count(*)::int AS count FROM game_events WHERE room_id=$1', [room.id])).rows[0]!.count, 1);
       assert.equal((await db.query('SELECT count(*)::int AS count FROM round_score_events WHERE round_id=$1', [roundId])).rows[0]!.count, 0);
-      assert.equal(await ledger.balance(players[0]!.id), '9');
-      assert.equal(await ledger.balance(players[1]!.id), '9');
+      assert.equal(await ledger.balance(players[0]!.id), '10');
+      assert.equal(await ledger.balance(players[1]!.id), '10');
     });
 
     await t.test('competing new commands at one version have one winner and identical retries still succeed', async () => {
@@ -100,8 +100,8 @@ test('JSON actions require the observed round and version without weakening comm
       assert.equal((await db.query('SELECT state_version FROM rounds WHERE id=$1', [roundId])).rows[0]!.state_version, 2);
       const recorded = await replays.read(players[0]!, room.id, roundId);
       assert.deepEqual(recorded.frames.map(frame => frame.stateVersion), [0, 1, 2]);
-      assert.equal(await ledger.balance(players[0]!.id), '9.125');
-      assert.equal(await ledger.balance(players[1]!.id), '8.875');
+      assert.equal(await ledger.balance(players[0]!.id), '10.125');
+      assert.equal(await ledger.balance(players[1]!.id), '9.875');
       await rooms.ready(players[0]!, room.id, true);
       const next = await rooms.ready(players[1]!, room.id, true);
       assert.equal(next.stateVersion, 0);

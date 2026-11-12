@@ -103,7 +103,7 @@ test('original wire pushes committed bean changes without heartbeat and deduplic
   assert.equal(client.inbox.filter(item => item.frame.cmd === MSGEvent.HWNotifyUserDataChange).length, notificationsBefore + 1);
 });
 
-test('original wire pushes room fee and settlement balances after their transactions commit', async t => {
+test('original wire pushes settlement and winner room-fee balances after their transactions commit', async t => {
   const db = await openDatabase();
   await migrate(db);
   const app = Fastify();
@@ -147,13 +147,14 @@ test('original wire pushes room fee and settlement balances after their transact
   // Call the room service directly here because the original-wire adapter
   // guard intentionally rejects a synthetic engine without a game adapter.
   await rooms.ready(players[0]!, room.id, true);
-  const feeStarts = connected.map(client => client.inbox.length);
   await rooms.ready(players[1]!, room.id, true);
-  // 自己和同桌的人都收到每一家扣房费后的豆子（原版头像按 uid 更新那一家）。
-  for (const [index, client] of connected.entries()) for (const uid of uids) assert.equal(await goldOf(client, feeStarts[index]!, uid), '9');
+  // 开局不扣房费（DEC-20261112-大赢家付房费）。
+  assert.equal(await ledger.balance(players[0]!.id), '10');
   const started = await rooms.view(room.id, players[0]!.id);
   const settlementStarts = connected.map(client => client.inbox.length);
   await rooms.action(players[0]!, room.id, 'wire-room-settlement', { type: 'settle' }, started.stateVersion!, started.roundId!);
+  // 自己和同桌的人都收到每一家结算后的豆子（原版头像按 uid 更新那一家）；赢家够 20 倍底分时推的是扣过房费的数。
+  const winner = await ledger.balance(players[0]!.id);
   for (const [index, client] of connected.entries()) for (const [seat, uid] of uids.entries())
-    assert.equal(await goldOf(client, settlementStarts[index]!, uid), seat === 0 ? '9.25' : '8.75');
+    assert.equal(await goldOf(client, settlementStarts[index]!, uid), seat === 0 ? winner : '9.75');
 });

@@ -1261,7 +1261,7 @@
     pen.node.setContentSize(100, 45);
     pen.node.addComponent(cc.Button).transition = cc.Button.Transition.SCALE;
     var label = lobbyShadow(lobbyLabel(pen.node, text, 0, 0, 21, rgb('#ffffff'), 0.5, true));
-    cc.mm.uitools.addBtnLister(pen.node, function () { lobby.tab = key; closeLobbyPlayer(lobby); renderLobby(controller); }, controller);
+    cc.mm.uitools.addBtnLister(pen.node, function () { if (lobby.tab !== key) lobby.content.y = lobby.view.height / 2; lobby.tab = key; closeLobbyPlayer(lobby); renderLobby(controller); }, controller);
     return { key: key, node: pen.node, pen: pen, label: label, natural: labelWidth(label) + 48 };
   }
   // 豆子框：深蓝半透明圆角，左边金豆，右边数字（样式稿 .beans），右边缘对齐节点原点。
@@ -1342,7 +1342,9 @@
     var cardHeight = Math.floor((top - bottom - LOBBY_GAP_Y) / 2);
     lobby.scroll.setContentSize(areaWidth, top - bottom); lobby.scroll.setPosition(center, (top + bottom) / 2);
     lobby.view.setContentSize(areaWidth, top - bottom);
-    lobby.content.width = areaWidth; lobby.content.y = (top - bottom) / 2;
+    // 保住已经滑下去的位置：大厅每 2 秒拉一次，桌子有变化就重排，以前每次都把列表拉回最上面，手机上一滑就弹回去（玩家反馈）。
+    var offset = lobby.viewTop === undefined ? 0 : Math.max(0, lobby.content.y - lobby.viewTop);
+    lobby.viewTop = (top - bottom) / 2; lobby.content.width = areaWidth; lobby.content.y = lobby.viewTop + offset;
     lobby.empty.node.parent.x = center;
     // 滚动条离右边 2.4cqw；快速开始贴右下角，离右 3cqw、离底 1.5cqw。
     lobby.barX = half - 32 - 2.5; lobby.areaTop = top; lobby.areaBottom = bottom;
@@ -1426,6 +1428,8 @@
     lobby.cards = next;
     var rows = Math.ceil(tables.length / columns);
     lobby.content.height = Math.max(lobby.view.height, rows * cardHeight + Math.max(0, rows - 1) * LOBBY_GAP_Y);
+    // 桌子变少时别停在内容外面。
+    lobby.content.y = Math.min(lobby.content.y, lobby.view.height / 2 + lobby.content.height - lobby.view.height);
     drawLobbyBar(lobby);
   }
   // 进行中的桌子绿桌压暗（样式稿 saturate(.75) brightness(.9)）。
@@ -1841,7 +1845,8 @@
   var XINJIN_FAN_TEXT = '天胡、地胡、报叫、金二十、暗四对、全红、全黑、红五十、黑五十、金钩钓各3番，龙对每个再加3番；鬼每张1番，碰、偷每组1番，杠、巴每组2番';
   function xinjinRule(text, room) {
     var pay = /^场次规则: (房主、|AA、)/.exec(text), base = /、([^、]+分)$/.exec(text);
-    return '场次规则: ' + (pay ? pay[1] : '') + (Number(room.wangNum) || 3) + '个王、红' + (Number(room.playerNum) === 4 ? 20 : 25) +
+    // 房费每局由大赢家付（DEC-20261112-大赢家付房费），不再写 AA / 房主。
+    return '场次规则: 大赢家付房费、' + (Number(room.wangNum) || 3) + '个王、红20' + /* 几人桌都红 20 起胡（DEC-20261112-都红20起胡） */
       '起胡、' + xinjinFanWords(room) + '、点炮包赔、自摸自吃' + (base ? '、' + base[1] : '') + '；' + XINJIN_FAN_TEXT;
   }
   // 翻法、封顶每张桌自己选（DEC-20261108-翻法封顶每桌选）：chengFan 1 跟斗翻 / 0 梯坎翻，maxFan 99 不封顶 / 3、4、5 番封顶。

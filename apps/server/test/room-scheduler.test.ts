@@ -89,8 +89,8 @@ test('legal actions, deadlines and autoplay are durable engine-owned decisions',
       const attempts = await Promise.all(Array.from({ length: 16 }, () => restored.applyDueAction(room.id)));
       assert.equal(attempts.filter(Boolean).length, 1);
       assert.equal((await restored.view(room.id, players[0]!.id)).state, 'between_rounds');
-      assert.equal(await ledger.balance(players[0]!.id), '9.125');
-      assert.equal(await ledger.balance(players[1]!.id), '8.875');
+      assert.equal(await ledger.balance(players[0]!.id), '10.125');
+      assert.equal(await ledger.balance(players[1]!.id), '9.875');
       const replay = await replays.read(players[0]!, room.id, roundId);
       assert.deepEqual(replay.frames.map(frame => frame.stateVersion), [0, 1, 2]);
       assert.equal((await state(roundId)).timers.length, 0);
@@ -240,8 +240,8 @@ test('reopening an isolated database resumes recorded deadlines without recalcul
     assert.equal(await restored.applyDueAction(room.id), false);
     clock += 1000;
     assert.equal(await restored.applyDueAction(room.id), true);
-    assert.equal(await new LedgerService(db).balance(players[0]!.id), '9.125');
-    assert.equal(await new LedgerService(db).balance(players[1]!.id), '8.875');
+    assert.equal(await new LedgerService(db).balance(players[0]!.id), '10.125');
+    assert.equal(await new LedgerService(db).balance(players[1]!.id), '9.875');
     const replay = await new ReplayService(db, new EngineRegistry([fixture])).read(players[0]!, room.id, started.roundId!);
     assert.deepEqual(replay.frames.map(frame => frame.stateVersion), [0, 1, 2]);
     const changed = { ...fixture, interactions: { ...fixture.interactions!, deadlines(raw: unknown) {
