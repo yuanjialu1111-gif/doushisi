@@ -631,7 +631,7 @@ test('v2 起手依次偷：庄家没得偷就跳过；闲家偷完鬼补牌后�
   assert.equal(turn.openingTou, null);
 });
 
-test('v2 鬼点了「过」留在手里：不能打出去，不再提示偷，要再摸到鬼才提示（DEC-20261108-起手依次偷）', () => {
+test('v2 鬼点了「过」留在手里：不能打出去，自己出牌前还能再偷（DEC-20261112-鬼每轮能偷）', () => {
   let state = begun(make([[1001, 102, 104, 106, 108, 110, 112, 113], [201, 203, 205, 206, 208, 209, 211]], [107, 109]));
   assert.equal(state.activeId, 'a');
   state = noBao(noTou(state));
@@ -639,7 +639,8 @@ test('v2 鬼点了「过」留在手里：不能打出去，不再提示偷，�
   const discards = xinjinLegalActions(state, 'a').filter(item => item.type === 'discard');
   assert.equal(discards.length, 7);
   assert.ok(discards.every(item => code(state, (item as { cardId: string }).cardId) !== 1001), '鬼不能打');
-  assert.ok(!xinjinLegalActions(state, 'a').some(item => item.type === 'tou'));
+  assert.ok(xinjinLegalActions(state, 'a').some(item => item.type === 'tou'), '起手点过，轮到自己出牌还能偷');
+  assert.equal(xinjinTimedAction(state, 'a')!.action.type, 'discard', '超时照常打牌、不替他偷');
   assert.notEqual(code(state, (xinjinTimedAction(state, 'a')!.action as { cardId: string }).cardId), 1001, '超时也不打鬼');
   assert.ok(zone(state, 'hand:a').some(id => code(state, id) === 1001));
 });

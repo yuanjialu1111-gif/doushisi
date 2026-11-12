@@ -343,7 +343,11 @@ export async function registerOriginalProtocol(app: FastifyInstance, services: O
     const decimalFields: DecimalField[] = (packet.decimalFields ?? []).map((field: DecimalField) => ({ ...field, path: [...field.path] }));
     // 这局输赢显示实际过账的豆子：输家最多输光身上的，赢家相应少拿。
     const paid: Record<string, any>[] = roundId ? (await db.query("SELECT results FROM rounds WHERE id=$1 AND state='settled'", [roundId])).rows[0]?.results ?? [] : [];
+    // 这局大赢家付的房费（DEC-20261112-大赢家付房费）：原版结算没有房费字段，借没用到的 roomCardNum 带过去，单位 0.01 豆，热更新脚本在分数下面写「房费 -N」。
+    const fees = roundId ? (await db.query("SELECT e.user_id,e.amount::text FROM ledger_entries e JOIN ledger_operations o ON o.id=e.operation_id WHERE o.request_key=$1", [`room-fee:${roundId}`])).rows : [];
     for (const [index, info] of (body.userScoreInfo ?? []).entries()) {
+      const fee = fees.find(row => row.user_id === info.uid);
+      if (fee) info.roomCardNum = Math.round(new Decimal(fee.amount).negated().times(100).toNumber());
       const actual = paid.find(posting => posting.userId === info.uid);
       const change = decimalFields.find(field => field.path.join('.') === `hwNotifyGameOver.userScoreInfo.${index}.changeScore`);
       if (actual && change) { change.value = actual.amount; info.changeScore = actual.amount; }

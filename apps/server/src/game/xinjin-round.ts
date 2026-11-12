@@ -217,11 +217,12 @@ function ownMelds(state: XinjinRound, id: string): Move[] {
   const current = player(state, id), handCards = cards(state, handZone(id));
   if ((current.declaredWaits ?? null) !== null || current.declarePending) return [];
   const v2 = isXinjinV2(state.rules), passed = current.touPassed ?? [];
-  // v2 手里的鬼自己点偷，几张一起偷（DEC-20261108-起手依次偷）；点过了要再摸到鬼才提示，
-  // 鬼不能打出去，手里只剩鬼时一直提示偷。
+  // v2 手里的鬼自己点偷，几张一起偷（DEC-20261108-起手依次偷）；点过了也是每轮自己出牌前都能再偷（DEC-20261112-鬼每轮能偷），
+  // 翻牌前点过的不再提示（免得每次翻牌都停 15 秒）；鬼不能打出去，手里只剩鬼时一直提示偷。
   const ghosts = handCards.filter(card => isSpecial(card.code));
   const onlyGhosts = ghosts.length === handCards.length;
-  const ghostTou: Move[] = v2 && ghosts.length && (!passed.includes(GHOST_RANK) || onlyGhosts) ? [{ type: 'tou', cardIds: ghosts.map(card => card.id) }] : [];
+  const ghostTou: Move[] = v2 && ghosts.length && (!passed.includes(GHOST_RANK) || onlyGhosts || state.phase === 'discard')
+    ? [{ type: 'tou', cardIds: ghosts.map(card => card.id) }] : [];
   const currentCards = handCards.filter(card => !isSpecial(card.code));
   // v2 巴杠：已经碰或偷出的三张，手里摸到第四张可以补上去。
   const ba: Move[] = !v2 ? [] : current.melds.flatMap((meld, meldIndex) => {

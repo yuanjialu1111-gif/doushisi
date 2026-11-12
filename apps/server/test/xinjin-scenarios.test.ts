@@ -264,6 +264,21 @@ test('操作：摸鬼补牌', () => {
   assert.equal(state.activeId, 'b');
   assert.ok(zone(state, 'hand:b').includes(104));
 });
+test('手里的鬼点过偷，下一轮自己出牌前还能偷；翻牌前不提示（DEC-20261112-鬼每轮能偷）', () => {
+  const drawn = pass(step(start('gui'), 'a', 'discard', [413]));
+  const keep = options(drawn, 'b', 'discard').find(option => !option.faces.includes(1001))!;
+  let state = pass(apply(drawn, 'b', keep.action).snapshot as State);
+  assert.deepEqual(state.players[1]!.touPassed, [0]);
+  for (let guard = 0; guard < 40 && state.phase !== 'finished' && !(state.phase === 'discard' && state.activeId === 'b'); guard++) {
+    assert.ok(!(state.phase === 'draw' && state.activeId === 'b'), '翻牌前不弹偷');
+    if (state.phase === 'response') { state = pass(state); continue; }
+    const id = state.activeId;
+    state = apply(state, id, engine.interactions!.autoPlay!(state, id)!.action).snapshot as State;
+  }
+  assert.equal(state.phase, 'discard'); assert.equal(state.activeId, 'b');
+  assert.ok(zone(state, 'hand:b').includes(1001));
+  assert.ok(options(state, 'b', 'tou').length, '自己出牌前又能偷');
+});
 test('操作：报叫后锁牌', () => {
   // 开局 1号、3号一起弹「报」：1号点报，只有黑Q、黑6能打。
   assert.deepEqual(start('baoJiaoLock', true).openingDeclare!.pending, ['a', 'c']);

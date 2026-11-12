@@ -1638,6 +1638,29 @@
       if (cc.isValid(settle.node) && settle.node.activeInHierarchy && look.active) settle.onClickLook();
     }, 4000);
   }
+  // 小结算：这局付了房费的大赢家，分数下面写「房费 -N」（DEC-20261112-大赢家付房费）。服务端借 roomCardNum 带过来，单位 0.01 豆。
+  // 原版 loadUI 每家 addChild 一行，排序（zIndex）要到下一帧才生效，这时按加进来的顺序对得上 userScoreInfo。
+  function patchRoomFee(settle) {
+    var body = settle.body, center = settle.views && settle.views.center;
+    if (!body || !Array.isArray(body.userScoreInfo) || !center) return;
+    var rows = center.children.filter(function (row) { return row !== settle.views.items && row.getChildByName('winscoreLabel'); });
+    rows = rows.slice(Math.max(0, rows.length - body.userScoreInfo.length));
+    body.userScoreInfo.forEach(function (info, index) {
+      var row = rows[index], cents = Number(info.roomCardNum) || 0;
+      if (!row) return;
+      var old = row.getChildByName('standaloneRoomFee');
+      if (old) old.destroy();
+      if (cents <= 0) return;
+      // 正对着赢的分数下面（分数节点锚点不一定在中间，按它的外框算）。
+      var score = row.getChildByName('winscoreLabel');
+      var label = lobbyLabel(row, '房费 -' + beanText(cents / 100), score.x, score.y - 40, 22, rgb('#fff1c2'), 0.5, true);
+      label.node.name = 'standaloneRoomFee'; label.node.anchorY = 1;
+      // 结算窗打开这一帧分数还没排好位置，等下一帧按分数的外框摆到正下方。
+      var place = function () { if (label.node.isValid && score.isValid) label.node.setPosition(score.getBoundingBox().center.x, score.y - 40); };
+      place(); cc.director.once(cc.Director.EVENT_AFTER_UPDATE, place);
+      var outline = label.node.addComponent(cc.LabelOutline); outline.color = cc.color(120, 50, 0, 200); outline.width = 2;
+    });
+  }
   function patchBigResult(view) {
     var again = view.views && view.views.gy_btn_zlyj, leave = view.views && view.views.common_btn_blue;
     if (!again || !leave || view._standaloneHoldBody === view.body) return;
@@ -2433,7 +2456,7 @@
         baoButton.off('click');
         cc.mm.uitools.addBtnLister(baoButton, controller.onClickOperator.bind(controller), controller);
       }
-      afterLoadUI('dss_settle_UIController', patchFinalSettle);
+      afterLoadUI('dss_settle_UIController', function (settle) { patchFinalSettle(settle); patchRoomFee(settle); });
       // 牌桌不显示距离（R11 AC1）：原版进房时会重新打开定位按钮，透明度清零免得闪一下。
       var locationButton = controller.views.locationbtn;
       if (locationButton) { locationButton.opacity = 0; locationButton.active = false; }
