@@ -3,6 +3,7 @@
 - **原因**：用户试过说滑动好了；123 nginx 日志里手机报 `card: TypeError: Cannot read property 'setRenderSubHandle' of null`，出在 `roundMask` 给还没挂上场景的节点设 `mask.type`（原生引擎这时遮罩渲染器还没建）。这就是上一条「拉不动、旧桌卡叠层」的根因；兜底后手机上有人坐的桌被跳过、点头像资料卡也出错。
 - **改了**：`client/public/standalone.js` `roundMask` 去掉 `mask.type = cc.Mask.Type.RECT`（默认就是矩形）。决策见 DEC-20261113-大厅重画兜底的补充。
 - **测试**：客户端适配 18 过；本机测试台 1、2 号坐下，4 号大厅那桌两个圆角头像照常、点头像资料卡照常。手机原生上还要用户看。
+- **部署 123**（2026-11-13）：0 人在线；bundle 快进到 fb7ae49，构建过，停服备份 `before-update-20261113T012543Z.tgz` 后重启，七项自检 ok，热更新清单 1794533053 和本机一致。
 
 # 当前任务（2026-11-13 手机大厅还是拉不动、会弹回：防御修复 + 错误上报，已推 GitHub、部署 123）
 
