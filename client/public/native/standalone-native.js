@@ -1066,7 +1066,8 @@
       if (cc.game.renderType === cc.game.RENDER_TYPE_CANVAS) pen.stroke(); else pen.fill();
       this.setVertsDirty();
     };
-    mask.type = cc.Mask.Type.RECT;
+    // 不再设 mask.type：默认就是矩形；节点还没挂上场景时设类型，手机原生引擎会报错（遮罩的渲染器还没建），
+    // 有人坐的桌卡和头像资料卡都画不出来（123 上手机报的 setRenderSubHandle of null）。
     return mask;
   }
   function roundAvatar(parent, x, y, size, radius, url) {
