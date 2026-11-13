@@ -1184,6 +1184,7 @@
         if (!cc.isValid(controller.node)) return clearInterval(lobby.timer);
         if (!controller.node.activeInHierarchy) return;
         if (layoutLobby(controller)) renderLobby(controller);
+        else if (lobby.renderLater) renderLobby(controller, true);
         lobbyRefresh(controller, false);
       }, 2000);
       lobbyRefresh(controller, true);
@@ -1215,6 +1216,9 @@
     // 右边细滚动条：桌子多于一屏才画（样式稿右沿 0.7cqw、上沿 8cqw、高 34cqw）。
     lobby.bar = lobbyPen(lobby.box, 'standaloneLobbyBar');
     scrollNode.on('scrolling', function () { drawLobbyBar(lobby); });
+    scrollNode.on('scroll-began', function () { lobby.dragging = true; });
+    scrollNode.on('touch-up', function () { lobby.dragging = false; if (lobby.renderLater) renderLobby(controller, true); });
+    scrollNode.on('scroll-ended', function () { lobby.dragging = false; if (lobby.renderLater) renderLobby(controller, true); });
     // 空状态放在深色玻璃底板上，雪景背景上也看得清。
     var emptyPen = lobbyPen(lobby.box, 'standaloneLobbyEmpty', 0, 40);
     fillRound(emptyPen, -320, -60, 640, 120, 24, cc.color(20, 30, 60, 150));
@@ -1343,8 +1347,13 @@
     lobby.scroll.setContentSize(areaWidth, top - bottom); lobby.scroll.setPosition(center, (top + bottom) / 2);
     lobby.view.setContentSize(areaWidth, top - bottom);
     // 保住已经滑下去的位置：大厅每 2 秒拉一次，桌子有变化就重排，以前每次都把列表拉回最上面，手机上一滑就弹回去（玩家反馈）。
-    var offset = lobby.viewTop === undefined ? 0 : Math.max(0, lobby.content.y - lobby.viewTop);
-    lobby.viewTop = (top - bottom) / 2; lobby.content.width = areaWidth; lobby.content.y = lobby.viewTop + offset;
+    // 显示区没变就不碰列表位置（每 2 秒都会走到这里，手指正拉着列表时改位置会把它弹回去）。
+    var viewTop = (top - bottom) / 2;
+    if (lobby.viewTop !== viewTop) {
+      var offset = lobby.viewTop === undefined ? 0 : Math.max(0, lobby.content.y - lobby.viewTop);
+      lobby.viewTop = viewTop; lobby.content.y = viewTop + offset;
+    }
+    lobby.content.width = areaWidth;
     lobby.empty.node.parent.x = center;
     // 滚动条离右边 2.4cqw；快速开始贴右下角，离右 3cqw、离底 1.5cqw。
     lobby.barX = half - 32 - 2.5; lobby.areaTop = top; lobby.areaBottom = bottom;
@@ -1368,7 +1377,7 @@
       if (lobby.again || lobby.variant !== variant) { lobby.again = false; return lobbyRefresh(controller, true); }
       if (data.unchanged) return;
       lobby.version = data.version; lobby.data = data; lobby.failed = false;
-      renderLobby(controller);
+      renderLobby(controller, true);
     }, function () {
       lobby.loading = false;
       if (!cc.isValid(controller.node) || lobby.data) return;
@@ -1393,7 +1402,17 @@
     var shadow = tab.label.getComponent(cc.LabelShadow);
     if (shadow) shadow.enabled = !on;
   }
-  function renderLobby(controller) {
+  // 手指正拖着列表或列表还在惯性滑时，定时拉到的新数据先不重画（重画会把手指下面的桌卡换掉，拖动就断了），停下来再画。
+  function renderLobby(controller, fromPoll) {
+    var lobby = controller._standaloneLobby, scroll = lobby.scroll && lobby.scroll.getComponent(cc.ScrollView);
+    // 最多等 6 秒（万一没收到松手事件也不会一直不刷新）。
+    if (fromPoll && (lobby.dragging || scroll && scroll.isAutoScrolling()) && Date.now() - (lobby.renderLater || Date.now()) < 6000) {
+      lobby.renderLater = lobby.renderLater || Date.now(); return;
+    }
+    lobby.renderLater = 0;
+    try { drawLobby(controller); } catch (error) { lobbyError('render', error); }
+  }
+  function drawLobby(controller) {
     var lobby = controller._standaloneLobby, data = lobby.data || { tables: [], variants: [], hasLocation: false };
     lobbyBaseTabs(controller, data.tables);
     layoutLobby(controller);
@@ -1412,25 +1431,45 @@
       : '这个玩法暂时没有桌子，稍后再来看看';
     lobby.empty.node.parent.active = !!lobby.empty.string;
     var next = {}, columns = lobby.columns, cardWidth = lobby.cardWidth, cardHeight = lobby.cardHeight;
-    tables.forEach(function (table, index) {
-      var signature = JSON.stringify([table, cardWidth, cardHeight, lobbyEnough(data, table)]), card = lobby.cards[table.code];
-      if (!card || !cc.isValid(card) || card._standaloneSignature !== signature) {
-        if (card && cc.isValid(card)) card.destroy();
-        card = lobbyCard(controller, table, cardWidth, cardHeight);
-        card._standaloneSignature = signature;
-        lobby.content.addChild(card);
-      }
-      card.setPosition(-lobby.areaWidth / 2 + cardWidth / 2 + index % columns * (cardWidth + LOBBY_GAP_X),
-        -cardHeight / 2 - Math.floor(index / columns) * (cardHeight + LOBBY_GAP_Y));
-      next[table.code] = card;
-    });
-    Object.keys(lobby.cards).forEach(function (code) { if (!next[code] && cc.isValid(lobby.cards[code])) lobby.cards[code].destroy(); });
-    lobby.cards = next;
-    var rows = Math.ceil(tables.length / columns);
+    // 先定内容高度再摆桌卡：手机上（玩家反馈：拉不动、会弹回、底分 5 标签下还露出底分 1、2 的桌）像是重画到一半出错，
+    // 后面的高度没更新、旧桌卡没清掉越叠越多。现在每张桌卡单独兜住，出错跳过这一张，最后把没登记的子节点全部清掉。
+    var rows = Math.ceil(tables.length / columns), stamp = lobby.stamp = (lobby.stamp || 0) + 1;
     lobby.content.height = Math.max(lobby.view.height, rows * cardHeight + Math.max(0, rows - 1) * LOBBY_GAP_Y);
+    tables.forEach(function (table, index) {
+      try {
+        var signature = JSON.stringify([table, cardWidth, cardHeight, lobbyEnough(data, table)]), card = lobby.cards[table.code];
+        if (!card || !cc.isValid(card) || card._standaloneSignature !== signature) {
+          card = lobbyCard(controller, table, cardWidth, cardHeight);
+          card._standaloneSignature = signature;
+          lobby.content.addChild(card);
+        }
+        card.setPosition(-lobby.areaWidth / 2 + cardWidth / 2 + index % columns * (cardWidth + LOBBY_GAP_X),
+          -cardHeight / 2 - Math.floor(index / columns) * (cardHeight + LOBBY_GAP_Y));
+        card._standaloneStamp = stamp;
+        next[table.code] = card;
+      } catch (error) { lobbyError('card', error); }
+    });
+    lobby.cards = next;
+    var stale = lobby.content.children.filter(function (child) { return child._standaloneStamp !== stamp; });
+    stale.forEach(function (child) {
+      try { child.destroy(); } catch (error) { lobbyError('destroy', error); }
+      try { if (child.parent) child.removeFromParent(false); } catch (error) { lobbyError('remove', error); }
+    });
     // 桌子变少时别停在内容外面。
     lobby.content.y = Math.min(lobby.content.y, lobby.view.height / 2 + lobby.content.height - lobby.view.height);
-    drawLobbyBar(lobby);
+    try { drawLobbyBar(lobby); } catch (error) { lobbyError('bar', error); }
+  }
+  // 大厅出错时往服务器访问日志里记一条（同一条错误只记一次），手机上看不到控制台，靠它查原因。
+  var lobbyErrors = {};
+  function lobbyError(where, error) {
+    var text = where + ': ' + String(error && (error.stack || error.message) || error).slice(0, 600);
+    if (lobbyErrors[text]) return;
+    lobbyErrors[text] = true;
+    try {
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', config.apiBase + '/client/lobby-error?native=' + (cc.sys.isNative ? 1 : 0) + '&m=' + encodeURIComponent(text), true);
+      xhr.send(null);
+    } catch (_) {}
   }
   // 进行中的桌子绿桌压暗（样式稿 saturate(.75) brightness(.9)）。
   function feltColor(hex, playing) {
